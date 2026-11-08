@@ -64,6 +64,15 @@ namespace LaboratorioParalelepipedo.Nucleo
             };
         }
 
+        /// <summary>Diagonal da base: d = √(a² + b²) (ex.: EG).</summary>
+        public double DiagonalDaBase => Math.Sqrt(A * A + B * B);
+
+        /// <summary>
+        /// Diagonal do paralelepípedo: D = √(d² + c²) = √(a² + b² + c²) (ex.: EC).
+        /// O triângulo de catetos d e c e hipotenusa D é retângulo.
+        /// </summary>
+        public double Diagonal => Math.Sqrt(A * A + B * B + C * C);
+
         /// <summary>Vértice pelo nome ("A" a "H"), ou null se não existir.</summary>
         public Vertice ObterVertice(string nome)
         {
