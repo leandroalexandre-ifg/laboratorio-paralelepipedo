@@ -23,7 +23,7 @@ Observações gerais:
 | `geral.tentarDeNovo` | Tentar de novo | | |
 | `geral.recomecar` | Recomeçar | | |
 | `controles.apontar` | Aponte e aperte o gatilho para escolher. | | |
-| `controles.pegar` | Aperte o botão lateral para pegar e soltar. | | |
+| `controles.pegar` | Aponte para a caixa e segure o botão lateral para pegar. Solte para devolver. | | |
 | `controles.teleporte` | Empurre o analógico para a frente, mire no chão e solte para ir até lá. | | |
 | `controles.giro` | Empurre o analógico para o lado para girar. | | |
 | `estacao.elementos.titulo` | 1. Elementos | | |

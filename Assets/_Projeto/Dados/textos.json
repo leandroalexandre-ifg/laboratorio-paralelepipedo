@@ -11,7 +11,7 @@
     { "chave": "geral.recomecar", "texto": "Recomeçar" },
 
     { "chave": "controles.apontar", "texto": "Aponte e aperte o gatilho para escolher." },
-    { "chave": "controles.pegar", "texto": "Aperte o botão lateral para pegar e soltar." },
+    { "chave": "controles.pegar", "texto": "Aponte para a caixa e segure o botão lateral para pegar. Solte para devolver." },
     { "chave": "controles.teleporte", "texto": "Empurre o analógico para a frente, mire no chão e solte para ir até lá." },
     { "chave": "controles.giro", "texto": "Empurre o analógico para o lado para girar." },
 

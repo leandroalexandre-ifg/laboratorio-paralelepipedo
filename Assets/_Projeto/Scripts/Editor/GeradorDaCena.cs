@@ -2,6 +2,7 @@ using System.IO;
 using LaboratorioParalelepipedo.Apresentacao;
 using LaboratorioParalelepipedo.Nucleo;
 using LaboratorioParalelepipedo.Nucleo.Dados;
+using LaboratorioParalelepipedo.Nucleo.Interacao;
 using LaboratorioParalelepipedo.XR;
 using TMPro;
 using UnityEditor;
@@ -13,8 +14,9 @@ using UnityEngine.SceneManagement;
 namespace LaboratorioParalelepipedo.Editor
 {
     /// <summary>
-    /// Gera a cena base do laboratório: sala, mesa, caixa (arestas, faces translúcidas, vértices A–H), painéis que
-    /// leem o textos.json, uma luz direcional e o OVRCameraRig. Recria a cena do zero a cada execução.
+    /// Gera a cena base do laboratório: sala, mesa, caixa pegável (arestas, faces translúcidas, vértices A–H),
+    /// painéis que leem o textos.json, uma luz direcional e o OVRCameraRig com os raios dos dois controles, o
+    /// teleporte e o giro por passos. Recria a cena do zero a cada execução.
     /// Batchmode: -executeMethod LaboratorioParalelepipedo.Editor.GeradorDaCena.Gerar -quit
     /// </summary>
     public static class GeradorDaCena
@@ -67,10 +69,12 @@ namespace LaboratorioParalelepipedo.Editor
             rig = AssetDatabase.LoadAssetAtPath<GameObject>(CaminhoDoRig);
 
             ConfigurarAmbiente();
-            CriarModoEditor(CriarRig(rig));
+            GameObject instanciaDoRig = CriarRig(rig);
+            CriarModoEditor(instanciaDoRig);
             CriarSala();
             CriarMesa();
-            CriarCaixa(fonte);
+            CaixaPegavel caixa = CriarCaixa(fonte);
+            CriarInteracao(instanciaDoRig, caixa);
 
             var dados = new GameObject("DadosDoLaboratorio").AddComponent<DadosDoLaboratorio>();
             dados.Configurar(textos, desafios);
@@ -78,6 +82,7 @@ namespace LaboratorioParalelepipedo.Editor
                 (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.06f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, -0.11f));
             CriarPainel("PainelControles", new Vector3(-1.25f, 1.45f, 1.9f), new Vector2(1.1f, 0.62f), dados, fonte,
                 (null, TamanhoDoCorpo, 0f));
+            Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -173,16 +178,120 @@ namespace LaboratorioParalelepipedo.Editor
             }
         }
 
-        private static void CriarCaixa(TMP_FontAsset fonte)
+        private static CaixaPegavel CriarCaixa(TMP_FontAsset fonte)
         {
             Material aresta = MaterialOpaco("Aresta", ShaderUnlit, PaletaDoLaboratorio.Aresta);
             Material vertice = MaterialOpaco("Vertice", ShaderUnlit, PaletaDoLaboratorio.Aresta);
             Material face = MaterialTranslucido("FaceDaCaixa", PaletaDoLaboratorio.Face);
+            Material destacada = MaterialOpaco("ArestaDestacada", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
 
-            var caixa = new GameObject("Caixa").AddComponent<VisualDaCaixa>();
-            caixa.transform.position = CentroDaMesa + Vector3.up * AlturaDoTampo;
-            caixa.Configurar(aresta, face, vertice, fonte);
-            caixa.Construir(new Paralelepipedo(4, 3, 2));
+            var objeto = new GameObject("Caixa");
+            objeto.transform.position = CentroDaMesa + Vector3.up * AlturaDoTampo;
+            var visual = objeto.AddComponent<VisualDaCaixa>();
+            visual.Configurar(aresta, face, vertice, fonte);
+            visual.Construir(new Paralelepipedo(4, 3, 2));
+
+            // Corpo cinemático: o colisor se move com a caixa na mão sem a física recalcular a cena estática.
+            var corpo = objeto.AddComponent<Rigidbody>();
+            corpo.isKinematic = true;
+            corpo.useGravity = false;
+            var pegavel = objeto.AddComponent<CaixaPegavel>();
+            pegavel.Configurar(destacada);
+            pegavel.AjustarColisor();
+            return pegavel;
+        }
+
+        /// <summary>
+        /// Raios dos dois controles (com um modelo simples de cada um), teleporte (arco e marcador no chão) e giro
+        /// por passos (esfera escura presa à cabeça, desligada fora do giro).
+        /// </summary>
+        private static void CriarInteracao(GameObject rig, CaixaPegavel caixa)
+        {
+            Material livre = MaterialOpaco("Raio", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
+            Material noAlvo = MaterialOpaco("RaioNoAlvo", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
+            Material controle = MaterialOpaco("Controle", ShaderUnlit, PaletaDoLaboratorio.PeDaMesa);
+            Material valido = MaterialOpaco("Teleporte", ShaderUnlit, PaletaDoLaboratorio.Teleporte);
+            Material invalido = MaterialOpaco("TeleporteInvalido", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja);
+            Material escuro = MaterialDoEscurecimento();
+
+            RaioDoControle esquerdo = CriarRaio(rig.transform, "TrackingSpace/LeftHandAnchor/LeftControllerAnchor",
+                OVRInput.Controller.LTouch, livre, noAlvo, controle);
+            RaioDoControle direito = CriarRaio(rig.transform, "TrackingSpace/RightHandAnchor/RightControllerAnchor",
+                OVRInput.Controller.RTouch, livre, noAlvo, controle);
+
+            var arco = new GameObject("ArcoDoTeleporte").AddComponent<LineRenderer>();
+            ConfigurarLinha(arco, 0.012f, valido);
+            arco.positionCount = 0;
+            arco.enabled = false;
+            Transform marcador = Primitiva(PrimitiveType.Cylinder, arco.transform, "MarcadorDoTeleporte", Vector3.zero,
+                new Vector3(0.3f, 0.003f, 0.3f), valido);
+            marcador.GetComponent<MeshRenderer>().enabled = false;
+
+            Transform cabeca = rig.transform.Find("TrackingSpace/CenterEyeAnchor");
+            Transform esfera = Primitiva(PrimitiveType.Sphere, cabeca, "EscurecimentoDoGiro", Vector3.zero,
+                Vector3.one * 0.3f, escuro);
+            esfera.GetComponent<MeshRenderer>().enabled = false;
+
+            var locomocao = rig.AddComponent<LocomocaoDoAluno>();
+            Definir(locomocao,
+                ("_rig", rig.transform), ("_cabeca", cabeca), ("_raioEsquerdo", esquerdo), ("_raioDireito", direito),
+                ("_arco", arco), ("_marcador", marcador.GetComponent<MeshRenderer>()),
+                ("_materialValido", valido), ("_materialInvalido", invalido),
+                ("_escurecimento", esfera.GetComponent<MeshRenderer>()), ("_caixa", caixa));
+            var serializado = new SerializedObject(locomocao);
+            float ladoPorDentro = LadoDaSala - EspessuraDaParede;
+            serializado.FindProperty("_salaPorDentro").vector2Value = new Vector2(ladoPorDentro, ladoPorDentro);
+            serializado.FindProperty("_centroDaMesa").vector3Value = CentroDaMesa;
+            serializado.FindProperty("_tamanhoDaMesa").vector2Value = new Vector2(TamanhoDoTampo.x, TamanhoDoTampo.z);
+            serializado.FindProperty("_alturaDaMesa").floatValue = AlturaDoTampo;
+            serializado.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static RaioDoControle CriarRaio(Transform rig, string caminho, OVRInput.Controller controle,
+            Material livre, Material noAlvo, Material materialDoControle)
+        {
+            Transform ancora = rig.Find(caminho) ??
+                               throw new System.InvalidOperationException($"Âncora '{caminho}' não encontrada no OVRCameraRig.");
+
+            // Modelo simples: um bastão inclinado como o punho do Touch, atrás da ponta do raio.
+            Transform modelo = Primitiva(PrimitiveType.Capsule, ancora, "ModeloDoControle", new Vector3(0f, -0.02f, -0.03f),
+                new Vector3(0.035f, 0.045f, 0.035f), materialDoControle);
+            modelo.localRotation = Quaternion.Euler(60f, 0f, 0f);
+
+            var objeto = new GameObject($"Raio{(controle == OVRInput.Controller.LTouch ? "Esquerdo" : "Direito")}");
+            objeto.transform.SetParent(ancora, false);
+            var linha = objeto.AddComponent<LineRenderer>();
+            ConfigurarLinha(linha, 0.004f, livre);
+            linha.positionCount = 2;
+            var raio = objeto.AddComponent<RaioDoControle>();
+            raio.Configurar(controle, linha, livre, noAlvo, modelo.gameObject);
+            return raio;
+        }
+
+        private static void ConfigurarLinha(LineRenderer linha, float largura, Material material)
+        {
+            linha.sharedMaterial = material;
+            linha.widthMultiplier = largura;
+            linha.useWorldSpace = true;
+            linha.numCapVertices = 2;
+            linha.shadowCastingMode = ShadowCastingMode.Off;
+            linha.receiveShadows = false;
+            linha.lightProbeUsage = LightProbeUsage.Off;
+            linha.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        }
+
+        /// <summary>Ações que funcionam nesta cena: o painel de controles só mostra estas.</summary>
+        internal static AcoesDoControle AcoesDisponiveis()
+        {
+            var acoes = AcoesDoControle.Nenhuma;
+            foreach (var componente in Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (componente is IAlvoDoRaio) acoes |= AcoesDoControle.Apontar;
+                if (componente is IPegavel) acoes |= AcoesDoControle.Pegar;
+                if (componente is LocomocaoDoAluno) acoes |= AcoesDoControle.Teleporte | AcoesDoControle.Giro;
+            }
+
+            return acoes;
         }
 
         /// <summary>Painel preso ao mundo, virado para o aluno. Sem chave no texto: mostra os controles.</summary>
@@ -216,9 +325,7 @@ namespace LaboratorioParalelepipedo.Editor
 
                 var textoDoCatalogo = objeto.AddComponent<TextoDoCatalogo>();
                 if (chave != null) textoDoCatalogo.Configurar(dados, texto, chave);
-                else
-                    textoDoCatalogo.Configurar(dados, texto, ChavesDeTexto.ControlesApontar, ChavesDeTexto.ControlesPegar,
-                        ChavesDeTexto.ControlesTeleporte, ChavesDeTexto.ControlesGiro);
+                else textoDoCatalogo.Configurar(dados, texto, TextosDosControles.Chaves(AcoesDisponiveis()));
                 textoDoCatalogo.Atualizar();
             }
         }
@@ -240,6 +347,51 @@ namespace LaboratorioParalelepipedo.Editor
             // Estático: pronto para a iluminação baked.
             GameObjectUtility.SetStaticEditorFlags(bloco, StaticEditorFlags.ContributeGI | StaticEditorFlags.BatchingStatic);
             return bloco.transform;
+        }
+
+        /// <summary>Peça de malha embutida, sem colisor e sem sombras (objetos que se movem: nada de estático).</summary>
+        private static Transform Primitiva(PrimitiveType tipo, Transform pai, string nome, Vector3 posicaoLocal,
+            Vector3 escala, Material material)
+        {
+            var objeto = GameObject.CreatePrimitive(tipo);
+            objeto.name = nome;
+            Object.DestroyImmediate(objeto.GetComponent<Collider>());
+            objeto.transform.SetParent(pai, false);
+            objeto.transform.localPosition = posicaoLocal;
+            objeto.transform.localScale = escala;
+            var renderizador = objeto.GetComponent<MeshRenderer>();
+            renderizador.sharedMaterial = material;
+            renderizador.shadowCastingMode = ShadowCastingMode.Off;
+            renderizador.receiveShadows = false;
+            renderizador.lightProbeUsage = LightProbeUsage.Off;
+            renderizador.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            return objeto.transform;
+        }
+
+        private static void Definir(Object componente, params (string campo, Object valor)[] valores)
+        {
+            var serializado = new SerializedObject(componente);
+            foreach (var (campo, valor) in valores)
+            {
+                SerializedProperty propriedade = serializado.FindProperty(campo) ??
+                                                 throw new System.InvalidOperationException($"Campo '{campo}' não existe em {componente.GetType().Name}.");
+                propriedade.objectReferenceValue = valor;
+            }
+
+            serializado.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Esfera preta vista por dentro (culling da frente), desenhada por cima de tudo o que está a mais de 15 cm.
+        /// A opacidade vem do LocomocaoDoAluno, por MaterialPropertyBlock.
+        /// </summary>
+        private static Material MaterialDoEscurecimento()
+        {
+            Material material = MaterialTranslucido("EscurecimentoDoGiro", new Color(0f, 0f, 0f, 0f));
+            material.SetFloat("_Cull", (float)CullMode.Front);
+            material.renderQueue = (int)RenderQueue.Overlay;
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Material MaterialOpaco(string nome, string shader, Color cor)

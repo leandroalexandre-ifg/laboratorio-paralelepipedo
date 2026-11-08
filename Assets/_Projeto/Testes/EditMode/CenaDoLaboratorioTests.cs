@@ -1,6 +1,8 @@
 using System.Linq;
 using LaboratorioParalelepipedo.Apresentacao;
 using LaboratorioParalelepipedo.Nucleo.Dados;
+using LaboratorioParalelepipedo.Nucleo.Interacao;
+using LaboratorioParalelepipedo.XR;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -28,6 +30,9 @@ namespace LaboratorioParalelepipedo.Testes
         {
             if (_cena.IsValid()) EditorSceneManager.CloseScene(_cena, true);
         }
+
+        private static void MesmaCor(Color obtida, Color esperada) =>
+            Assert.That(ColorUtility.ToHtmlStringRGBA(obtida), Is.EqualTo(ColorUtility.ToHtmlStringRGBA(esperada)));
 
         private T[] Todos<T>() where T : Component =>
             _cena.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<T>(true)).ToArray();
@@ -122,6 +127,94 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(((Transform)serializado.FindProperty("_espacoDeRastreamento").objectReferenceValue).name,
                 Is.EqualTo("TrackingSpace"));
             Assert.That(serializado.FindProperty("_alturaDosOlhos").floatValue, Is.EqualTo(1.4f));
+        }
+
+        [Test]
+        public void PainelDeControles_SoMostraAsAcoesQueFuncionam()
+        {
+            var painel = Todos<TextoDoCatalogo>().Single(t => t.name == "Controles");
+            var componentes = Todos<MonoBehaviour>();
+            var acoes = AcoesDoControle.Nenhuma;
+            if (componentes.Any(c => c is IAlvoDoRaio)) acoes |= AcoesDoControle.Apontar;
+            if (componentes.Any(c => c is IPegavel)) acoes |= AcoesDoControle.Pegar;
+            if (componentes.Any(c => c is LocomocaoDoAluno)) acoes |= AcoesDoControle.Teleporte | AcoesDoControle.Giro;
+
+            Assert.That(painel.Chaves, Is.EqualTo(TextosDosControles.Chaves(acoes)));
+            Assert.That(painel.Chaves, Is.EqualTo(new[]
+                { ChavesDeTexto.ControlesPegar, ChavesDeTexto.ControlesTeleporte, ChavesDeTexto.ControlesGiro }),
+                "por enquanto não há alvo para o gatilho: o 'apontar e escolher' chega com as estações");
+        }
+
+        [Test]
+        public void RaioNasDuasMaos_PresoAosControles()
+        {
+            var raios = Todos<RaioDoControle>();
+
+            Assert.That(raios.Select(r => r.Controle), Is.EquivalentTo(new[] { OVRInput.Controller.LTouch, OVRInput.Controller.RTouch }));
+            foreach (var raio in raios)
+            {
+                Assert.That(raio.transform.parent.name, Does.EndWith("ControllerAnchor"));
+                var serializado = new SerializedObject(raio);
+                foreach (string campo in new[] { "_linha", "_materialLivre", "_materialNoAlvo", "_modelo" })
+                    Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, $"{raio.name}.{campo}");
+                MesmaCor(((Material)serializado.FindProperty("_materialNoAlvo").objectReferenceValue).GetColor("_BaseColor"),
+                    PaletaDoLaboratorio.DestaqueAzul);
+            }
+        }
+
+        [Test]
+        public void Locomocao_NoRig_ComASalaEAMesaDaCena()
+        {
+            var locomocao = Todos<LocomocaoDoAluno>().Single();
+            var serializado = new SerializedObject(locomocao);
+
+            Assert.That(locomocao.gameObject.name, Is.EqualTo("OVRCameraRig"));
+            Assert.That(((Transform)serializado.FindProperty("_rig").objectReferenceValue).name, Is.EqualTo("OVRCameraRig"));
+            Assert.That(((Transform)serializado.FindProperty("_cabeca").objectReferenceValue).name, Is.EqualTo("CenterEyeAnchor"));
+            foreach (string campo in new[] { "_raioEsquerdo", "_raioDireito", "_arco", "_marcador", "_materialValido",
+                         "_materialInvalido", "_escurecimento", "_caixa" })
+                Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, campo);
+            MesmaCor(((Material)serializado.FindProperty("_materialValido").objectReferenceValue).GetColor("_BaseColor"),
+                PaletaDoLaboratorio.Teleporte);
+
+            var regras = locomocao.Regras;
+            Assert.That(regras.Avaliar(0, 1), Is.EqualTo(MotivoDoTeleporte.NaMesa));
+            Assert.That(regras.Avaliar(0, 3.7), Is.EqualTo(MotivoDoTeleporte.PertoDaParede));
+            Assert.That(regras.Avaliar(0, 0), Is.EqualTo(MotivoDoTeleporte.Nenhum), "onde o aluno começa vale");
+        }
+
+        [Test]
+        public void Escurecimento_PresoACabeca_DesligadoForaDoGiro()
+        {
+            var locomocao = Todos<LocomocaoDoAluno>().Single();
+            var esfera = (Renderer)new SerializedObject(locomocao).FindProperty("_escurecimento").objectReferenceValue;
+
+            Assert.That(esfera.transform.parent.name, Is.EqualTo("CenterEyeAnchor"));
+            Assert.That(esfera.enabled, Is.False, "sem vinheta parado nem no teleporte");
+            Assert.That(esfera.sharedMaterial.GetFloat("_Cull"), Is.EqualTo((float)UnityEngine.Rendering.CullMode.Front), "vista por dentro");
+            Assert.That(esfera.GetComponent<Collider>(), Is.Null);
+        }
+
+        [Test]
+        public void Caixa_PegavelComColisorECorpoCinematico()
+        {
+            var caixa = Todos<CaixaPegavel>().Single();
+            var colisor = caixa.GetComponent<BoxCollider>();
+
+            // A caixa 4 × 3 × 2 a 10 cm por unidade (EscalaDaCaixa): 40 × 20 × 30 cm (x, altura, z).
+            Assert.That(Vector3.Distance(colisor.size, new Vector3(0.4f, 0.2f, 0.3f)), Is.LessThan(1e-4f));
+            Assert.That(Vector3.Distance(colisor.center, new Vector3(0f, 0.1f, 0f)), Is.LessThan(1e-4f));
+            Assert.That(caixa.GetComponent<Rigidbody>().isKinematic);
+            Assert.That(new SerializedObject(caixa).FindProperty("_materialDaArestaDestacada").objectReferenceValue, Is.Not.Null);
+        }
+
+        [Test]
+        public void SoACaixaTemColisor()
+        {
+            // O raio só para no que é interativo; sala, mesa, painéis, marcador e modelos não bloqueiam.
+            var colisores = Todos<Collider>();
+
+            Assert.That(colisores.Select(c => c.name), Is.EqualTo(new[] { "Caixa" }));
         }
 
         [Test]
