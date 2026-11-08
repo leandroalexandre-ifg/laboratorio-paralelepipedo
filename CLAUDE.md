@@ -54,8 +54,9 @@ Não adicionar pacotes do Package Manager ou da Asset Store sem perguntar. Não 
 Assets/_Projeto/
   Scripts/
     Nucleo/        # C# puro, sem UnityEngine: Paralelepipedo, IPrisma, ValidadorDeFace, ContagemDeCubinhos,
-                   # Desafio, AvaliadorDeResposta
-    Apresentacao/  # MonoBehaviours finos que leem o núcleo e atualizam a cena
+                   # Desafio (DesafioDeResposta, DesafioDeMontarFace), AvaliadorDeResposta, InterpretadorDeMedida
+      Dados/       # DTOs dos JSON, LeitorDeTextos, LeitorDeDesafios, CatalogoDeTextos, ChavesDeTexto
+    Apresentacao/  # MonoBehaviours finos que leem o núcleo e atualizam a cena; CarregadorDeDados (JsonUtility)
     XR/            # raio, gatilho, grip, teleporte, giro por passos
   Dados/           # JSON (TextAsset) de textos e desafios
   Cenas/  Prefabs/  Materiais/
@@ -64,7 +65,7 @@ Assets/_Projeto/
 
 Assemblies: `LaboratorioParalelepipedo.Nucleo` (`noEngineReferences: true`), `LaboratorioParalelepipedo.Apresentacao`
 (→ Núcleo), `LaboratorioParalelepipedo.XR` (→ Núcleo, Apresentação), `LaboratorioParalelepipedo.Testes.EditMode`
-(→ Núcleo, só Editor). Namespaces `LaboratorioParalelepipedo.<Área>`.
+(→ Núcleo e Apresentação, só Editor). Namespaces `LaboratorioParalelepipedo.<Área>`.
 
 Não criar arquivos fora de `Assets/_Projeto/` sem pedir. Não editar `Library/`, `Temp/`, `Logs/` nem pacotes de
 terceiros.
@@ -85,13 +86,28 @@ terceiros.
 
 ### Formato dos JSON (`Assets/_Projeto/Dados/`)
 
-- `textos.json`: `{ "versao": 1, "textos": [ { "chave": "...", "texto": "..." } ] }`
-- `desafios.json`: `{ "versao": 1, "desafios": [ { "id", "estacao", "bncc", "dimensoes": { "a", "b", "c" },
-  "grandeza", "enunciado", "distratores": [...], "tolerancia" } ] }`
-  - Medidas e distratores são **texto**, lidos pelo interpretador de medidas: inteiros, decimais com vírgula ou
-    ponto ("2,5", "2.5"), frações ("5/2"), raízes ("√2") e "k√n" ("3√2").
-  - `grandeza` é uma lista fechada: `diagonalDaBase`, `diagonal`, `areaDaBase`, `areaLateral`, `areaTotal`, `volume`.
-  - Erro claro se um distrator for inválido ou igual à resposta correta (dentro da tolerância).
+Lidos com `JsonUtility` por `CarregadorDeDados` (Apresentação) e conferidos por `LeitorDeTextos` e
+`LeitorDeDesafios` (Núcleo), que reúnem **todos** os erros do arquivo numa `DadosInvalidosException`.
+
+- `textos.json`: `{ "versao": 1, "textos": [ { "chave": "...", "texto": "..." } ] }`. As chaves ficam em
+  `ChavesDeTexto`; os testes exigem todas e recusam chaves a mais. `{0}`, `{1}` recebem valores ao mostrar;
+  fórmulas usam rich text do TextMeshPro (`A<sub>b</sub>`).
+- `desafios.json`: `{ "versao": 1, "desafios": [ ... ] }`. Campos de todo desafio: `id` (único), `tipo`,
+  `estacao` (`elementos`, `diagonais`, `areas`, `volume`), `bncc`, `enunciado`, `dimensoes` (`a`, `b`, `c`).
+  - `tipo` `"resposta"` (padrão quando ausente): `grandeza`, `distratores` e `tolerancia` (opcional).
+    `grandeza` é uma lista fechada: `diagonalDaBase`, `diagonal`, `areaDaBase`, `areaLateral`, `areaTotal`,
+    `volume`, `numeroDeVertices`, `numeroDeArestas`, `numeroDeFaces`. Contagens têm resposta inteira e tolerância
+    padrão 0; as demais, ±0,01 (e a tolerância precisa ser maior que zero).
+  - `tipo` `"montarFace"`: `face` com uma face em qualquer ordem cíclica válida (`"ABFE"`, `"FEAB"`) ou
+    `"qualquer"`; avaliado pelo `ValidadorDeFace`. Sem `grandeza`, `distratores` nem `tolerancia`.
+  - Erro claro para tipo, estação ou grandeza desconhecidos, face inexistente, campo que não pertence ao tipo,
+    id ausente ou repetido, distrator inválido, igual à resposta (dentro da tolerância) ou repetido.
+  - Medidas, distratores e tolerância são **texto**, lidos pelo `InterpretadorDeMedida`: inteiros, decimais com
+    vírgula ou ponto (`"2,5"`, `"2.5"`), frações (`"5/2"`), raízes (`"√2"`, `"√(13)"`) e `"k√n"` (`"3√2"`).
+    Escreva-os **entre aspas**: um número sem aspas também funciona, mas o JsonUtility o arredonda a 6 casas.
+  - Os nomes das listas fechadas não diferenciam maiúsculas de minúsculas. Campos com erro de digitação
+    (ex.: `"grandesa"`) são ignorados pelo JsonUtility; o erro aparece como campo faltando.
+  - BNCC: Elementos `EF06MA17` (retomada), Diagonais `EF09MA14`, Volume `EF09MA19`.
 
 ## Regras inegociáveis
 
