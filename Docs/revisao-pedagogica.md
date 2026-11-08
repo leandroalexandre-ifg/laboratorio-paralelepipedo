@@ -24,10 +24,14 @@ Observações gerais:
 | `geral.proximo` | Próximo | | |
 | `geral.tentarDeNovo` | Tentar de novo | | |
 | `geral.recomecar` | Recomeçar | | |
-| `controles.apontar` | Aponte e aperte o gatilho para escolher. | | |
-| `controles.pegar` | Aponte para a caixa e segure o botão lateral para pegar. Solte para devolver. | | |
-| `controles.teleporte` | Empurre o analógico para a frente, mire no chão e solte para ir até lá. | | |
-| `controles.giro` | Empurre o analógico para o lado para girar. | | |
+| `controles.titulo` | Como usar os controles | | |
+| `controles.apontar` | <b>Gatilho</b> (dedo indicador): aponte e aperte para escolher. | | |
+| `controles.pegar` | <b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Solte para devolver. | | |
+| `controles.teleporte` | <b>Analógico para a frente</b>: mire no chão e solte para ir até lá. | | |
+| `controles.giro` | <b>Analógico para o lado</b>: virar. | | |
+| `dica.pegar` | Segure o botão lateral para pegar | | |
+| `dica.teleporteValido` | Solte para ir até lá | | |
+| `dica.teleporteInvalido` | Aqui não dá | | |
 | `estacao.elementos.titulo` | 1. Elementos | | |
 | `estacao.elementos.instrucao` | Toque os vértices, as arestas e as faces da caixa. | | |
 | `estacao.elementos.vertices` | Vértices: {0} de {1} | | |
