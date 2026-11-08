@@ -3,6 +3,7 @@
     "rootNamespace": "LaboratorioParalelepipedo.Testes",
     "references": [
         "LaboratorioParalelepipedo.Nucleo",
+        "LaboratorioParalelepipedo.Apresentacao",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
