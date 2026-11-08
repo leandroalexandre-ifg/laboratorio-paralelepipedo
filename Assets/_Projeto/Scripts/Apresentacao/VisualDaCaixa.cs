@@ -9,6 +9,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
     /// <summary>
     /// Desenha um prisma do núcleo: arestas, faces translúcidas, vértices e os rótulos A–H.
     /// A base fica apoiada em y = 0 do objeto e centrada em x e z; a frente (z = 0 do núcleo) fica do lado do aluno.
+    /// A escala vem do núcleo (<see cref="EscalaDaCaixa"/>): a maior dimensão ocupa no máximo 0,6 m.
     /// Monta os filhos uma vez (no Awake ou ao chamar <see cref="Construir"/>); nada roda por frame.
     /// </summary>
     public sealed class VisualDaCaixa : MonoBehaviour
@@ -23,8 +24,6 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private float _comprimento = 4f;
         [SerializeField] private float _largura = 3f;
         [SerializeField] private float _altura = 2f;
-        [SerializeField, Tooltip("Metros na cena para cada unidade de medida.")]
-        private float _metrosPorUnidade = 0.1f;
 
         [Header("Aparência")]
         [SerializeField] private Material _materialDaAresta;
@@ -38,22 +37,22 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         private readonly List<Mesh> _malhasCriadas = new List<Mesh>();
         private IPrisma _prisma;
+        private float _metrosPorUnidade;
         private Vector3 _centroDaBase;
 
         /// <summary>Prisma desenhado agora (nulo antes de construir).</summary>
         public IPrisma Prisma => _prisma;
 
+        /// <summary>Metros na cena por unidade de medida, calculados por <see cref="EscalaDaCaixa"/> para cada caixa.</summary>
         public float MetrosPorUnidade => _metrosPorUnidade;
 
         /// <summary>Liga a aparência (usado pelo gerador da cena e pelos testes).</summary>
-        public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte,
-            float metrosPorUnidade)
+        public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte)
         {
             _materialDaAresta = aresta;
             _materialDaFace = face;
             _materialDoVertice = vertice;
             _fonte = fonte;
-            _metrosPorUnidade = metrosPorUnidade;
         }
 
         private void Awake()
@@ -75,6 +74,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             }
 
             Limpar();
+            _metrosPorUnidade = (float)EscalaDaCaixa.MetrosPorUnidade(prisma);
             _centroDaBase = CentroDaBase(prisma);
 
             Transform arestas = CriarGrupo(GrupoArestas);

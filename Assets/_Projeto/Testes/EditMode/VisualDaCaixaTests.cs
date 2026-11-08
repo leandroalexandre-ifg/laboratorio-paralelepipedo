@@ -9,7 +9,6 @@ namespace LaboratorioParalelepipedo.Testes
 {
     public class VisualDaCaixaTests
     {
-        private const float Escala = 0.1f;
         private GameObject _objeto;
         private VisualDaCaixa _caixa;
 
@@ -18,7 +17,7 @@ namespace LaboratorioParalelepipedo.Testes
         {
             _objeto = new GameObject("CaixaDeTeste");
             _caixa = _objeto.AddComponent<VisualDaCaixa>();
-            _caixa.Configurar(null, null, null, null, Escala);
+            _caixa.Configurar(null, null, null, null);
         }
 
         [TearDown]
@@ -105,6 +104,15 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Grupo(VisualDaCaixa.GrupoArestas).childCount, Is.EqualTo(12));
             Assert.That(Vector3.Distance(PosicaoDoVertice("E"), new Vector3(-0.1f, 0f, -0.1f)), Is.LessThan(1e-5));
             Assert.That(((Paralelepipedo)_caixa.Prisma).EhCubo);
+        }
+
+        [Test]
+        public void CaixaGrande_EncolheAteAMaiorDimensaoCaberEm60Centimetros()
+        {
+            _caixa.Construir(new Paralelepipedo(10, 5, 5));
+
+            Assert.That(_caixa.MetrosPorUnidade, Is.EqualTo(0.06f).Within(1e-6));
+            Assert.That(PosicaoDoVertice("C").x - PosicaoDoVertice("B").x, Is.EqualTo(0.6f).Within(1e-5));
         }
 
         [Test]
