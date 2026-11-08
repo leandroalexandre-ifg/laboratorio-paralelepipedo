@@ -98,8 +98,14 @@ terceiros.
     caixa, que ao ser solta volta à mesa em **0,4 s** na orientação original. Vibração leve ao acender um alvo e ao
     confirmar. Giro por passos de **45°** em torno da cabeça, com escurecimento de **~100 ms** só no instante do giro
     (sem vinheta no teleporte nem parado). Teleporte sem mudar a direção do olhar; destino inválido na mesa, na caixa
-    e a menos de **0,3 m** das paredes. Só o rig se move, nunca a câmera. O painel "Controles" mostra só as ações
-    que existem na cena (o "apontar e escolher" volta quando houver alvos do gatilho, nas estações).
+    e a menos de **0,3 m** das paredes. Só o rig se move, nunca a câmera. O painel "Como usar os controles" fica
+    à frente, logo atrás da mesa, uma linha por botão, e mostra só as ações que existem na cena (o "apontar e
+    escolher" volta quando houver alvos do gatilho, nas estações). Dicas curtas acima do controle: raio na caixa e
+    mira do teleporte (vale / não dá).
+  - Recentralização (`SequenciaDeRecentralizacao`, `RecentralizacaoDoAluno`): o aluno é posto na origem, olhando para
+    a mesa (+z), ao abrir o app, ao recentralizar com o botão Meta, quando a origem do rastreamento muda e ao voltar
+    do menu ou da pausa. Move o rig com a tela escura (0,15 s para escurecer e clarear), depois de a cabeça ficar
+    parada por 0,5 s (no máximo 3 s no escuro). Nenhum movimento da cabeça dispara a recentralização sozinho.
   - Escala da caixa (`EscalaDaCaixa`): 1 unidade = 10 cm, reduzida por desafio até a maior dimensão caber em
     **0,6 m**; o cubinho de aresta 1 usa a mesma escala.
 
