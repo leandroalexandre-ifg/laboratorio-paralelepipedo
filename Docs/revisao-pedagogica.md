@@ -17,6 +17,8 @@ Observações gerais:
 |---|---|---|---|
 | `app.titulo` | Laboratório do Paralelepípedo | | |
 | `app.creditos` | Desenvolvido por NumbERS · IFG – Câmpus Inhumas | | |
+| `app.versao` | Versão {0} | | |
+| `diagnostico.titulo` | Diagnóstico dos controles (para o professor) | | |
 | `geral.acerto` | Muito bem! | | |
 | `geral.erro` | Ainda não. Tente de novo! | | |
 | `geral.proximo` | Próximo | | |

@@ -3,6 +3,8 @@
   "textos": [
     { "chave": "app.titulo", "texto": "Laboratório do Paralelepípedo" },
     { "chave": "app.creditos", "texto": "Desenvolvido por NumbERS · IFG – Câmpus Inhumas" },
+    { "chave": "app.versao", "texto": "Versão {0}" },
+    { "chave": "diagnostico.titulo", "texto": "Diagnóstico dos controles (para o professor)" },
 
     { "chave": "geral.acerto", "texto": "Muito bem!" },
     { "chave": "geral.erro", "texto": "Ainda não. Tente de novo!" },

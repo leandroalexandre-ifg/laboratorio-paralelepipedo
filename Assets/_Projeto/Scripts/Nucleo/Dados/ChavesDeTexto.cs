@@ -8,6 +8,8 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
     {
         public const string AppTitulo = "app.titulo";
         public const string AppCreditos = "app.creditos";
+        public const string AppVersao = "app.versao";
+        public const string DiagnosticoTitulo = "diagnostico.titulo";
 
         public const string GeralAcerto = "geral.acerto";
         public const string GeralErro = "geral.erro";
@@ -56,7 +58,7 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         /// <summary>Todas as chaves que o textos.json deve ter.</summary>
         public static readonly string[] Todas =
         {
-            AppTitulo, AppCreditos,
+            AppTitulo, AppCreditos, AppVersao, DiagnosticoTitulo,
             GeralAcerto, GeralErro, GeralProximo, GeralTentarDeNovo, GeralRecomecar,
             ControlesApontar, ControlesPegar, ControlesTeleporte, ControlesGiro,
             ElementosTitulo, ElementosInstrucao, ElementosVertices, ElementosArestas, ElementosFaces,
