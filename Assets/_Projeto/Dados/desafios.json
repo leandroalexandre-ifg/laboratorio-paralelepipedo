@@ -76,7 +76,7 @@
     {
       "id": "area-01",
       "estacao": "areas",
-      "bncc": "EF09MA19",
+      "bncc": "EF08MA19",
       "enunciado": "Qual é a área total da caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
       "grandeza": "areaTotal",
@@ -85,7 +85,7 @@
     {
       "id": "area-02",
       "estacao": "areas",
-      "bncc": "EF09MA19",
+      "bncc": "EF08MA19",
       "enunciado": "Qual é a área lateral da caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
       "grandeza": "areaLateral",
@@ -94,7 +94,7 @@
     {
       "id": "area-03",
       "estacao": "areas",
-      "bncc": "EF09MA19",
+      "bncc": "EF08MA19",
       "enunciado": "Qual é a área da base da caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
       "grandeza": "areaDaBase",

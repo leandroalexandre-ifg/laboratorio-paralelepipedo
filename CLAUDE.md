@@ -5,7 +5,8 @@ reto-retângulo**: elementos, diagonais (teorema de Pitágoras), áreas e volume
 **NumbERS** (IFG – Câmpus Inhumas), em particular pelo professor Kariton Lula.
 Créditos no app: "Desenvolvido por NumbERS · IFG – Câmpus Inhumas".
 
-- **BNCC:** EF09MA14 (problemas com o teorema de Pitágoras) e EF09MA19 (volume de prismas com expressões de cálculo)
+- **BNCC:** EF09MA14 (problemas com o teorema de Pitágoras) e EF09MA19 (volume de prismas com expressões de cálculo);
+  retomadas: EF06MA17 (estação Elementos) e EF08MA19 (estação Áreas)
 - **Dispositivo-alvo:** Meta Quest 2
 - **Idioma:** todo texto visível ao aluno, mensagens de commit e documentação em **português do Brasil**.
   Identificadores de código em português, seguindo o domínio (`Paralelepipedo`, `AreaTotal`, `ValidadorDeFace`).
@@ -107,7 +108,7 @@ Lidos com `JsonUtility` por `CarregadorDeDados` (Apresentação) e conferidos po
     Escreva-os **entre aspas**: um número sem aspas também funciona, mas o JsonUtility o arredonda a 6 casas.
   - Os nomes das listas fechadas não diferenciam maiúsculas de minúsculas. Campos com erro de digitação
     (ex.: `"grandesa"`) são ignorados pelo JsonUtility; o erro aparece como campo faltando.
-  - BNCC: Elementos `EF06MA17` (retomada), Diagonais `EF09MA14`, Volume `EF09MA19`.
+  - BNCC: Elementos `EF06MA17` (retomada), Diagonais `EF09MA14`, Áreas `EF08MA19` (retomada), Volume `EF09MA19`.
 
 ## Regras inegociáveis
 

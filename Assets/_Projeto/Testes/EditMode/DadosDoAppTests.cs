@@ -88,6 +88,7 @@ namespace LaboratorioParalelepipedo.Testes
 
         [TestCase(Estacao.Elementos, "EF06MA17")]
         [TestCase(Estacao.Diagonais, "EF09MA14")]
+        [TestCase(Estacao.Areas, "EF08MA19")]
         [TestCase(Estacao.Volume, "EF09MA19")]
         public void CodigosDaBncc_PorEstacao(Estacao estacao, string codigo)
         {
