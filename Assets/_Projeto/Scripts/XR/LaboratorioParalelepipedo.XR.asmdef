@@ -5,7 +5,10 @@
         "LaboratorioParalelepipedo.Nucleo",
         "LaboratorioParalelepipedo.Apresentacao",
         "Unity.InputSystem",
-        "Oculus.VR"
+        "Oculus.VR",
+        "Unity.XR.Management",
+        "Unity.XR.OpenXR",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

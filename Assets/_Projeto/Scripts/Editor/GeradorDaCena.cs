@@ -74,15 +74,17 @@ namespace LaboratorioParalelepipedo.Editor
             CriarSala();
             CriarMesa();
             CaixaPegavel caixa = CriarCaixa(fonte);
-            CriarInteracao(instanciaDoRig, caixa);
+            var (raioEsquerdo, raioDireito) = CriarInteracao(instanciaDoRig, caixa);
 
             var dados = new GameObject("DadosDoLaboratorio").AddComponent<DadosDoLaboratorio>();
             dados.Configurar(textos, desafios);
-            CriarPainel("PainelTitulo", new Vector3(0f, 1.75f, 2.4f), new Vector2(1.5f, 0.42f), dados, fonte,
-                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.06f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, -0.11f));
+            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.75f, 2.4f), new Vector2(1.5f, 0.46f), dados, fonte,
+                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.08f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, -0.09f));
+            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.17f, 0f), 1.38f);
             CriarPainel("PainelControles", new Vector3(-1.25f, 1.45f, 1.9f), new Vector2(1.1f, 0.62f), dados, fonte,
                 (null, TamanhoDoCorpo, 0f));
             Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
+            CriarPainelDeDiagnostico(dados, fonte, raioEsquerdo, raioDireito);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -205,7 +207,7 @@ namespace LaboratorioParalelepipedo.Editor
         /// Raios dos dois controles (com um modelo simples de cada um), teleporte (arco e marcador no chão) e giro
         /// por passos (esfera escura presa à cabeça, desligada fora do giro).
         /// </summary>
-        private static void CriarInteracao(GameObject rig, CaixaPegavel caixa)
+        private static (RaioDoControle, RaioDoControle) CriarInteracao(GameObject rig, CaixaPegavel caixa)
         {
             Material livre = MaterialOpaco("Raio", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
             Material noAlvo = MaterialOpaco("RaioNoAlvo", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
@@ -245,6 +247,54 @@ namespace LaboratorioParalelepipedo.Editor
             serializado.FindProperty("_tamanhoDaMesa").vector2Value = new Vector2(TamanhoDoTampo.x, TamanhoDoTampo.z);
             serializado.FindProperty("_alturaDaMesa").floatValue = AlturaDoTampo;
             serializado.ApplyModifiedPropertiesWithoutUndo();
+            return (esquerdo, direito);
+        }
+
+        /// <summary>Versão do app (Application.version) logo abaixo dos créditos: mostra qual build está no óculos.</summary>
+        private static void CriarVersao(Transform painel, DadosDoLaboratorio dados, TMP_FontAsset fonte, Vector3 posicao, float largura)
+        {
+            var objeto = new GameObject(ChavesDeTexto.AppVersao, typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            objeto.transform.localPosition = posicao;
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = 0.3f;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.Center;
+            texto.rectTransform.sizeDelta = new Vector2(largura, 0.05f);
+            var versao = objeto.AddComponent<TextoDaVersao>();
+            versao.Configurar(dados, texto, ChavesDeTexto.AppVersao);
+            texto.text = $"Versão {PlayerSettings.bundleVersion}";
+        }
+
+        /// <summary>
+        /// Painel técnico dos controles, à direita da mesa (espelho do painel de controles). Para os testes no
+        /// óculos enquanto não há acesso aos logs; tirar antes de levar aos alunos.
+        /// </summary>
+        private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            RaioDoControle esquerdo, RaioDoControle direito)
+        {
+            var tamanho = new Vector2(1.5f, 1.1f);
+            var painel = new GameObject("PainelDiagnostico").transform;
+            painel.position = new Vector3(1.3f, 1.4f, 1.9f);
+            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
+            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
+            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+
+            var objeto = new GameObject("Diagnostico", typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = 0.2f;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.TopLeft;
+            texto.richText = false;   // nomes de layout como <OculusTouchController> aparecem como são
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.overflowMode = TextOverflowModes.Truncate;
+            texto.rectTransform.sizeDelta = tamanho - new Vector2(0.08f, 0.08f);
+            texto.text = "Diagnóstico";
+            objeto.AddComponent<PainelDeDiagnostico>().Configurar(texto, dados, esquerdo, direito);
         }
 
         private static RaioDoControle CriarRaio(Transform rig, string caminho, OVRInput.Controller controle,
@@ -295,7 +345,7 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>Painel preso ao mundo, virado para o aluno. Sem chave no texto: mostra os controles.</summary>
-        private static void CriarPainel(string nome, Vector3 posicao, Vector2 tamanho, DadosDoLaboratorio dados,
+        private static Transform CriarPainel(string nome, Vector3 posicao, Vector2 tamanho, DadosDoLaboratorio dados,
             TMP_FontAsset fonte, params (string chave, float tamanhoDaLetra, float y)[] linhas)
         {
             var painel = new GameObject(nome).transform;
@@ -328,6 +378,8 @@ namespace LaboratorioParalelepipedo.Editor
                 else textoDoCatalogo.Configurar(dados, texto, TextosDosControles.Chaves(AcoesDisponiveis()));
                 textoDoCatalogo.Atualizar();
             }
+
+            return painel;
         }
 
         private static Transform Bloco(Transform pai, string nome, Vector3 posicaoLocal, Vector3 tamanho, Material material)

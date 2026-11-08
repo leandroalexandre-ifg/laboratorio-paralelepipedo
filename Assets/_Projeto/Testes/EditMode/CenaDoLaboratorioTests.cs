@@ -218,6 +218,27 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void VersaoApareceNosCreditos()
+        {
+            var versao = Todos<TextoDaVersao>().Single();
+
+            Assert.That(versao.Chave, Is.EqualTo(ChavesDeTexto.AppVersao));
+            Assert.That(versao.transform.parent.name, Is.EqualTo("PainelTitulo"));
+        }
+
+        [Test]
+        public void PainelDeDiagnostico_LigadoAosRaios_PresoAoMundo()
+        {
+            var painel = Todos<PainelDeDiagnostico>().Single();
+            var serializado = new SerializedObject(painel);
+
+            foreach (string campo in new[] { "_texto", "_dados", "_raioEsquerdo", "_raioDireito" })
+                Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, campo);
+            Assert.That(painel.transform.root.name, Is.EqualTo("PainelDiagnostico"));
+            Assert.That(((TMPro.TMP_Text)serializado.FindProperty("_texto").objectReferenceValue).richText, Is.False);
+        }
+
+        [Test]
         public void CenaEstaNoBuild()
         {
             var cenas = EditorBuildSettings.scenes.Where(c => c.enabled).Select(c => c.path).ToArray();
