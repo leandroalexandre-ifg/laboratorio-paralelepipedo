@@ -2,7 +2,8 @@
     "name": "LaboratorioParalelepipedo.Apresentacao",
     "rootNamespace": "LaboratorioParalelepipedo.Apresentacao",
     "references": [
-        "LaboratorioParalelepipedo.Nucleo"
+        "LaboratorioParalelepipedo.Nucleo",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

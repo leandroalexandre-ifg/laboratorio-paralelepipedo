@@ -4,6 +4,10 @@
     "references": [
         "LaboratorioParalelepipedo.Nucleo",
         "LaboratorioParalelepipedo.Apresentacao",
+        "Unity.TextMeshPro",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.OpenXR",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
