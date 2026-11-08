@@ -26,7 +26,7 @@
       "enunciado": "Quantas arestas tem a caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
       "grandeza": "numeroDeArestas",
-      "distratores": ["8", "6", "10"]
+      "distratores": ["8", "6", "9"]
     },
     {
       "id": "elem-04",
@@ -116,7 +116,7 @@
       "enunciado": "Os cubinhos não enchem esta caixa. Qual é o volume dela?",
       "dimensoes": { "a": "2,5", "b": "1,2", "c": "√2" },
       "grandeza": "volume",
-      "distratores": ["2", "3", "4"]
+      "distratores": ["2", "3", "6"]
     },
     {
       "id": "vol-03",
@@ -125,7 +125,7 @@
       "enunciado": "Esta caixa é um cubo. Qual é o volume dela?",
       "dimensoes": { "a": "2", "b": "2", "c": "2" },
       "grandeza": "volume",
-      "distratores": ["6", "12", "4"]
+      "distratores": ["6", "4", "24"]
     }
   ]
 }
