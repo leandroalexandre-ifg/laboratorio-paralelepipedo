@@ -1,0 +1,216 @@
+using System.Collections.Generic;
+using LaboratorioParalelepipedo.Nucleo;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace LaboratorioParalelepipedo.Apresentacao
+{
+    /// <summary>
+    /// Desenha um prisma do núcleo: arestas, faces translúcidas, vértices e os rótulos A–H.
+    /// A base fica apoiada em y = 0 do objeto e centrada em x e z; a frente (z = 0 do núcleo) fica do lado do aluno.
+    /// Monta os filhos uma vez (no Awake ou ao chamar <see cref="Construir"/>); nada roda por frame.
+    /// </summary>
+    public sealed class VisualDaCaixa : MonoBehaviour
+    {
+        /// <summary>Nomes dos grupos de filhos.</summary>
+        public const string GrupoArestas = "Arestas";
+        public const string GrupoFaces = "Faces";
+        public const string GrupoVertices = "Vertices";
+        public const string GrupoRotulos = "Rotulos";
+
+        [Header("Dimensões (unidades do núcleo)")]
+        [SerializeField] private float _comprimento = 4f;
+        [SerializeField] private float _largura = 3f;
+        [SerializeField] private float _altura = 2f;
+        [SerializeField, Tooltip("Metros na cena para cada unidade de medida.")]
+        private float _metrosPorUnidade = 0.1f;
+
+        [Header("Aparência")]
+        [SerializeField] private Material _materialDaAresta;
+        [SerializeField] private Material _materialDaFace;
+        [SerializeField] private Material _materialDoVertice;
+        [SerializeField] private TMP_FontAsset _fonte;
+        [SerializeField] private float _espessuraDaAresta = 0.008f;
+        [SerializeField] private float _diametroDoVertice = 0.02f;
+        [SerializeField] private float _tamanhoDoRotulo = 0.35f;
+        [SerializeField] private float _afastamentoDoRotulo = 0.035f;
+
+        private readonly List<Mesh> _malhasCriadas = new List<Mesh>();
+        private IPrisma _prisma;
+        private Vector3 _centroDaBase;
+
+        /// <summary>Prisma desenhado agora (nulo antes de construir).</summary>
+        public IPrisma Prisma => _prisma;
+
+        public float MetrosPorUnidade => _metrosPorUnidade;
+
+        /// <summary>Liga a aparência (usado pelo gerador da cena e pelos testes).</summary>
+        public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte,
+            float metrosPorUnidade)
+        {
+            _materialDaAresta = aresta;
+            _materialDaFace = face;
+            _materialDoVertice = vertice;
+            _fonte = fonte;
+            _metrosPorUnidade = metrosPorUnidade;
+        }
+
+        private void Awake()
+        {
+            if (_prisma == null) Construir(new Paralelepipedo(_comprimento, _largura, _altura));
+        }
+
+        private void OnDestroy() => LiberarMalhas();
+
+        /// <summary>Apaga o desenho anterior e desenha o prisma dado.</summary>
+        public void Construir(IPrisma prisma)
+        {
+            _prisma = prisma ?? throw new System.ArgumentNullException(nameof(prisma));
+            if (prisma is Paralelepipedo caixa)
+            {
+                _comprimento = (float)caixa.A;
+                _largura = (float)caixa.B;
+                _altura = (float)caixa.C;
+            }
+
+            Limpar();
+            _centroDaBase = CentroDaBase(prisma);
+
+            Transform arestas = CriarGrupo(GrupoArestas);
+            foreach (var aresta in prisma.Arestas) CriarAresta(arestas, aresta);
+
+            Transform faces = CriarGrupo(GrupoFaces);
+            foreach (var face in prisma.Faces) CriarFace(faces, face);
+
+            Transform vertices = CriarGrupo(GrupoVertices);
+            Transform rotulos = CriarGrupo(GrupoRotulos);
+            Vector3 centro = Vector3.up * (float)(prisma.Altura * _metrosPorUnidade / 2);
+            foreach (var vertice in prisma.Vertices)
+            {
+                CriarVertice(vertices, vertice);
+                CriarRotulo(rotulos, vertice, centro);
+            }
+        }
+
+        /// <summary>Posição local, em metros, de um ponto do núcleo.</summary>
+        public Vector3 PosicaoNaCena(Vetor3 ponto) =>
+            (new Vector3((float)ponto.X, (float)ponto.Y, (float)ponto.Z) - _centroDaBase) * _metrosPorUnidade;
+
+        private static Vector3 CentroDaBase(IPrisma prisma)
+        {
+            double minX = double.MaxValue, maxX = double.MinValue, minZ = double.MaxValue, maxZ = double.MinValue;
+            foreach (var v in prisma.Vertices)
+            {
+                if (v.Posicao.X < minX) minX = v.Posicao.X;
+                if (v.Posicao.X > maxX) maxX = v.Posicao.X;
+                if (v.Posicao.Z < minZ) minZ = v.Posicao.Z;
+                if (v.Posicao.Z > maxZ) maxZ = v.Posicao.Z;
+            }
+
+            return new Vector3((float)((minX + maxX) / 2), 0f, (float)((minZ + maxZ) / 2));
+        }
+
+        private void CriarAresta(Transform grupo, Aresta aresta)
+        {
+            Vector3 inicio = PosicaoNaCena(aresta.Inicio.Posicao);
+            Vector3 fim = PosicaoNaCena(aresta.Fim.Posicao);
+            Vector3 direcao = fim - inicio;
+            var objeto = CriarMalha(grupo, $"Aresta {aresta.Nome}", MalhaEmbutida("Cube.fbx"), _materialDaAresta);
+            objeto.transform.localPosition = (inicio + fim) / 2;
+            objeto.transform.localRotation = Quaternion.FromToRotation(Vector3.forward, direcao);
+            // Mais comprida que a aresta pela própria espessura: os cantos ficam fechados.
+            objeto.transform.localScale = new Vector3(_espessuraDaAresta, _espessuraDaAresta,
+                direcao.magnitude + _espessuraDaAresta);
+        }
+
+        private void CriarFace(Transform grupo, Face face)
+        {
+            var pontos = new Vector3[face.Vertices.Count];
+            for (int i = 0; i < pontos.Length; i++) pontos[i] = PosicaoNaCena(face.Vertices[i].Posicao);
+
+            var triangulos = new int[(pontos.Length - 2) * 3];
+            for (int i = 0; i < pontos.Length - 2; i++)
+            {
+                triangulos[i * 3] = 0;
+                triangulos[i * 3 + 1] = i + 1;
+                triangulos[i * 3 + 2] = i + 2;
+            }
+
+            var malha = new Mesh { name = $"Face {face.Nome}", vertices = pontos, triangles = triangulos };
+            malha.RecalculateNormals();
+            malha.RecalculateBounds();
+            _malhasCriadas.Add(malha);
+            CriarMalha(grupo, $"Face {face.Nome}", malha, _materialDaFace);
+        }
+
+        private void CriarVertice(Transform grupo, Vertice vertice)
+        {
+            var objeto = CriarMalha(grupo, $"Vertice {vertice.Nome}", MalhaEmbutida("Sphere.fbx"), _materialDoVertice);
+            objeto.transform.localPosition = PosicaoNaCena(vertice.Posicao);
+            objeto.transform.localScale = Vector3.one * _diametroDoVertice;
+        }
+
+        private void CriarRotulo(Transform grupo, Vertice vertice, Vector3 centro)
+        {
+            Vector3 posicao = PosicaoNaCena(vertice.Posicao);
+            var objeto = new GameObject($"Rotulo {vertice.Nome}", typeof(RectTransform));
+            objeto.transform.SetParent(grupo, false);
+            // Para fora na horizontal; os de cima sobem um pouco e os de baixo ficam rente à mesa (sem entrar nela).
+            Vector3 paraFora = posicao - centro;
+            paraFora.y = 0f;
+            float subida = posicao.y > centro.y ? _afastamentoDoRotulo * 0.5f : _tamanhoDoRotulo * 0.05f;
+            objeto.transform.localPosition = posicao + paraFora.normalized * _afastamentoDoRotulo + Vector3.up * subida;
+
+            var texto = objeto.AddComponent<TextMeshPro>();
+            if (_fonte != null) texto.font = _fonte;
+            texto.text = vertice.Nome;
+            texto.fontSize = _tamanhoDoRotulo;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.Center;
+            texto.textWrappingMode = TextWrappingModes.NoWrap;
+            texto.rectTransform.sizeDelta = new Vector2(0.06f, 0.04f);
+        }
+
+        private GameObject CriarMalha(Transform grupo, string nome, Mesh malha, Material material)
+        {
+            var objeto = new GameObject(nome);
+            objeto.transform.SetParent(grupo, false);
+            objeto.AddComponent<MeshFilter>().sharedMesh = malha;
+            var renderizador = objeto.AddComponent<MeshRenderer>();
+            renderizador.sharedMaterial = material;
+            renderizador.shadowCastingMode = ShadowCastingMode.Off;
+            renderizador.receiveShadows = false;
+            renderizador.lightProbeUsage = LightProbeUsage.Off;
+            renderizador.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            return objeto;
+        }
+
+        private Transform CriarGrupo(string nome)
+        {
+            var grupo = new GameObject(nome).transform;
+            grupo.SetParent(transform, false);
+            return grupo;
+        }
+
+        private void Limpar()
+        {
+            for (int i = transform.childCount - 1; i >= 0; i--) Destruir(transform.GetChild(i).gameObject);
+            LiberarMalhas();
+        }
+
+        private void LiberarMalhas()
+        {
+            foreach (var malha in _malhasCriadas) Destruir(malha);
+            _malhasCriadas.Clear();
+        }
+
+        private static void Destruir(Object objeto)
+        {
+            if (Application.isPlaying) Destroy(objeto);
+            else DestroyImmediate(objeto);
+        }
+
+        private static Mesh MalhaEmbutida(string nome) => Resources.GetBuiltinResource<Mesh>(nome);
+    }
+}
