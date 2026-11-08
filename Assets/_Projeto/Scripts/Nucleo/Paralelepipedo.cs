@@ -109,6 +109,21 @@ namespace LaboratorioParalelepipedo.Nucleo
             return null;
         }
 
+        /// <summary>
+        /// Cubo de aresta a: paralelepípedo com a = b = c. Todas as fórmulas do paralelepípedo valem direto.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Se a aresta não for um número real positivo e finito.</exception>
+        public static Paralelepipedo Cubo(double aresta)
+        {
+            if (double.IsNaN(aresta) || double.IsInfinity(aresta) || aresta <= 0)
+                throw new ArgumentOutOfRangeException(nameof(aresta), aresta,
+                    "A aresta do cubo deve ser um número real positivo e finito.");
+            return new Paralelepipedo(aresta, aresta, aresta);
+        }
+
+        /// <summary>Verdadeiro se a = b = c (a menos de erro de arredondamento).</summary>
+        public bool EhCubo => Numeros.QuaseIguais(A, B) && Numeros.QuaseIguais(B, C);
+
         private static double Validar(double valor, string nome)
         {
             if (double.IsNaN(valor) || double.IsInfinity(valor) || valor <= 0)
