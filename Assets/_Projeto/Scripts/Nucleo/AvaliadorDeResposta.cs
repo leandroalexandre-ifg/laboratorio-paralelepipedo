@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 
 namespace LaboratorioParalelepipedo.Nucleo
 {
     /// <summary>
     /// Avalia a resposta do aluno, com a tolerância do desafio para respostas reais
     /// (ex.: com ±0,01, aceita 3,61 e 3,60 para √13 ≈ 3,6056 e recusa 3,62).
-    /// Serve tanto para um número digitado quanto para o valor da opção escolhida.
+    /// Serve tanto para um número digitado quanto para o valor da opção escolhida, e também avalia
+    /// os vértices tocados nos desafios de montar face.
     /// </summary>
     public static class AvaliadorDeResposta
     {
@@ -19,6 +21,14 @@ namespace LaboratorioParalelepipedo.Nucleo
 
             return new ResultadoDaAvaliacao(
                 Coincidem(resposta, correta, desafio.Tolerancia), resposta, correta, Math.Abs(resposta - correta));
+        }
+
+        /// <summary>Avalia os vértices tocados (nomes, ex.: "A", "B", "F", "E") num desafio de montar face.</summary>
+        public static ResultadoDaMontagem Avaliar(DesafioDeMontarFace desafio, IReadOnlyList<string> toques)
+        {
+            if (desafio == null) throw new ArgumentNullException(nameof(desafio));
+            if (toques == null) throw new ArgumentNullException(nameof(toques));
+            return desafio.Avaliar(toques);
         }
 
         /// <summary>
