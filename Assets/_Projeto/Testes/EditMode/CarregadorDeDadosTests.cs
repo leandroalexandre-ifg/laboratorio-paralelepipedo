@@ -113,6 +113,30 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void ChaveComErroDeDigitacao_ApareceAntesDosErrosDeConteudo()
+        {
+            string json = Desafios.Replace(@"""grandeza"": ""diagonalDaBase""", @"""grandesa"": ""diagonalDaBase""");
+
+            var erro = Assert.Throws<DadosInvalidosException>(() => CarregadorDeDados.CarregarDesafios(json));
+
+            Assert.That(erro.Erros.Count, Is.EqualTo(2));
+            Assert.That(erro.Erros[0], Does.Contain("chave desconhecida \"grandesa\"")
+                .And.Contain("Você quis dizer \"grandeza\"?"));
+            Assert.That(erro.Erros[1], Does.Contain("falta a \"grandeza\""));
+        }
+
+        [Test]
+        public void JsonMalFormado_ApontaLinhaEColuna()
+        {
+            string json = Desafios.Replace(@"""bncc"": ""EF09MA14"",", @"""bncc"": ""EF09MA14""");
+
+            var erro = Assert.Throws<DadosInvalidosException>(() => CarregadorDeDados.CarregarDesafios(json));
+
+            Assert.That(erro.Erros.Count, Is.EqualTo(1));
+            Assert.That(erro.Erros[0], Does.Contain("mal formado na linha 6").And.Contain("falta uma vírgula"));
+        }
+
+        [Test]
         public void TextAsset_UsaONomeDoAsset()
         {
             var asset = new TextAsset(Textos) { name = "textos-teste" };
