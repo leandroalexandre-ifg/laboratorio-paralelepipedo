@@ -26,8 +26,31 @@ namespace LaboratorioParalelepipedo.Testes
             "assets/bin/Data/Managed/Metadata/global-metadata.dat", "classes.dex",
         };
 
+        private const string ManifestoAceito =
+            "E: manifest\n  A: http://schemas.android.com/apk/res/android:installLocation(0x010102b7)=0\n" +
+            "    E: activity\n      A: http://schemas.android.com/apk/res/android:screenOrientation(0x0101001e)=0\n";
+
         private static RelatorioDoApk Limpo() => RelatorioDoApk.Ler(
-            Badging($"{Pacote}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"), Assinatura, ArquivosLimpos);
+            Badging($"{Pacote}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"), Assinatura, ArquivosLimpos, ManifestoAceito);
+
+        [TestCase("installLocation(0x010102b7)=2", "screenOrientation(0x0101001e)=0", "installLocation")]
+        [TestCase("installLocation(0x010102b7)=0", "screenOrientation(0x0101001e)=13", "paisagem")]
+        [TestCase("", "screenOrientation(0x0101001e)=0", "installLocation")]
+        public void ExigenciasDaMetaNoManifesto(string local, string orientacao, string problema)
+        {
+            string arvore = $"A: http://schemas.android.com/apk/res/android:{local}\nA: http://schemas.android.com/apk/res/android:{orientacao}\n";
+            var relatorio = RelatorioDoApk.Ler(Badging(), Assinatura, ArquivosLimpos, arvore);
+
+            Assert.That(relatorio.Problemas(Pacote, VersionCode), Has.Some.Contains(problema));
+        }
+
+        [Test]
+        public void PerfilMetaQuest_PaisagemEInstalacaoAuto()
+        {
+            Assert.That(UnityEditor.PlayerSettings.defaultInterfaceOrientation, Is.EqualTo(UnityEditor.UIOrientation.LandscapeLeft));
+            Assert.That(UnityEditor.PlayerSettings.Android.preferredInstallLocation,
+                Is.EqualTo(UnityEditor.AndroidPreferredInstallLocation.Auto));
+        }
 
         [Test]
         public void ApkLimpo_NaoTemProblemas()

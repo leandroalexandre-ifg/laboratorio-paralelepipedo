@@ -96,6 +96,16 @@ namespace LaboratorioParalelepipedo.Editor.Release
                     problemas.Add($"Permissão fora da lista aceita: {permissao}. Revise e, se for o caso, inclua em RegrasDePrivacidade.");
             }
 
+            // Exigências da Meta (pré-validação do envio): instalação "auto" (0) e telas em paisagem (0).
+            Match local = Regex.Match(ArvoreDoManifesto, @"android:installLocation\(0x[0-9a-f]+\)=(-?\d+)");
+            if (!local.Success || local.Groups[1].Value != "0")
+                problemas.Add("android:installLocation precisa ser \"auto\" (a Meta recusa \"internalOnly\" e " +
+                              "\"preferExternal\"). Rode Laboratório › 3. Configurar Meta Quest.");
+            foreach (Match orientacao in Regex.Matches(ArvoreDoManifesto, @"android:screenOrientation\(0x[0-9a-f]+\)=(-?\d+)"))
+                if (orientacao.Groups[1].Value != "0")
+                    problemas.Add($"android:screenOrientation = {orientacao.Groups[1].Value}; a Meta exige paisagem (0). " +
+                                  "Rode Laboratório › 3. Configurar Meta Quest.");
+
             foreach (string metaData in RegrasDePrivacidade.MetaDataProibida)
                 if (ArvoreDoManifesto.Contains($"\"{metaData}\""))
                     problemas.Add($"Meta-data proibida no manifesto (telemetria): {metaData}.");

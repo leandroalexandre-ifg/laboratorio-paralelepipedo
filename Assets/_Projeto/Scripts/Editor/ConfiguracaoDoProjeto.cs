@@ -119,6 +119,9 @@ namespace LaboratorioParalelepipedo.Editor
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel32;
             PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)34;
             PlayerSettings.colorSpace = ColorSpace.Linear;
+            // Exigências da Meta no envio: orientação paisagem e android:installLocation="auto".
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
+            PlayerSettings.Android.preferredInstallLocation = AndroidPreferredInstallLocation.Auto;
             EditorUtility.SetDirty(perfil);
 
             ConfigurarOpenXr();
