@@ -13,6 +13,9 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
             _textos = textos ?? throw new ArgumentNullException(nameof(textos));
         }
 
+        /// <summary>Catálogo sem textos: <see cref="Obter"/> devolve "[chave]" para qualquer chave.</summary>
+        public static CatalogoDeTextos Vazio() => new CatalogoDeTextos(new Dictionary<string, string>());
+
         public int Quantidade => _textos.Count;
 
         public IEnumerable<string> Chaves => _textos.Keys;
