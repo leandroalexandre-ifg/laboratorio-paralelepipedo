@@ -4,7 +4,8 @@
     "references": [
         "LaboratorioParalelepipedo.Nucleo",
         "LaboratorioParalelepipedo.Apresentacao",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Oculus.VR"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
