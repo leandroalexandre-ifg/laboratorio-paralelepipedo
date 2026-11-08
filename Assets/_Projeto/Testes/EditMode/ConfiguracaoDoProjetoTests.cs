@@ -1,4 +1,5 @@
 using System.Linq;
+using LaboratorioParalelepipedo.Nucleo.Dados;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -54,32 +55,62 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(openXr.renderMode, Is.EqualTo(OpenXRSettings.RenderMode.SinglePassInstanced));
         }
 
-        [Test]
-        public void FonteNunito_TemTodosOsCaracteresDosDados()
+        private const string CaminhoDaFonte = "Assets/_Projeto/Fontes/Nunito SDF.asset";
+
+        private static string Ler(string caminho) => AssetDatabase.LoadAssetAtPath<TextAsset>(caminho).text;
+
+        private static TMP_FontAsset Fonte()
         {
-            var fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/_Projeto/Fontes/Nunito SDF.asset");
-            Assert.That(fonte, Is.Not.Null);
-            Assert.That(fonte.atlasPopulationMode, Is.EqualTo(AtlasPopulationMode.Dynamic));
-
-            string caracteres = string.Concat(new[] { "textos.json", "desafios.json" }
-                    .SelectMany(a => AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Projeto/Dados/" + a).text)
-                    .Concat("×≈√²·–−")
-                    .Where(c => !char.IsControl(c)).Distinct());
-
-            // Confere numa fonte temporária, para não sujar o asset.
-            var temporaria = TMP_FontAsset.CreateFontAsset(fonte.sourceFontFile, 90, 9,
-                UnityEngine.TextCore.LowLevel.GlyphRenderMode.SDFAA, 1024, 1024);
-            try
-            {
-                temporaria.TryAddCharacters(caracteres, out string faltando);
-                Assert.That(faltando, Is.Null.Or.Empty, "caracteres sem glifo na Nunito");
-            }
-            finally
-            {
-                Object.DestroyImmediate(temporaria.atlasTexture);
-                Object.DestroyImmediate(temporaria.material);
-                Object.DestroyImmediate(temporaria);
-            }
+            var fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CaminhoDaFonte);
+            Assert.That(fonte, Is.Not.Null, $"{CaminhoDaFonte} não existe. Rode Laboratório › Regenerar atlas da fonte.");
+            return fonte;
         }
+
+        private static string CaracteresDoAtlasGerado(TMP_FontAsset fonte) =>
+            string.Concat(fonte.characterTable.Select(c => (char)c.unicode));
+
+        [Test]
+        public void FonteNunito_EhEstatica_ESemOTtfNoBuild()
+        {
+            var fonte = Fonte();
+
+            Assert.That(fonte.atlasPopulationMode, Is.EqualTo(AtlasPopulationMode.Static),
+                "atlas dinâmico muda o asset ao dar Play");
+            Assert.That(fonte.sourceFontFile, Is.Null, "fonte estática não leva o .ttf para o APK");
+            Assert.That(fonte.atlasTexture.width, Is.GreaterThan(1));
+        }
+
+        [Test]
+        public void FonteNunito_EhAPadraoDoTextMeshPro()
+        {
+            Assert.That(TMP_Settings.defaultFontAsset, Is.EqualTo(Fonte()), "a LiberationSans não deve ser usada");
+        }
+
+        [Test]
+        public void AtlasDaFonte_TemTodosOsCaracteresDosTextosEDesafios()
+        {
+            string atlas = CaracteresDoAtlasGerado(Fonte());
+            string esperados = CaracteresDoAtlas.Coletar(Ler("Assets/_Projeto/Fontes/caracteres-extras.txt"),
+                Ler("Assets/_Projeto/Dados/textos.json"), Ler("Assets/_Projeto/Dados/desafios.json"));
+
+            string faltando = CaracteresDoAtlas.QueFaltam(esperados, atlas);
+
+            Assert.That(faltando, Is.Empty, MensagemDeFaltantes(faltando));
+        }
+
+        [Test]
+        public void MensagemDeFaltantes_DizOQueFazer()
+        {
+            string mensagem = MensagemDeFaltantes(CaracteresDoAtlas.QueFaltam("φ = 1,618", CaracteresDoAtlasGerado(Fonte())));
+
+            Assert.That(mensagem, Does.Contain("\"φ\" (U+03C6)").And.Contain("Laboratório › Regenerar atlas da fonte"));
+        }
+
+        /// <summary>Mensagem do teste quando um texto novo usa caractere fora do atlas.</summary>
+        private static string MensagemDeFaltantes(string faltando) =>
+            "Caracteres dos JSON fora do atlas da Nunito SDF: " +
+            string.Join(", ", faltando.Select(c => $"\"{c}\" (U+{(int)c:X4})")) +
+            ". Rode Laboratório › Regenerar atlas da fonte e commite o Nunito SDF.asset. Se a Nunito não tiver o " +
+            "caractere, confira com Tools/verificar_glifos.py.";
     }
 }

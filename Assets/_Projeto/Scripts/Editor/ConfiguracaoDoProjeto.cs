@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEditor;
@@ -8,7 +7,6 @@ using UnityEditor.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 using UnityEditor.XR.OpenXR.Features;
 using UnityEngine;
-using UnityEngine.TextCore.LowLevel;
 using UnityEngine.XR.Management;
 using UnityEngine.XR.OpenXR;
 
@@ -21,7 +19,7 @@ namespace LaboratorioParalelepipedo.Editor
     /// -importPackage "Library/PackageCache/com.unity.ugui@*/Package Resources/TMP Essential Resources.unitypackage" -quit
     /// -executeMethod LaboratorioParalelepipedo.Editor.ConfiguracaoDoProjeto.CriarPerfilMetaQuest   (sem -quit)
     /// -buildTarget Android -executeMethod LaboratorioParalelepipedo.Editor.ConfiguracaoDoProjeto.ConfigurarMetaQuest -quit
-    /// -executeMethod LaboratorioParalelepipedo.Editor.ConfiguracaoDoProjeto.CriarFonte -quit
+    /// -executeMethod LaboratorioParalelepipedo.Editor.AtlasDaFonte.Regenerar -quit
     /// </code>
     /// </summary>
     public static class ConfiguracaoDoProjeto
@@ -33,19 +31,14 @@ namespace LaboratorioParalelepipedo.Editor
         public const string Versao = "0.1.0";
 
         public const string CaminhoDoPerfil = "Assets/Settings/Build Profiles/Meta Quest.asset";
-        public const string CaminhoDaFonte = "Assets/_Projeto/Fontes/Nunito-SemiBold.ttf";
-        public const string CaminhoDaFonteTmp = "Assets/_Projeto/Fontes/Nunito SDF.asset";
         public const string CaminhoDosTextos = "Assets/_Projeto/Dados/textos.json";
         public const string CaminhoDosDesafios = "Assets/_Projeto/Dados/desafios.json";
 
         private const string IdDaPlataformaMetaQuest = "80657fe557de4d17822398b3a01b8c9e";
         private const string NomeDoPerfil = "Meta Quest";
-        private const string ConfiguracoesDoTmp = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
+        internal const string ConfiguracoesDoTmp = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
         private const string ConfiguracoesDoXr = "Assets/XR/XRGeneralSettingsPerBuildTarget.asset";
         private const string LoaderOpenXr = "UnityEngine.XR.OpenXR.OpenXRLoader";
-
-        /// <summary>Símbolos que o código de exibição usa além dos JSON (dimensões, aproximações, rótulos).</summary>
-        public const string SimbolosDoCodigo = "0123456789ABCDEFGH×≈√²³·,.+−-=()/: ";
 
         /// <summary>Features OpenXR do Android, as mesmas do projeto Missão Coração.</summary>
         private static readonly string[] FeaturesDoAndroid =
@@ -131,70 +124,6 @@ namespace LaboratorioParalelepipedo.Editor
             ConfigurarOpenXr();
             AssetDatabase.SaveAssets();
             Debug.Log("[Configuração] Perfil Meta Quest ativo e configurado.");
-        }
-
-        /// <summary>
-        /// Cria a fonte TextMeshPro dinâmica da Nunito (os glifos são gerados na hora em que aparecem, então um
-        /// texto novo do professor funciona sem refazer a fonte) e confere se a Nunito tem os caracteres dos JSON.
-        /// </summary>
-        [MenuItem("Laboratório/4. Criar fonte Nunito SDF")]
-        public static void CriarFonte()
-        {
-            var fonte = AssetDatabase.LoadAssetAtPath<Font>(CaminhoDaFonte);
-            if (fonte == null)
-            {
-                Debug.LogError($"[Configuração] Fonte não encontrada em '{CaminhoDaFonte}'.");
-                return;
-            }
-
-            if (AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CaminhoDaFonteTmp) == null)
-            {
-                TMP_FontAsset fonteTmp = CriarFonteDinamica(fonte);
-                fonteTmp.name = Path.GetFileNameWithoutExtension(CaminhoDaFonteTmp);
-                AssetDatabase.CreateAsset(fonteTmp, CaminhoDaFonteTmp);
-                AssetDatabase.AddObjectToAsset(fonteTmp.material, fonteTmp);
-                AssetDatabase.AddObjectToAsset(fonteTmp.atlasTexture, fonteTmp);
-                AssetDatabase.SaveAssets();
-                Debug.Log($"[Configuração] Fonte criada em '{CaminhoDaFonteTmp}'.");
-            }
-
-            string faltando = CaracteresQueFaltam(fonte, CaracteresDoApp());
-            if (faltando.Length > 0) Debug.LogWarning($"[Configuração] A Nunito não tem: {faltando}");
-            else Debug.Log("[Configuração] A Nunito tem todos os caracteres dos textos e desafios.");
-        }
-
-        /// <summary>Fonte TextMeshPro dinâmica, SDF, atlas de 1024 com várias páginas se precisar.</summary>
-        public static TMP_FontAsset CriarFonteDinamica(Font fonte) =>
-            TMP_FontAsset.CreateFontAsset(fonte, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024,
-                AtlasPopulationMode.Dynamic, enableMultiAtlasSupport: true);
-
-        /// <summary>Caracteres de <paramref name="texto"/> que a fonte não tem (confere numa fonte temporária).</summary>
-        public static string CaracteresQueFaltam(Font fonte, string texto)
-        {
-            TMP_FontAsset temporaria = CriarFonteDinamica(fonte);
-            try
-            {
-                temporaria.TryAddCharacters(texto, out string faltando);
-                return faltando ?? string.Empty;
-            }
-            finally
-            {
-                Object.DestroyImmediate(temporaria.atlasTexture);
-                Object.DestroyImmediate(temporaria.material);
-                Object.DestroyImmediate(temporaria);
-            }
-        }
-
-        /// <summary>Todos os caracteres que o aluno pode ver: textos, desafios e símbolos do código.</summary>
-        public static string CaracteresDoApp()
-        {
-            var conjunto = new SortedSet<char>(SimbolosDoCodigo);
-            var textos = AssetDatabase.LoadAssetAtPath<TextAsset>(CaminhoDosTextos);
-            var desafios = AssetDatabase.LoadAssetAtPath<TextAsset>(CaminhoDosDesafios);
-            foreach (char c in textos.text) conjunto.Add(c);
-            foreach (char c in desafios.text) conjunto.Add(c);
-            conjunto.RemoveWhere(char.IsControl);
-            return string.Concat(conjunto);
         }
 
         private static void ConfigurarOpenXr()
