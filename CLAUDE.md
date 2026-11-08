@@ -59,7 +59,8 @@ Assets/_Projeto/
       Dados/       # DTOs dos JSON, LeitorDeTextos, LeitorDeDesafios, CatalogoDeTextos, ChavesDeTexto
     Apresentacao/  # MonoBehaviours finos que leem o núcleo e atualizam a cena; CarregadorDeDados (JsonUtility)
     XR/            # raio, gatilho, grip, teleporte, giro por passos
-    Editor/        # configuração do projeto, gerador da cena e prévia renderizada (menu "Laboratório")
+    Editor/        # configuração do projeto, atlas da fonte, gerador da cena e prévia (menu "Laboratório")
+      Release/     # build assinado, lista de verificação do APK e envio ao ALPHA (menu "Laboratório › Release")
   Dados/           # JSON (TextAsset) de textos e desafios
   Fontes/          # Nunito SemiBold (.ttf via LFS, licença OFL) e a fonte TextMeshPro dinâmica "Nunito SDF"
   Cenas/  Prefabs/  Materiais/
@@ -72,7 +73,8 @@ Assemblies: `LaboratorioParalelepipedo.Nucleo` (`noEngineReferences: true`), `La
 Meta XR Core e OpenXR, só Editor). Namespaces `LaboratorioParalelepipedo.<Área>`.
 
 Ficam fora de `Assets/_Projeto/` só os arquivos que o Unity e os pacotes exigem nos lugares padrão:
-`Assets/TextMesh Pro/` (recursos essenciais), `Assets/XR/` (OpenXR), `Assets/Settings/Build Profiles/Meta Quest.asset`
+`Assets/TextMesh Pro/` (recursos essenciais), `Assets/XR/` (OpenXR), `Assets/Settings/Build Profiles/Meta Quest.asset`, `Assets/Plugins/Android/AndroidManifest.xml` (remove permissões de rede e
+telemetria), `Assets/StreamingAssets/` (criada pelo Meta SDK ao dar Play)
 (perfil de build; com ele ativo, as Player Settings do Android ficam no perfil), `Assets/Oculus/` e `Assets/Resources/`
 (Meta SDK).
 
@@ -92,6 +94,8 @@ terceiros.
     (A → B → F → E → A).
   - Tolerância padrão das respostas reais: **±0,01** (aceita 3,60 e 3,61 para √13), ajustável por desafio no JSON.
   - Cubinhos: limite técnico de **1000** por caixa; desafios da estação de volume recusam dimensões **acima de 10**.
+  - Escala da caixa (`EscalaDaCaixa`): 1 unidade = 10 cm, reduzida por desafio até a maior dimensão caber em
+    **0,6 m**; o cubinho de aresta 1 usa a mesma escala.
 
 ### Formato dos JSON (`Assets/_Projeto/Dados/`)
 
@@ -170,12 +174,21 @@ UNITY=/Applications/Unity/Hub/Editor/6000.6.7f1/Unity.app/Contents/MacOS/Unity
   -quit -logFile Logs/cena.log
 "$UNITY" -batchmode -projectPath . -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar \
   -quit -logFile Logs/previa.log
+
+# APK de release assinado e conferido (Builds/LaboratorioParalelepipedo-<versionCode>.apk); envio em Docs/DEPLOY.md
+"$UNITY" -batchmode -nographics -projectPath . -buildTarget Android \
+  -executeMethod LaboratorioParalelepipedo.Editor.Release.ScriptDeBuild.GerarRelease -quit -logFile Logs/release.log
 ```
 
 Configuração do zero (já feita; os passos estão no comentário de `ConfiguracaoDoProjeto`): recursos do TextMeshPro,
 perfil Meta Quest, Player Settings e OpenXR, fonte Nunito SDF. Glifos das fontes: `Tools/verificar_glifos.py`.
-Dar Play no Editor pode alterar `Nunito SDF.asset` e `LiberationSans SDF.asset` (glifos dinâmicos); descarte essas
-mudanças.
+A Nunito SDF tem atlas **estático** (fonte padrão do TextMeshPro) com os caracteres dos JSON mais
+`Fontes/caracteres-extras.txt`. Se um texto novo usar caractere fora do atlas, o teste EditMode avisa: rode
+**Laboratório › Regenerar atlas da fonte** (ou `-executeMethod LaboratorioParalelepipedo.Editor.AtlasDaFonte.Regenerar`)
+e commite o `Nunito SDF.asset`.
+
+Modo Editor (sem óculos, só `#if UNITY_EDITOR`, objeto `EditorOnly`): olhos a 1,4 m, botão direito do mouse olha em
+volta, clique esquerdo age como o gatilho do raio.
 
 O Unity não pode estar aberto neste projeto durante comandos em `-batchmode`. Se falhar por isso, avise em vez de
 contornar.
@@ -183,7 +196,7 @@ contornar.
 ## Deploy
 
 Somente pelo canal **ALPHA** do Meta Horizon Developer Dashboard, via `ovr-platform-util` (o USB do Quest de testes
-não transmite dados). App ID: `<PREENCHER_DEPOIS>`.
+não transmite dados). App ID: **1398124376723979**. Passo a passo, segredos e lista de verificação do APK em `Docs/DEPLOY.md`.
 Package name: **`br.edu.ifg.laboratorioparalelepipedo`** (mesmo padrão do Missão Coração, `br.edu.ifg.missaocoracao`),
 fixado em `ProjectSettings.asset`. O perfil de build Meta Quest, quando for criado, deve repetir o mesmo valor.
 **Nunca mudar:** depois do primeiro envio ao ALPHA, outro package name vira outro app na loja.
