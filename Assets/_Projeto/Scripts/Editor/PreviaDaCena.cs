@@ -17,6 +17,7 @@ namespace LaboratorioParalelepipedo.Editor
             ("frente", new Vector3(0f, 1.35f, 0f), new Vector3(0f, 1.0f, 1.4f)),
             ("caixa", new Vector3(0.25f, 1.15f, 0.45f), new Vector3(0f, 0.86f, 1.0f)),
             ("sala", new Vector3(1.5f, 1.6f, -1.5f), new Vector3(-0.3f, 1.0f, 1.5f)),
+            ("dentro", new Vector3(0.12f, 0.84f, 0.93f), new Vector3(-0.2f, 0.9f, 1.15f)),
         };
 
         [MenuItem("Laboratório/Renderizar prévia da cena")]
