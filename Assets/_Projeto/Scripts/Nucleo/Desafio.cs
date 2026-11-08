@@ -1,50 +1,43 @@
 using System;
-using System.Collections.Generic;
 
 namespace LaboratorioParalelepipedo.Nucleo
 {
     /// <summary>
-    /// Pergunta sobre uma caixa (ex.: "Quanto mede a diagonal da base da caixa 2 × 3 × 6?").
-    /// A resposta correta é sempre calculada a partir das dimensões e da grandeza: quem escreve o desafio
-    /// nunca digita a resposta.
+    /// Base dos desafios: id, estação, código da BNCC, enunciado e a caixa em que o desafio acontece.
+    /// As dimensões guardam o texto escrito pelo professor (ex.: "√2") para mostrar ao aluno.
     /// </summary>
-    public sealed class Desafio
+    public abstract class Desafio
     {
-        /// <summary>Tolerância padrão para respostas reais: ±0,01 (aceita 3,60 e 3,61 para √13 ≈ 3,6056).</summary>
-        public const double ToleranciaPadrao = 0.01;
-
-        /// <summary>Tolerância padrão da grandeza: 0 para contagens (resposta inteira), ±0,01 para as demais.</summary>
-        public static double ToleranciaPadraoPara(Grandeza grandeza) => grandeza.EhContagem() ? 0 : ToleranciaPadrao;
-
         /// <summary>Maior dimensão aceita nos desafios da estação de volume.</summary>
         public const double DimensaoMaximaNaEstacaoDeVolume = 10;
-
-        private readonly double[] _distratores;
 
         public string Id { get; }
         public Estacao Estacao { get; }
         public string CodigoBncc { get; }
         public string Enunciado { get; }
+
+        /// <summary>Medida a (comprimento), com o texto para mostrar.</summary>
+        public Medida Comprimento { get; }
+
+        /// <summary>Medida b (largura), com o texto para mostrar.</summary>
+        public Medida Largura { get; }
+
+        /// <summary>Medida c (altura), com o texto para mostrar.</summary>
+        public Medida Altura { get; }
+
         public Paralelepipedo Caixa { get; }
-        public Grandeza Grandeza { get; }
-        public double Tolerancia { get; }
 
-        /// <summary>Opções erradas mostradas junto com a resposta correta.</summary>
-        public IReadOnlyList<double> Distratores => _distratores;
-
-        /// <summary>Resposta correta, calculada a partir da caixa.</summary>
-        public double RespostaCorreta => Caixa.Medir(Grandeza);
+        public abstract TipoDeDesafio Tipo { get; }
 
         /// <exception cref="DesafioInvalidoException">Se algum dado do desafio for inválido.</exception>
-        public Desafio(
+        protected Desafio(
             string id,
             Estacao estacao,
             string codigoBncc,
             string enunciado,
-            Paralelepipedo caixa,
-            Grandeza grandeza,
-            IReadOnlyList<double> distratores = null,
-            double? tolerancia = null)
+            Medida comprimento,
+            Medida largura,
+            Medida altura)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new DesafioInvalidoException(id, "falta o id.");
@@ -54,71 +47,43 @@ namespace LaboratorioParalelepipedo.Nucleo
                 throw new DesafioInvalidoException(id, "falta o código da BNCC.");
             if (string.IsNullOrWhiteSpace(enunciado))
                 throw new DesafioInvalidoException(id, "falta o enunciado.");
-            if (caixa == null)
-                throw new DesafioInvalidoException(id, "faltam as dimensões da caixa.");
-            if (!Enum.IsDefined(typeof(Grandeza), grandeza))
-                throw new DesafioInvalidoException(id, $"grandeza desconhecida ({(int)grandeza}).");
 
-            double tol = tolerancia ?? ToleranciaPadraoPara(grandeza);
-            if (double.IsNaN(tol) || double.IsInfinity(tol) || tol < 0)
-                throw new DesafioInvalidoException(id, $"a tolerância não pode ser negativa (veio {tol}).");
-            if (tol == 0 && !grandeza.EhContagem())
+            Paralelepipedo caixa;
+            try
+            {
+                caixa = new Paralelepipedo(comprimento.Valor, largura.Valor, altura.Valor);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Medida errada = e.ParamName == "a" ? comprimento : e.ParamName == "b" ? largura : altura;
                 throw new DesafioInvalidoException(id,
-                    "para diagonais, áreas e volume, a tolerância deve ser maior que zero.");
+                    $"a dimensão {e.ParamName} deve ser um número positivo (veio {errada.Texto}).");
+            }
 
             if (estacao == Estacao.Volume)
-                ValidarDimensoesDaEstacaoDeVolume(id, caixa);
+            {
+                ConferirLimiteDeVolume(id, comprimento, "a");
+                ConferirLimiteDeVolume(id, largura, "b");
+                ConferirLimiteDeVolume(id, altura, "c");
+            }
 
             Id = id;
             Estacao = estacao;
             CodigoBncc = codigoBncc;
             Enunciado = enunciado;
+            Comprimento = comprimento;
+            Largura = largura;
+            Altura = altura;
             Caixa = caixa;
-            Grandeza = grandeza;
-            Tolerancia = tol;
-            _distratores = ValidarDistratores(id, distratores, caixa.Medir(grandeza), tol);
         }
 
-        private static void ValidarDimensoesDaEstacaoDeVolume(string id, Paralelepipedo caixa)
+        private static void ConferirLimiteDeVolume(string id, Medida medida, string nome)
         {
-            void Conferir(double valor, string nome)
-            {
-                if (valor > DimensaoMaximaNaEstacaoDeVolume &&
-                    !Numeros.QuaseIguais(valor, DimensaoMaximaNaEstacaoDeVolume))
-                    throw new DesafioInvalidoException(id,
-                        $"na estação de volume, a dimensão {nome} deve ser no máximo " +
-                        $"{DimensaoMaximaNaEstacaoDeVolume} (veio {valor}).");
-            }
-
-            Conferir(caixa.A, "a");
-            Conferir(caixa.B, "b");
-            Conferir(caixa.C, "c");
-        }
-
-        private static double[] ValidarDistratores(
-            string id, IReadOnlyList<double> distratores, double resposta, double tolerancia)
-        {
-            if (distratores == null) return Array.Empty<double>();
-
-            var validados = new double[distratores.Count];
-            for (int i = 0; i < validados.Length; i++)
-            {
-                double valor = distratores[i];
-                int numero = i + 1;
-                if (double.IsNaN(valor) || double.IsInfinity(valor))
-                    throw new DesafioInvalidoException(id, $"o distrator {numero} não é um número válido.");
-                if (AvaliadorDeResposta.Coincidem(valor, resposta, tolerancia))
-                    throw new DesafioInvalidoException(id,
-                        $"o distrator {numero} ({valor}) é igual à resposta correta ({resposta}) " +
-                        $"dentro da tolerância de {tolerancia}.");
-                for (int j = 0; j < i; j++)
-                    if (AvaliadorDeResposta.Coincidem(valor, validados[j], tolerancia))
-                        throw new DesafioInvalidoException(id,
-                            $"os distratores {j + 1} e {numero} são iguais dentro da tolerância de {tolerancia}.");
-                validados[i] = valor;
-            }
-
-            return validados;
+            if (medida.Valor > DimensaoMaximaNaEstacaoDeVolume &&
+                !Numeros.QuaseIguais(medida.Valor, DimensaoMaximaNaEstacaoDeVolume))
+                throw new DesafioInvalidoException(id,
+                    $"na estação de volume, a dimensão {nome} deve ser no máximo " +
+                    $"{DimensaoMaximaNaEstacaoDeVolume} (veio {medida.Texto}).");
         }
     }
 }

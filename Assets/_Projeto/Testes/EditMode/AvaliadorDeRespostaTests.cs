@@ -6,12 +6,12 @@ namespace LaboratorioParalelepipedo.Testes
 {
     public class AvaliadorDeRespostaTests
     {
-        private static Desafio DiagonalDaBase2x3x6(double? tolerancia = null) =>
-            new Desafio("diag-01", Estacao.Diagonais, "EF09MA14", "Quanto mede d?",
-                new Paralelepipedo(2, 3, 6), Grandeza.DiagonalDaBase, tolerancia: tolerancia);
+        private static DesafioDeResposta DiagonalDaBase2x3x6(double? tolerancia = null) =>
+            new DesafioDeResposta("diag-01", Estacao.Diagonais, "EF09MA14", "Quanto mede d?",
+                2, 3, 6, Grandeza.DiagonalDaBase, tolerancia: tolerancia);
 
-        private static Desafio Com(Grandeza grandeza, double a, double b, double c) =>
-            new Desafio("x", Estacao.Areas, "EF09MA19", "?", new Paralelepipedo(a, b, c), grandeza);
+        private static DesafioDeResposta Com(Grandeza grandeza, double a, double b, double c) =>
+            new DesafioDeResposta("x", Estacao.Areas, "EF09MA19", "?", a, b, c, grandeza);
 
         [TestCase(3.61)]
         [TestCase(3.60)]
@@ -69,8 +69,8 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Contagem_SoAceitaORespostaExata()
         {
-            var arestas = new Desafio("elem", Estacao.Elementos, "EF06MA17", "Quantas arestas?",
-                new Paralelepipedo(4, 3, 2), Grandeza.NumeroDeArestas);
+            var arestas = new DesafioDeResposta("elem", Estacao.Elementos, "EF06MA17", "Quantas arestas?",
+                4, 3, 2, Grandeza.NumeroDeArestas);
 
             Assert.That(AvaliadorDeResposta.Avaliar(arestas, 12).Correta, Is.True);
             Assert.That(AvaliadorDeResposta.Avaliar(arestas, 12.01).Correta, Is.False);

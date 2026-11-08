@@ -9,7 +9,7 @@ namespace LaboratorioParalelepipedo.Nucleo
     /// </summary>
     public static class AvaliadorDeResposta
     {
-        public static ResultadoDaAvaliacao Avaliar(Desafio desafio, double resposta)
+        public static ResultadoDaAvaliacao Avaliar(DesafioDeResposta desafio, double resposta)
         {
             if (desafio == null) throw new ArgumentNullException(nameof(desafio));
 

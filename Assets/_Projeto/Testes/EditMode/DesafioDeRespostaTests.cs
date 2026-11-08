@@ -1,24 +1,22 @@
-using System;
 using LaboratorioParalelepipedo.Nucleo;
 using NUnit.Framework;
 
 namespace LaboratorioParalelepipedo.Testes
 {
-    public class DesafioTests
+    public class DesafioDeRespostaTests
     {
         private const double Eps = 1e-9;
 
-        private static Desafio Criar(
+        private static DesafioDeResposta Criar(
             Estacao estacao = Estacao.Diagonais,
-            Paralelepipedo caixa = null,
             Grandeza grandeza = Grandeza.DiagonalDaBase,
-            double[] distratores = null,
+            Medida[] distratores = null,
             double? tolerancia = null,
             string id = "diag-01",
             string bncc = "EF09MA14",
-            string enunciado = "Quanto mede a diagonal da base?") =>
-            new Desafio(id, estacao, bncc, enunciado, caixa ?? new Paralelepipedo(2, 3, 6), grandeza,
-                distratores, tolerancia);
+            string enunciado = "Quanto mede a diagonal da base?",
+            double a = 2, double b = 3, double c = 6) =>
+            new DesafioDeResposta(id, estacao, bncc, enunciado, a, b, c, grandeza, distratores, tolerancia);
 
         [TestCase(Grandeza.DiagonalDaBase, 3.6055512754639891)]
         [TestCase(Grandeza.Diagonal, 7)]
@@ -36,27 +34,27 @@ namespace LaboratorioParalelepipedo.Testes
         [TestCase(Grandeza.NumeroDeFaces, 6)]
         public void Contagens_TemRespostaInteiraEToleranciaPadraoZero(Grandeza grandeza, int esperada)
         {
-            var desafio = Criar(Estacao.Elementos, grandeza: grandeza, bncc: "EF06MA17");
+            var desafio = Criar(Estacao.Elementos, grandeza, bncc: "EF06MA17");
 
             Assert.That(desafio.RespostaCorreta, Is.EqualTo(esperada));
             Assert.That(desafio.Tolerancia, Is.EqualTo(0));
-            Assert.That(Desafio.ToleranciaPadraoPara(grandeza), Is.EqualTo(0));
+            Assert.That(DesafioDeResposta.ToleranciaPadraoPara(grandeza), Is.EqualTo(0));
         }
 
         [Test]
         public void Contagem_AceitaToleranciaZeroExplicitaEDistratores()
         {
-            var desafio = Criar(Estacao.Elementos, grandeza: Grandeza.NumeroDeArestas,
-                distratores: new[] { 8.0, 6.0, 10.0 }, tolerancia: 0);
+            var desafio = Criar(Estacao.Elementos, Grandeza.NumeroDeArestas,
+                new Medida[] { 8, 6, 10 }, tolerancia: 0);
 
-            Assert.That(desafio.Distratores, Is.EqualTo(new[] { 8.0, 6.0, 10.0 }));
+            Assert.That(desafio.Distratores.Count, Is.EqualTo(3));
         }
 
         [Test]
         public void Contagem_RecusaDistratorIgualAResposta()
         {
             Assert.Throws<DesafioInvalidoException>(() =>
-                Criar(Estacao.Elementos, grandeza: Grandeza.NumeroDeFaces, distratores: new[] { 8.0, 6.0 }));
+                Criar(Estacao.Elementos, Grandeza.NumeroDeFaces, new Medida[] { 8, 6 }));
         }
 
         [Test]
@@ -75,26 +73,40 @@ namespace LaboratorioParalelepipedo.Testes
                          Grandeza.DiagonalDaBase, Grandeza.Diagonal, Grandeza.AreaDaBase,
                          Grandeza.AreaLateral, Grandeza.AreaTotal, Grandeza.Volume,
                      })
-                Assert.That(Desafio.ToleranciaPadraoPara(g), Is.EqualTo(0.01), g.ToString());
+                Assert.That(DesafioDeResposta.ToleranciaPadraoPara(g), Is.EqualTo(0.01), g.ToString());
         }
 
         [Test]
         public void GuardaOsDadosDoDesafio()
         {
-            var desafio = Criar(distratores: new[] { 5.0, 13.0 });
+            var desafio = Criar(distratores: new[] { new Medida(5, "5"), new Medida(2.2360679774997898, "√5") });
 
             Assert.That(desafio.Id, Is.EqualTo("diag-01"));
+            Assert.That(desafio.Tipo, Is.EqualTo(TipoDeDesafio.Resposta));
             Assert.That(desafio.Estacao, Is.EqualTo(Estacao.Diagonais));
             Assert.That(desafio.CodigoBncc, Is.EqualTo("EF09MA14"));
             Assert.That(desafio.Enunciado, Is.EqualTo("Quanto mede a diagonal da base?"));
-            Assert.That(desafio.Distratores, Is.EqualTo(new[] { 5.0, 13.0 }));
+            Assert.That(desafio.Distratores[1].Texto, Is.EqualTo("√5"));
+            Assert.That(desafio.Caixa.Diagonal, Is.EqualTo(7).Within(Eps));
+        }
+
+        [Test]
+        public void GuardaOTextoDasDimensoes()
+        {
+            var desafio = new DesafioDeResposta("vol-02", Estacao.Volume, "EF09MA19", "Qual é o volume?",
+                2.5, 1.2, new Medida(System.Math.Sqrt(2), "√2"), Grandeza.Volume);
+
+            Assert.That(desafio.Comprimento.Texto, Is.EqualTo("2,5"));
+            Assert.That(desafio.Largura.Texto, Is.EqualTo("1,2"));
+            Assert.That(desafio.Altura.Texto, Is.EqualTo("√2"));
+            Assert.That(desafio.RespostaCorreta, Is.EqualTo(3 * System.Math.Sqrt(2)).Within(Eps));
         }
 
         [Test]
         public void SemTolerancia_UsaOPadraoDeUmCentesimo()
         {
             Assert.That(Criar().Tolerancia, Is.EqualTo(0.01));
-            Assert.That(Desafio.ToleranciaPadrao, Is.EqualTo(0.01));
+            Assert.That(DesafioDeResposta.ToleranciaPadrao, Is.EqualTo(0.01));
         }
 
         [Test]
@@ -103,7 +115,6 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Criar(tolerancia: 0.1).Tolerancia, Is.EqualTo(0.1));
         }
 
-        [TestCase(0)]
         [TestCase(-0.01)]
         [TestCase(double.NaN)]
         [TestCase(double.PositiveInfinity)]
@@ -127,11 +138,14 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.Throws<DesafioInvalidoException>(() => Criar(enunciado: " "));
         }
 
-        [Test]
-        public void SemCaixa_EhRecusado()
+        [TestCase(0, 3, 6, "a")]
+        [TestCase(2, -3, 6, "b")]
+        [TestCase(2, 3, double.NaN, "c")]
+        public void DimensaoInvalida_DaErroComADimensao(double a, double b, double c, string dimensao)
         {
-            Assert.Throws<DesafioInvalidoException>(() =>
-                new Desafio("x", Estacao.Volume, "EF09MA19", "?", null, Grandeza.Volume));
+            var erro = Assert.Throws<DesafioInvalidoException>(() => Criar(a: a, b: b, c: c));
+
+            Assert.That(erro.Message, Does.Contain($"dimensão {dimensao}"));
         }
 
         [Test]
@@ -155,8 +169,7 @@ namespace LaboratorioParalelepipedo.Testes
         [TestCase(2.5, 1.2, 1.4142135623730951)]
         public void EstacaoDeVolume_AceitaDimensoesAte10(double a, double b, double c)
         {
-            Assert.DoesNotThrow(() =>
-                Criar(Estacao.Volume, new Paralelepipedo(a, b, c), Grandeza.Volume));
+            Assert.DoesNotThrow(() => Criar(Estacao.Volume, Grandeza.Volume, a: a, b: b, c: c));
         }
 
         [TestCase(10.5, 3, 3, "a")]
@@ -165,7 +178,7 @@ namespace LaboratorioParalelepipedo.Testes
         public void EstacaoDeVolume_RecusaDimensaoAcimaDe10(double a, double b, double c, string dimensao)
         {
             var erro = Assert.Throws<DesafioInvalidoException>(() =>
-                Criar(Estacao.Volume, new Paralelepipedo(a, b, c), Grandeza.Volume));
+                Criar(Estacao.Volume, Grandeza.Volume, a: a, b: b, c: c));
 
             Assert.That(erro.Message, Does.Contain($"dimensão {dimensao}"));
         }
@@ -173,14 +186,14 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void OutrasEstacoes_AceitamDimensoesAcimaDe10()
         {
-            Assert.DoesNotThrow(() => Criar(Estacao.Diagonais, new Paralelepipedo(3, 4, 12), Grandeza.Diagonal));
+            Assert.DoesNotThrow(() => Criar(Estacao.Diagonais, Grandeza.Diagonal, a: 3, b: 4, c: 12));
         }
 
         [Test]
         public void DistratorIgualAResposta_EhRecusado()
         {
             var erro = Assert.Throws<DesafioInvalidoException>(() =>
-                Criar(grandeza: Grandeza.Diagonal, distratores: new[] { 5.0, 7.0 }));
+                Criar(grandeza: Grandeza.Diagonal, distratores: new Medida[] { 5, 7 }));
 
             Assert.That(erro.Message, Does.Contain("distrator 2").And.Contain("resposta correta"));
         }
@@ -189,28 +202,29 @@ namespace LaboratorioParalelepipedo.Testes
         public void DistratorIgualARespostaDentroDaTolerancia_EhRecusado()
         {
             // √13 ≈ 3,6056; 3,61 seria aceito como resposta, então não pode ser distrator.
-            Assert.Throws<DesafioInvalidoException>(() => Criar(distratores: new[] { 3.61 }));
+            Assert.Throws<DesafioInvalidoException>(() => Criar(distratores: new Medida[] { 3.61 }));
         }
 
         [Test]
         public void DistratorProximoMasForaDaTolerancia_EhAceito()
         {
-            Assert.DoesNotThrow(() => Criar(distratores: new[] { 3.7 }));
+            Assert.DoesNotThrow(() => Criar(distratores: new Medida[] { 3.7 }));
         }
 
         [Test]
         public void DistratoresRepetidos_SaoRecusados()
         {
-            var erro = Assert.Throws<DesafioInvalidoException>(() => Criar(distratores: new[] { 5.0, 13.0, 5.0 }));
+            var erro = Assert.Throws<DesafioInvalidoException>(() =>
+                Criar(distratores: new Medida[] { 5, 13, 5 }));
 
-            Assert.That(erro.Message, Does.Contain("distratores 1 e 3"));
+            Assert.That(erro.Message, Does.Contain("distratores 1 (5) e 3 (5)"));
         }
 
         [TestCase(double.NaN)]
         [TestCase(double.PositiveInfinity)]
         public void DistratorQueNaoEhNumero_EhRecusado(double distrator)
         {
-            Assert.Throws<DesafioInvalidoException>(() => Criar(distratores: new[] { distrator }));
+            Assert.Throws<DesafioInvalidoException>(() => Criar(distratores: new Medida[] { distrator }));
         }
 
         [Test]
