@@ -113,6 +113,18 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void ModoEditor_FicaForaDoBuild_ELigadoAoRig()
+        {
+            var modo = _cena.GetRootGameObjects().Single(g => g.name == "ModoEditor");
+
+            Assert.That(modo.tag, Is.EqualTo("EditorOnly"), "objetos EditorOnly não vão para o APK");
+            var serializado = new SerializedObject(modo.GetComponent("ModoEditor"));
+            Assert.That(((Transform)serializado.FindProperty("_espacoDeRastreamento").objectReferenceValue).name,
+                Is.EqualTo("TrackingSpace"));
+            Assert.That(serializado.FindProperty("_alturaDosOlhos").floatValue, Is.EqualTo(1.4f));
+        }
+
+        [Test]
         public void CenaEstaNoBuild()
         {
             var cenas = EditorBuildSettings.scenes.Where(c => c.enabled).Select(c => c.path).ToArray();

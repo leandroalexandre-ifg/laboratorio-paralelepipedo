@@ -3,7 +3,8 @@
     "rootNamespace": "LaboratorioParalelepipedo.XR",
     "references": [
         "LaboratorioParalelepipedo.Nucleo",
-        "LaboratorioParalelepipedo.Apresentacao"
+        "LaboratorioParalelepipedo.Apresentacao",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

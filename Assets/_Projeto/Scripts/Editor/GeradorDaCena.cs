@@ -2,6 +2,7 @@ using System.IO;
 using LaboratorioParalelepipedo.Apresentacao;
 using LaboratorioParalelepipedo.Nucleo;
 using LaboratorioParalelepipedo.Nucleo.Dados;
+using LaboratorioParalelepipedo.XR;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -34,9 +35,6 @@ namespace LaboratorioParalelepipedo.Editor
         private const float AlturaDoTampo = 0.76f;
         private const float LadoDoPe = 0.05f;
 
-        /// <summary>Metros por unidade de medida da caixa: a caixa 4 × 3 × 2 vira 40 cm × 30 cm × 20 cm.</summary>
-        public const float MetrosPorUnidade = 0.1f;
-
         // Altura das letras (TextMeshPro 3D: tamanho 1 ≈ 10 cm).
         private const float TamanhoDoTitulo = 0.8f;
         private const float TamanhoDoCredito = 0.4f;
@@ -48,12 +46,12 @@ namespace LaboratorioParalelepipedo.Editor
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
             var rig = AssetDatabase.LoadAssetAtPath<GameObject>(CaminhoDoRig);
-            var fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(ConfiguracaoDoProjeto.CaminhoDaFonteTmp);
+            var fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AtlasDaFonte.CaminhoDaFonteTmp);
             var textos = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfiguracaoDoProjeto.CaminhoDosTextos);
             var desafios = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfiguracaoDoProjeto.CaminhoDosDesafios);
             if (rig == null || fonte == null || textos == null || desafios == null)
             {
-                Debug.LogError("[Cena] Falta o OVRCameraRig, a fonte Nunito SDF (passo 4) ou os JSON de dados.");
+                Debug.LogError("[Cena] Falta o OVRCameraRig, a fonte Nunito SDF (Regenerar atlas da fonte) ou os JSON de dados.");
                 return;
             }
 
@@ -63,13 +61,13 @@ namespace LaboratorioParalelepipedo.Editor
             // Cena vazia: a única câmera é a do OVRCameraRig. Os assets são carregados de novo depois do NewScene,
             // que descarrega o que nenhuma cena usa.
             Scene cena = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(ConfiguracaoDoProjeto.CaminhoDaFonteTmp);
+            fonte = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AtlasDaFonte.CaminhoDaFonteTmp);
             textos = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfiguracaoDoProjeto.CaminhoDosTextos);
             desafios = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfiguracaoDoProjeto.CaminhoDosDesafios);
             rig = AssetDatabase.LoadAssetAtPath<GameObject>(CaminhoDoRig);
 
             ConfigurarAmbiente();
-            CriarRig(rig);
+            CriarModoEditor(CriarRig(rig));
             CriarSala();
             CriarMesa();
             CriarCaixa(fonte);
@@ -104,7 +102,7 @@ namespace LaboratorioParalelepipedo.Editor
             luz.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
         }
 
-        private static void CriarRig(GameObject prefab)
+        private static GameObject CriarRig(GameObject prefab)
         {
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             rig.name = "OVRCameraRig";
@@ -124,6 +122,20 @@ namespace LaboratorioParalelepipedo.Editor
                 camera.farClipPlane = 30f;
                 EditorUtility.SetDirty(camera);
             }
+
+            return rig;
+        }
+
+        /// <summary>
+        /// Olhar com o mouse e clique como gatilho, só no Editor sem óculos. Tag EditorOnly: o Unity tira o objeto
+        /// do build, e o código do ModoEditor também só existe no Editor.
+        /// </summary>
+        private static void CriarModoEditor(GameObject rig)
+        {
+            var objeto = new GameObject("ModoEditor") { tag = "EditorOnly" };
+            var modo = objeto.AddComponent<ModoEditor>();
+            modo.Configurar(rig.transform.Find("TrackingSpace"),
+                rig.transform.Find("TrackingSpace/CenterEyeAnchor").GetComponent<Camera>());
         }
 
         private static void CriarSala()
@@ -169,7 +181,7 @@ namespace LaboratorioParalelepipedo.Editor
 
             var caixa = new GameObject("Caixa").AddComponent<VisualDaCaixa>();
             caixa.transform.position = CentroDaMesa + Vector3.up * AlturaDoTampo;
-            caixa.Configurar(aresta, face, vertice, fonte, MetrosPorUnidade);
+            caixa.Configurar(aresta, face, vertice, fonte);
             caixa.Construir(new Paralelepipedo(4, 3, 2));
         }
 
