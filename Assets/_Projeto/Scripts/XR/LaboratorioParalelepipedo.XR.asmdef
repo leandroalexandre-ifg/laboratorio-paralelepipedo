@@ -1,0 +1,17 @@
+{
+    "name": "LaboratorioParalelepipedo.XR",
+    "rootNamespace": "LaboratorioParalelepipedo.XR",
+    "references": [
+        "LaboratorioParalelepipedo.Nucleo",
+        "LaboratorioParalelepipedo.Apresentacao"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

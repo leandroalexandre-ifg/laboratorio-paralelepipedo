@@ -1,0 +1,14 @@
+{
+    "name": "LaboratorioParalelepipedo.Nucleo",
+    "rootNamespace": "LaboratorioParalelepipedo.Nucleo",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
