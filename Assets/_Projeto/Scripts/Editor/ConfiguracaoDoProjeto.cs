@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using LaboratorioParalelepipedo.Nucleo.Dados;
 using TMPro;
 using UnityEditor;
 using UnityEditor.Build;
@@ -134,7 +133,10 @@ namespace LaboratorioParalelepipedo.Editor
             Debug.Log("[Configuração] Perfil Meta Quest ativo e configurado.");
         }
 
-        /// <summary>Cria (ou atualiza) a fonte TextMeshPro dinâmica da Nunito, já com os caracteres dos JSON.</summary>
+        /// <summary>
+        /// Cria a fonte TextMeshPro dinâmica da Nunito (os glifos são gerados na hora em que aparecem, então um
+        /// texto novo do professor funciona sem refazer a fonte) e confere se a Nunito tem os caracteres dos JSON.
+        /// </summary>
         [MenuItem("Laboratório/4. Criar fonte Nunito SDF")]
         public static void CriarFonte()
         {
@@ -145,24 +147,42 @@ namespace LaboratorioParalelepipedo.Editor
                 return;
             }
 
-            var fonteTmp = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CaminhoDaFonteTmp);
-            if (fonteTmp == null)
+            if (AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CaminhoDaFonteTmp) == null)
             {
-                fonteTmp = TMP_FontAsset.CreateFontAsset(fonte, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024,
-                    AtlasPopulationMode.Dynamic, enableMultiAtlasSupport: true);
+                TMP_FontAsset fonteTmp = CriarFonteDinamica(fonte);
                 fonteTmp.name = Path.GetFileNameWithoutExtension(CaminhoDaFonteTmp);
                 AssetDatabase.CreateAsset(fonteTmp, CaminhoDaFonteTmp);
                 AssetDatabase.AddObjectToAsset(fonteTmp.material, fonteTmp);
                 AssetDatabase.AddObjectToAsset(fonteTmp.atlasTexture, fonteTmp);
+                AssetDatabase.SaveAssets();
+                Debug.Log($"[Configuração] Fonte criada em '{CaminhoDaFonteTmp}'.");
             }
 
-            string caracteres = CaracteresDoApp();
-            if (!fonteTmp.TryAddCharacters(caracteres, out string faltando))
-                Debug.LogWarning($"[Configuração] A Nunito não tem: {faltando}");
+            string faltando = CaracteresQueFaltam(fonte, CaracteresDoApp());
+            if (faltando.Length > 0) Debug.LogWarning($"[Configuração] A Nunito não tem: {faltando}");
+            else Debug.Log("[Configuração] A Nunito tem todos os caracteres dos textos e desafios.");
+        }
 
-            EditorUtility.SetDirty(fonteTmp);
-            AssetDatabase.SaveAssets();
-            Debug.Log($"[Configuração] Fonte '{CaminhoDaFonteTmp}' com {fonteTmp.characterTable.Count} caracteres.");
+        /// <summary>Fonte TextMeshPro dinâmica, SDF, atlas de 1024 com várias páginas se precisar.</summary>
+        public static TMP_FontAsset CriarFonteDinamica(Font fonte) =>
+            TMP_FontAsset.CreateFontAsset(fonte, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024,
+                AtlasPopulationMode.Dynamic, enableMultiAtlasSupport: true);
+
+        /// <summary>Caracteres de <paramref name="texto"/> que a fonte não tem (confere numa fonte temporária).</summary>
+        public static string CaracteresQueFaltam(Font fonte, string texto)
+        {
+            TMP_FontAsset temporaria = CriarFonteDinamica(fonte);
+            try
+            {
+                temporaria.TryAddCharacters(texto, out string faltando);
+                return faltando ?? string.Empty;
+            }
+            finally
+            {
+                Object.DestroyImmediate(temporaria.atlasTexture);
+                Object.DestroyImmediate(temporaria.material);
+                Object.DestroyImmediate(temporaria);
+            }
         }
 
         /// <summary>Todos os caracteres que o aluno pode ver: textos, desafios e símbolos do código.</summary>
