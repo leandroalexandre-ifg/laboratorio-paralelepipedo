@@ -12,10 +12,15 @@
     { "chave": "geral.tentarDeNovo", "texto": "Tentar de novo" },
     { "chave": "geral.recomecar", "texto": "Recomeçar" },
 
-    { "chave": "controles.apontar", "texto": "Aponte e aperte o gatilho para escolher." },
-    { "chave": "controles.pegar", "texto": "Aponte para a caixa e segure o botão lateral para pegar. Solte para devolver." },
-    { "chave": "controles.teleporte", "texto": "Empurre o analógico para a frente, mire no chão e solte para ir até lá." },
-    { "chave": "controles.giro", "texto": "Empurre o analógico para o lado para girar." },
+    { "chave": "controles.titulo", "texto": "Como usar os controles" },
+    { "chave": "controles.apontar", "texto": "<b>Gatilho</b> (dedo indicador): aponte e aperte para escolher." },
+    { "chave": "controles.pegar", "texto": "<b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Solte para devolver." },
+    { "chave": "controles.teleporte", "texto": "<b>Analógico para a frente</b>: mire no chão e solte para ir até lá." },
+    { "chave": "controles.giro", "texto": "<b>Analógico para o lado</b>: virar." },
+
+    { "chave": "dica.pegar", "texto": "Segure o botão lateral para pegar" },
+    { "chave": "dica.teleporteValido", "texto": "Solte para ir até lá" },
+    { "chave": "dica.teleporteInvalido", "texto": "Aqui não dá" },
 
     { "chave": "estacao.elementos.titulo", "texto": "1. Elementos" },
     { "chave": "estacao.elementos.instrucao", "texto": "Toque os vértices, as arestas e as faces da caixa." },

@@ -17,10 +17,15 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string GeralTentarDeNovo = "geral.tentarDeNovo";
         public const string GeralRecomecar = "geral.recomecar";
 
+        public const string ControlesTitulo = "controles.titulo";
         public const string ControlesApontar = "controles.apontar";
         public const string ControlesPegar = "controles.pegar";
         public const string ControlesTeleporte = "controles.teleporte";
         public const string ControlesGiro = "controles.giro";
+
+        public const string DicaPegar = "dica.pegar";
+        public const string DicaTeleporteValido = "dica.teleporteValido";
+        public const string DicaTeleporteInvalido = "dica.teleporteInvalido";
 
         public const string ElementosTitulo = "estacao.elementos.titulo";
         public const string ElementosInstrucao = "estacao.elementos.instrucao";
@@ -60,7 +65,8 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         {
             AppTitulo, AppCreditos, AppVersao, DiagnosticoTitulo,
             GeralAcerto, GeralErro, GeralProximo, GeralTentarDeNovo, GeralRecomecar,
-            ControlesApontar, ControlesPegar, ControlesTeleporte, ControlesGiro,
+            ControlesTitulo, ControlesApontar, ControlesPegar, ControlesTeleporte, ControlesGiro,
+            DicaPegar, DicaTeleporteValido, DicaTeleporteInvalido,
             ElementosTitulo, ElementosInstrucao, ElementosVertices, ElementosArestas, ElementosFaces,
             ElementosFaceMontada, ElementosNaoEhFace,
             DiagonaisTitulo, DiagonaisInstrucao, DiagonaisFormulaDaBase, DiagonaisFormulaDaDiagonal,
