@@ -94,6 +94,12 @@ terceiros.
     (A → B → F → E → A).
   - Tolerância padrão das respostas reais: **±0,01** (aceita 3,60 e 3,61 para √13), ajustável por desafio no JSON.
   - Cubinhos: limite técnico de **1000** por caixa; desafios da estação de volume recusam dimensões **acima de 10**.
+  - Interação (`Nucleo/Interacao`, Fase 5): raio nas duas mãos; gatilho confirma, botão lateral segurado pega a
+    caixa, que ao ser solta volta à mesa em **0,4 s** na orientação original. Vibração leve ao acender um alvo e ao
+    confirmar. Giro por passos de **45°** em torno da cabeça, com escurecimento de **~100 ms** só no instante do giro
+    (sem vinheta no teleporte nem parado). Teleporte sem mudar a direção do olhar; destino inválido na mesa, na caixa
+    e a menos de **0,3 m** das paredes. Só o rig se move, nunca a câmera. O painel "Controles" mostra só as ações
+    que existem na cena (o "apontar e escolher" volta quando houver alvos do gatilho, nas estações).
   - Escala da caixa (`EscalaDaCaixa`): 1 unidade = 10 cm, reduzida por desafio até a maior dimensão caber em
     **0,6 m**; o cubinho de aresta 1 usa a mesma escala.
 
