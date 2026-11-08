@@ -46,6 +46,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
         /// <summary>Metros na cena por unidade de medida, calculados por <see cref="EscalaDaCaixa"/> para cada caixa.</summary>
         public float MetrosPorUnidade => _metrosPorUnidade;
 
+        /// <summary>Tamanho da caixa na cena, em metros (x: comprimento, y: altura, z: largura).</summary>
+        public Vector3 TamanhoNaCena => new Vector3(_comprimento, _altura, _largura) * _metrosPorUnidade;
+
         /// <summary>Liga a aparência (usado pelo gerador da cena e pelos testes).</summary>
         public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte)
         {
