@@ -82,7 +82,7 @@ namespace LaboratorioParalelepipedo.Nucleo
         /// <summary>Perímetro da base: 2(a + b).</summary>
         public double PerimetroDaBase => 2 * (A + B);
 
-        /// <summary>Área lateral (frente, fundo, esquerda e direita): A_ℓ = 2(ac + bc).</summary>
+        /// <summary>Área lateral (frente, fundo, esquerda e direita): A_L = 2(ac + bc).</summary>
         public double AreaLateral => 2 * (A * C + B * C);
 
         /// <summary>Área total: A_T = 2(ab + ac + bc).</summary>

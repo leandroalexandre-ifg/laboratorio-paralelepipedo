@@ -35,7 +35,7 @@
     { "chave": "estacao.areas.fechar", "texto": "Fechar a caixa" },
     { "chave": "estacao.areas.pares", "texto": "Faces da mesma cor são paralelas e têm a mesma área." },
     { "chave": "estacao.areas.formulaDaBase", "texto": "A<sub>b</sub> = a · b" },
-    { "chave": "estacao.areas.formulaLateral", "texto": "A<sub>ℓ</sub> = 2(ac + bc)" },
+    { "chave": "estacao.areas.formulaLateral", "texto": "A<sub>L</sub> = 2(ac + bc)" },
     { "chave": "estacao.areas.formulaTotal", "texto": "A<sub>T</sub> = 2(ab + ac + bc)" },
 
     { "chave": "estacao.volume.titulo", "texto": "4. Volume" },

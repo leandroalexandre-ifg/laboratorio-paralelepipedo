@@ -26,7 +26,7 @@ Créditos no app: "Desenvolvido por NumbERS · IFG – Câmpus Inhumas".
 - 6 faces em ordem cíclica: ABCD e EFGH (bases, a·b), ADHE e BCGF (frente e fundo, a·c), ABFE e DCGH
   (esquerda e direita, b·c). Faces paralelas são congruentes.
 - Diagonal da base: d = √(a² + b²). Diagonal do paralelepípedo: D = √(d² + c²) = √(a² + b² + c²).
-- Área da base: A_b = a·b. Área lateral: A_ℓ = 2(ac + bc). Área total: A_T = 2(ab + ac + bc).
+- Área da base: A_b = a·b. Área lateral: A_L = 2(ac + bc). Área total: A_T = 2(ab + ac + bc).
 - Volume: V = A_b · c = a·b·c.
 - **Ressalva pedagógica obrigatória:** a contagem com cubinhos de aresta 1 é só um exemplo visual para dimensões
   naturais. A fórmula vale para quaisquer medidas reais (racionais ou irracionais), em que os cubinhos não preenchem a
