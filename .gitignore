@@ -30,3 +30,8 @@ crashlytics-build.properties
 .env
 *.secret
 *.keystore
+*.jks
+*.p12
+deploy.conf
+*.pdb
+*.mdb
