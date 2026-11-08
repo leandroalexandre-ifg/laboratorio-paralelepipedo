@@ -172,7 +172,7 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(((Transform)serializado.FindProperty("_rig").objectReferenceValue).name, Is.EqualTo("OVRCameraRig"));
             Assert.That(((Transform)serializado.FindProperty("_cabeca").objectReferenceValue).name, Is.EqualTo("CenterEyeAnchor"));
             foreach (string campo in new[] { "_raioEsquerdo", "_raioDireito", "_arco", "_marcador", "_materialValido",
-                         "_materialInvalido", "_escurecimento", "_caixa" })
+                         "_materialInvalido", "_telaEscura", "_caixa" })
                 Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, campo);
             MesmaCor(((Material)serializado.FindProperty("_materialValido").objectReferenceValue).GetColor("_BaseColor"),
                 PaletaDoLaboratorio.Teleporte);
@@ -184,10 +184,10 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void Escurecimento_PresoACabeca_DesligadoForaDoGiro()
+        public void TelaEscura_PresaACabeca_DesligadaForaDoGiroEDaRecentralizacao()
         {
-            var locomocao = Todos<LocomocaoDoAluno>().Single();
-            var esfera = (Renderer)new SerializedObject(locomocao).FindProperty("_escurecimento").objectReferenceValue;
+            var tela = Todos<TelaEscura>().Single();
+            var esfera = (Renderer)new SerializedObject(tela).FindProperty("_esfera").objectReferenceValue;
 
             Assert.That(esfera.transform.parent.name, Is.EqualTo("CenterEyeAnchor"));
             Assert.That(esfera.enabled, Is.False, "sem vinheta parado nem no teleporte");
@@ -227,15 +227,63 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void PainelDeDiagnostico_LigadoAosRaios_PresoAoMundo()
+        public void SemPainelDeDiagnostico()
         {
-            var painel = Todos<PainelDeDiagnostico>().Single();
-            var serializado = new SerializedObject(painel);
+            Assert.That(Todos<PainelDeDiagnostico>(), Is.Empty, "o diagnóstico era só para os testes no óculos");
+        }
 
-            foreach (string campo in new[] { "_texto", "_dados", "_raioEsquerdo", "_raioDireito" })
-                Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, campo);
-            Assert.That(painel.transform.root.name, Is.EqualTo("PainelDiagnostico"));
-            Assert.That(((TMPro.TMP_Text)serializado.FindProperty("_texto").objectReferenceValue).richText, Is.False);
+        [Test]
+        public void Recentralizacao_NoRig_ComACabecaEATelaEscura()
+        {
+            var recentralizacao = Todos<RecentralizacaoDoAluno>().Single();
+            var serializado = new SerializedObject(recentralizacao);
+
+            Assert.That(recentralizacao.gameObject.name, Is.EqualTo("OVRCameraRig"));
+            Assert.That(((Transform)serializado.FindProperty("_rig").objectReferenceValue).name, Is.EqualTo("OVRCameraRig"));
+            Assert.That(((Transform)serializado.FindProperty("_cabeca").objectReferenceValue).name, Is.EqualTo("CenterEyeAnchor"));
+            Assert.That(serializado.FindProperty("_telaEscura").objectReferenceValue, Is.EqualTo(Todos<TelaEscura>().Single()));
+            Assert.That(serializado.FindProperty("_pontoDePartida").vector2Value, Is.EqualTo(Vector2.zero), "onde a cena foi desenhada");
+        }
+
+        [Test]
+        public void DicaNasDuasMaos_DesligadaNoInicio()
+        {
+            var raios = Todos<RaioDoControle>();
+
+            foreach (var raio in raios)
+            {
+                Assert.That(raio.Dica, Is.Not.Null, raio.name);
+                Assert.That(raio.Dica.transform.parent, Is.EqualTo(raio.transform.parent), "na âncora do mesmo controle");
+                var serializado = new SerializedObject(raio.Dica);
+                foreach (string campo in new[] { "_dados", "_mao", "_cabeca", "_conteudo", "_texto", "_fundo" })
+                    Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, $"{raio.name}.{campo}");
+                Assert.That(((GameObject)serializado.FindProperty("_conteudo").objectReferenceValue).activeSelf, Is.False);
+            }
+        }
+
+        [Test]
+        public void PainelDeInstrucoes_DeFrenteParaOAluno_AtrasDaMesa_SemEsconderOTitulo()
+        {
+            Transform painel = _cena.GetRootGameObjects().Single(g => g.name == "PainelInstrucoes").transform;
+            Transform titulo = _cena.GetRootGameObjects().Single(g => g.name == "PainelTitulo").transform;
+            var fundo = painel.Find("Fundo");
+            var fundoDoTitulo = titulo.Find("Fundo");
+
+            Assert.That(painel.position.x, Is.EqualTo(0f), "bem à frente de quem começa na origem");
+            Assert.That(painel.forward.z, Is.EqualTo(1f).Within(1e-5f), "virado para o aluno");
+            Assert.That(painel.position.z, Is.GreaterThan(1.4f), "atrás da borda de trás da mesa");
+            Assert.That(Todos<TextoDoCatalogo>().Single(t => t.name == ChavesDeTexto.ControlesTitulo).transform.parent,
+                Is.EqualTo(painel));
+            Assert.That(Todos<TextoDoCatalogo>().Single(t => t.name == "Controles").transform.parent, Is.EqualTo(painel));
+
+            // Olhos de um aluno baixo (1,3 m) e de um alto (1,7 m): a linha até a base do título passa acima do painel.
+            float topoDoPainel = painel.position.y + fundo.localScale.y / 2;
+            float baseDoTitulo = titulo.position.y - fundoDoTitulo.localScale.y / 2;
+            foreach (float olhos in new[] { 1.3f, 1.7f })
+            {
+                float alturaNoPainel = olhos + (baseDoTitulo - olhos) * painel.position.z / titulo.position.z;
+                Assert.That(alturaNoPainel, Is.GreaterThan(topoDoPainel), $"olhos a {olhos} m");
+            }
         }
 
         [Test]

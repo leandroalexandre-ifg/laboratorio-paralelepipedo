@@ -41,6 +41,7 @@ namespace LaboratorioParalelepipedo.Editor
         private const float TamanhoDoTitulo = 0.8f;
         private const float TamanhoDoCredito = 0.4f;
         private const float TamanhoDoCorpo = 0.5f;
+        private const float TamanhoDaDica = 0.2f;
 
         [MenuItem("Laboratório/5. Gerar cena do laboratório")]
         public static void Gerar()
@@ -74,17 +75,17 @@ namespace LaboratorioParalelepipedo.Editor
             CriarSala();
             CriarMesa();
             CaixaPegavel caixa = CriarCaixa(fonte);
-            var (raioEsquerdo, raioDireito) = CriarInteracao(instanciaDoRig, caixa);
 
             var dados = new GameObject("DadosDoLaboratorio").AddComponent<DadosDoLaboratorio>();
             dados.Configurar(textos, desafios);
-            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.75f, 2.4f), new Vector2(1.5f, 0.46f), dados, fonte,
+            CriarInteracao(instanciaDoRig, caixa, dados, fonte);
+
+            // Título no alto, ao fundo; instruções logo atrás da mesa, abaixo do título, sem esconder um ao outro.
+            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.85f, 2.4f), new Vector2(1.5f, 0.46f), dados, fonte,
                 (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.08f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, -0.09f));
             CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.17f, 0f), 1.38f);
-            CriarPainel("PainelControles", new Vector3(-1.25f, 1.45f, 1.9f), new Vector2(1.1f, 0.62f), dados, fonte,
-                (null, TamanhoDoCorpo, 0f));
-            Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
-            CriarPainelDeDiagnostico(dados, fonte, raioEsquerdo, raioDireito);
+            CriarPainelDeInstrucoes(dados, fonte);
+            Debug.Log($"[Cena] Painel de instruções com: {AcoesDisponiveis()}.");
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -204,10 +205,11 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
-        /// Raios dos dois controles (com um modelo simples de cada um), teleporte (arco e marcador no chão) e giro
-        /// por passos (esfera escura presa à cabeça, desligada fora do giro).
+        /// Raios dos dois controles (com um modelo simples e uma dica acima de cada um), teleporte (arco e marcador no
+        /// chão), giro por passos e recentralização (as duas com a mesma esfera escura presa à cabeça, desligada fora
+        /// delas).
         /// </summary>
-        private static (RaioDoControle, RaioDoControle) CriarInteracao(GameObject rig, CaixaPegavel caixa)
+        private static void CriarInteracao(GameObject rig, CaixaPegavel caixa, DadosDoLaboratorio dados, TMP_FontAsset fonte)
         {
             Material livre = MaterialOpaco("Raio", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
             Material noAlvo = MaterialOpaco("RaioNoAlvo", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
@@ -230,16 +232,22 @@ namespace LaboratorioParalelepipedo.Editor
             marcador.GetComponent<MeshRenderer>().enabled = false;
 
             Transform cabeca = rig.transform.Find("TrackingSpace/CenterEyeAnchor");
-            Transform esfera = Primitiva(PrimitiveType.Sphere, cabeca, "EscurecimentoDoGiro", Vector3.zero,
+            Material fundoDaDica = MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
+            esquerdo.ConfigurarDica(CriarDica(esquerdo.transform.parent, cabeca, dados, fonte, fundoDaDica));
+            direito.ConfigurarDica(CriarDica(direito.transform.parent, cabeca, dados, fonte, fundoDaDica));
+
+            Transform esfera = Primitiva(PrimitiveType.Sphere, cabeca, "TelaEscura", Vector3.zero,
                 Vector3.one * 0.3f, escuro);
             esfera.GetComponent<MeshRenderer>().enabled = false;
+            var telaEscura = esfera.gameObject.AddComponent<TelaEscura>();
+            telaEscura.Configurar(esfera.GetComponent<MeshRenderer>());
 
             var locomocao = rig.AddComponent<LocomocaoDoAluno>();
             Definir(locomocao,
                 ("_rig", rig.transform), ("_cabeca", cabeca), ("_raioEsquerdo", esquerdo), ("_raioDireito", direito),
                 ("_arco", arco), ("_marcador", marcador.GetComponent<MeshRenderer>()),
                 ("_materialValido", valido), ("_materialInvalido", invalido),
-                ("_escurecimento", esfera.GetComponent<MeshRenderer>()), ("_caixa", caixa));
+                ("_telaEscura", telaEscura), ("_caixa", caixa));
             var serializado = new SerializedObject(locomocao);
             float ladoPorDentro = LadoDaSala - EspessuraDaParede;
             serializado.FindProperty("_salaPorDentro").vector2Value = new Vector2(ladoPorDentro, ladoPorDentro);
@@ -247,7 +255,90 @@ namespace LaboratorioParalelepipedo.Editor
             serializado.FindProperty("_tamanhoDaMesa").vector2Value = new Vector2(TamanhoDoTampo.x, TamanhoDoTampo.z);
             serializado.FindProperty("_alturaDaMesa").floatValue = AlturaDoTampo;
             serializado.ApplyModifiedPropertiesWithoutUndo();
-            return (esquerdo, direito);
+
+            var recentralizacao = rig.AddComponent<RecentralizacaoDoAluno>();
+            Definir(recentralizacao, ("_rig", rig.transform), ("_cabeca", cabeca), ("_telaEscura", telaEscura));
+        }
+
+        /// <summary>
+        /// Dica acima de um controle ("Segure o botão lateral para pegar", "Solte para ir até lá", "Aqui não dá"):
+        /// texto curto sobre um fundo claro, desligada até haver o que dizer.
+        /// </summary>
+        private static DicaDaMao CriarDica(Transform ancora, Transform cabeca, DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            Material fundo)
+        {
+            var dica = new GameObject("Dica").transform;
+            dica.SetParent(ancora, false);
+            var conteudo = new GameObject("Conteudo").transform;
+            conteudo.SetParent(dica, false);
+
+            var objeto = new GameObject("Texto", typeof(RectTransform));
+            objeto.transform.SetParent(conteudo, false);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = TamanhoDaDica;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.Center;
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.rectTransform.sizeDelta = new Vector2(0.24f, 0.08f);
+            texto.text = string.Empty;
+
+            // Atrás do texto (a frente da dica aponta para longe do aluno).
+            Transform placa = Primitiva(PrimitiveType.Cube, conteudo, "Fundo", new Vector3(0f, 0f, 0.003f),
+                new Vector3(0.26f, 0.06f, 0.002f), fundo);
+            conteudo.gameObject.SetActive(false);
+
+            var componente = dica.gameObject.AddComponent<DicaDaMao>();
+            componente.Configurar(dados, ancora, cabeca, conteudo.gameObject, texto, placa);
+            return componente;
+        }
+
+        /// <summary>
+        /// Painel "Como usar os controles", logo atrás da mesa e de frente para o aluno: um título e uma linha por
+        /// botão, só com as ações que funcionam nesta cena (<see cref="AcoesDisponiveis"/>).
+        /// </summary>
+        private static void CriarPainelDeInstrucoes(DadosDoLaboratorio dados, TMP_FontAsset fonte)
+        {
+            var tamanho = new Vector2(1.5f, 0.62f);
+            var painel = new GameObject("PainelInstrucoes").transform;
+            painel.position = new Vector3(0f, 1.18f, 1.85f);
+            painel.rotation = Quaternion.identity;   // de frente para quem está no ponto de partida
+            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+
+            float margem = 0.06f;
+            TextMeshPro titulo = TextoDoPainel(painel, ChavesDeTexto.ControlesTitulo, fonte, TamanhoDoCorpo * 1.2f,
+                new Vector3(0f, tamanho.y / 2 - margem - 0.04f, 0f), new Vector2(tamanho.x - 2 * margem, 0.09f),
+                TextAlignmentOptions.Center);
+            titulo.fontStyle = FontStyles.Bold;
+            titulo.GetComponent<TextoDoCatalogo>().Configurar(dados, titulo, ChavesDeTexto.ControlesTitulo);
+            titulo.GetComponent<TextoDoCatalogo>().Atualizar();
+
+            float alturaDoCorpo = tamanho.y - 2 * margem - 0.12f;
+            TextMeshPro corpo = TextoDoPainel(painel, "Controles", fonte, TamanhoDoCorpo,
+                new Vector3(0f, -tamanho.y / 2 + margem + alturaDoCorpo / 2, 0f),
+                new Vector2(tamanho.x - 2 * margem, alturaDoCorpo), TextAlignmentOptions.TopLeft);
+            corpo.paragraphSpacing = 12f;
+            var controles = corpo.GetComponent<TextoDoCatalogo>();
+            controles.Configurar(dados, corpo, TextosDosControles.Chaves(AcoesDisponiveis()));
+            controles.Atualizar();
+        }
+
+        private static TextMeshPro TextoDoPainel(Transform painel, string nome, TMP_FontAsset fonte, float tamanhoDaLetra,
+            Vector3 posicao, Vector2 tamanho, TextAlignmentOptions alinhamento)
+        {
+            var objeto = new GameObject(nome, typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            objeto.transform.localPosition = posicao;
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = tamanhoDaLetra;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = alinhamento;
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.rectTransform.sizeDelta = tamanho;
+            objeto.AddComponent<TextoDoCatalogo>();
+            return texto;
         }
 
         /// <summary>Versão do app (Application.version) logo abaixo dos créditos: mostra qual build está no óculos.</summary>
@@ -265,36 +356,6 @@ namespace LaboratorioParalelepipedo.Editor
             var versao = objeto.AddComponent<TextoDaVersao>();
             versao.Configurar(dados, texto, ChavesDeTexto.AppVersao);
             texto.text = $"Versão {PlayerSettings.bundleVersion}";
-        }
-
-        /// <summary>
-        /// Painel técnico dos controles, à direita da mesa (espelho do painel de controles). Para os testes no
-        /// óculos enquanto não há acesso aos logs; tirar antes de levar aos alunos.
-        /// </summary>
-        private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
-            RaioDoControle esquerdo, RaioDoControle direito)
-        {
-            var tamanho = new Vector2(1.5f, 1.1f);
-            var painel = new GameObject("PainelDiagnostico").transform;
-            painel.position = new Vector3(1.3f, 1.4f, 1.9f);
-            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
-            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
-            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
-                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
-
-            var objeto = new GameObject("Diagnostico", typeof(RectTransform));
-            objeto.transform.SetParent(painel, false);
-            var texto = objeto.AddComponent<TextMeshPro>();
-            texto.font = fonte;
-            texto.fontSize = 0.2f;
-            texto.color = PaletaDoLaboratorio.Texto;
-            texto.alignment = TextAlignmentOptions.TopLeft;
-            texto.richText = false;   // nomes de layout como <OculusTouchController> aparecem como são
-            texto.textWrappingMode = TextWrappingModes.Normal;
-            texto.overflowMode = TextOverflowModes.Truncate;
-            texto.rectTransform.sizeDelta = tamanho - new Vector2(0.08f, 0.08f);
-            texto.text = "Diagnóstico";
-            objeto.AddComponent<PainelDeDiagnostico>().Configurar(texto, dados, esquerdo, direito);
         }
 
         private static RaioDoControle CriarRaio(Transform rig, string caminho, OVRInput.Controller controle,
@@ -344,7 +405,7 @@ namespace LaboratorioParalelepipedo.Editor
             return acoes;
         }
 
-        /// <summary>Painel preso ao mundo, virado para o aluno. Sem chave no texto: mostra os controles.</summary>
+        /// <summary>Painel preso ao mundo, virado para o aluno, com uma linha de texto por chave.</summary>
         private static Transform CriarPainel(string nome, Vector3 posicao, Vector2 tamanho, DadosDoLaboratorio dados,
             TMP_FontAsset fonte, params (string chave, float tamanhoDaLetra, float y)[] linhas)
         {
@@ -359,23 +420,20 @@ namespace LaboratorioParalelepipedo.Editor
             float margem = 0.06f;
             foreach (var (chave, tamanhoDaLetra, y) in linhas)
             {
-                var objeto = new GameObject(chave ?? "Controles", typeof(RectTransform));
+                var objeto = new GameObject(chave, typeof(RectTransform));
                 objeto.transform.SetParent(painel, false);
                 objeto.transform.localPosition = new Vector3(0f, y, 0f);
                 var texto = objeto.AddComponent<TextMeshPro>();
                 texto.font = fonte;
                 texto.fontSize = tamanhoDaLetra;
                 texto.color = PaletaDoLaboratorio.Texto;
-                texto.alignment = chave == null ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
+                texto.alignment = TextAlignmentOptions.Center;
                 texto.textWrappingMode = TextWrappingModes.Normal;
-                texto.lineSpacing = chave == null ? 25f : 0f;
-                texto.rectTransform.sizeDelta = new Vector2(tamanho.x - 2 * margem,
-                    chave == null ? tamanho.y - 2 * margem : tamanhoDaLetra * 0.15f);
-                texto.text = chave ?? string.Empty;
+                texto.rectTransform.sizeDelta = new Vector2(tamanho.x - 2 * margem, tamanhoDaLetra * 0.15f);
+                texto.text = chave;
 
                 var textoDoCatalogo = objeto.AddComponent<TextoDoCatalogo>();
-                if (chave != null) textoDoCatalogo.Configurar(dados, texto, chave);
-                else textoDoCatalogo.Configurar(dados, texto, TextosDosControles.Chaves(AcoesDisponiveis()));
+                textoDoCatalogo.Configurar(dados, texto, chave);
                 textoDoCatalogo.Atualizar();
             }
 
@@ -435,7 +493,7 @@ namespace LaboratorioParalelepipedo.Editor
 
         /// <summary>
         /// Esfera preta vista por dentro (culling da frente), desenhada por cima de tudo o que está a mais de 15 cm.
-        /// A opacidade vem do LocomocaoDoAluno, por MaterialPropertyBlock.
+        /// A opacidade vem da TelaEscura (giro e recentralização), por MaterialPropertyBlock.
         /// </summary>
         private static Material MaterialDoEscurecimento()
         {
