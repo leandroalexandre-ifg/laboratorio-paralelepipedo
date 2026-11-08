@@ -147,8 +147,10 @@ contornar.
 ## Deploy
 
 Somente pelo canal **ALPHA** do Meta Horizon Developer Dashboard, via `ovr-platform-util` (o USB do Quest de testes
-não transmite dados). App ID: `<PREENCHER_DEPOIS>`. Package name: **a confirmar** (padrão do Missão Coração:
-`br.edu.ifg.<nome>`); depois do primeiro envio ao ALPHA ele não pode mais mudar.
+não transmite dados). App ID: `<PREENCHER_DEPOIS>`.
+Package name: **`br.edu.ifg.laboratorioparalelepipedo`** (mesmo padrão do Missão Coração, `br.edu.ifg.missaocoracao`),
+fixado em `ProjectSettings.asset`. O perfil de build Meta Quest, quando for criado, deve repetir o mesmo valor.
+**Nunca mudar:** depois do primeiro envio ao ALPHA, outro package name vira outro app na loja.
 App Secret, senhas e tokens vêm de **variáveis de ambiente** e **nunca** entram no repositório, em log ou em mensagem.
 
 ## Fluxo de trabalho com o Claude Code
