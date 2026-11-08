@@ -58,6 +58,7 @@ namespace LaboratorioParalelepipedo.Editor.Release
 
             var arquivos = new List<string>();
             var classes = new List<string>();
+            string inicializadores = null, assemblies = null;
             var codigo = new List<string>();
             using (FileStream fluxo = File.OpenRead(caminhoDoApk))
             using (var apk = new ZipArchive(fluxo, ZipArchiveMode.Read))
@@ -70,6 +71,8 @@ namespace LaboratorioParalelepipedo.Editor.Release
                         Procurar(item, RegrasDePrivacidade.PrefixosDeClassesProibidas, classes, IndiceDe);
                     else if (item.FullName == MetadadosDoIl2cpp)
                         Procurar(item, RegrasDePrivacidade.NomesProibidosNoCodigo, codigo, IndiceDeNomeDeCodigo);
+                    else if (item.FullName == InicializadoresNoApk) inicializadores = LerTexto(item);
+                    else if (item.FullName == AssembliesNoApk) assemblies = LerTexto(item);
                 }
             }
 
@@ -79,8 +82,24 @@ namespace LaboratorioParalelepipedo.Editor.Release
                 return null;
             }
 
+            if (inicializadores == null || assemblies == null)
+            {
+                erro = $"{InicializadoresNoApk} ou {AssembliesNoApk} não está no APK.";
+                return null;
+            }
+
             erro = null;
-            return RelatorioDoApk.Ler(badging.Saida, assinatura.Saida, arquivos, manifesto.Saida, classes, codigo);
+            var relatorio = RelatorioDoApk.Ler(badging.Saida, assinatura.Saida, arquivos, manifesto.Saida, classes, codigo);
+            relatorio.InicializadoresOrfaos.AddRange(InicializadoresDoBuild.Orfaos(inicializadores, assemblies));
+            return relatorio;
+        }
+
+        private const string InicializadoresNoApk = "assets/bin/Data/RuntimeInitializeOnLoads.json";
+        private const string AssembliesNoApk = "assets/bin/Data/ScriptingAssemblies.json";
+
+        private static string LerTexto(ZipArchiveEntry item)
+        {
+            using (var leitor = new StreamReader(item.Open(), Encoding.UTF8)) return leitor.ReadToEnd();
         }
 
         // Nomes de classes e tipos ficam como texto (ASCII) nas tabelas de strings: basta procurar os bytes.

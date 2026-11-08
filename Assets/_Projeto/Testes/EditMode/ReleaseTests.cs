@@ -191,6 +191,41 @@ namespace LaboratorioParalelepipedo.Testes
                 Is.EqualTo(esperado));
         }
 
+        private const string Inicializadores =
+            "{\"root\":[{\"assemblyName\":\"Meta.XR.ImmersiveDebugger.DevAgent\",\"nameSpace\":\"N\",\"className\":\"RuntimeSettings\",\"methodName\":\"Init\",\"loadTypes\":4,\"isUnityClass\":false}," +
+            "{\"assemblyName\":\"Unity.InputSystem\",\"nameSpace\":\"UnityEngine.InputSystem\",\"className\":\"InputSystem\",\"methodName\":\"RuntimeInitialize\",\"loadTypes\":1,\"isUnityClass\":true}]}";
+
+        [Test]
+        public void Inicializadores_SaemOsDosAssemblysForaDoBuild_EOsOutrosFicamIguais()
+        {
+            string limpo = InicializadoresDoBuild.Limpar(Inicializadores, FiltroDeAssemblies.EhForaDoBuild, out int removidos);
+
+            Assert.That(removidos, Is.EqualTo(1));
+            Assert.That(limpo, Does.Not.Contain("DevAgent"));
+            Assert.That(limpo, Does.Contain("\"assemblyName\":\"Unity.InputSystem\""));
+            Assert.That(limpo, Does.Contain("\"methodName\":\"RuntimeInitialize\",\"loadTypes\":1,\"isUnityClass\":true"));
+        }
+
+        [Test]
+        public void Inicializadores_OrfaosSaoOsQueNaoEstaoNoApp()
+        {
+            const string assemblies = "{\"names\":[\"Unity.InputSystem.dll\",\"Oculus.VR.dll\"],\"types\":[16,16]}";
+
+            Assert.That(InicializadoresDoBuild.Orfaos(Inicializadores, assemblies),
+                Is.EqualTo(new[] { "Meta.XR.ImmersiveDebugger.DevAgent" }));
+            string limpo = InicializadoresDoBuild.Limpar(Inicializadores, FiltroDeAssemblies.EhForaDoBuild, out _);
+            Assert.That(InicializadoresDoBuild.Orfaos(limpo, assemblies), Is.Empty);
+        }
+
+        [Test]
+        public void InicializadorOrfao_ReprovaOApk()
+        {
+            var relatorio = Limpo();
+            relatorio.InicializadoresOrfaos.Add("Meta.XR.BuildingBlocks.AIBlocks");
+
+            Assert.That(relatorio.Problemas(Pacote, VersionCode), Has.Some.Contains("Meta.XR.BuildingBlocks.AIBlocks"));
+        }
+
         [Test]
         public void VersionCode_PorDataEHoraUtc()
         {

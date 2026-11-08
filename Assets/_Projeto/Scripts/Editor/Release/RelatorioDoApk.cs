@@ -29,6 +29,12 @@ namespace LaboratorioParalelepipedo.Editor.Release
         /// <summary>Nomes de <see cref="RegrasDePrivacidade.NomesProibidosNoCodigo"/> achados no global-metadata.dat.</summary>
         public List<string> CodigoProibido { get; } = new List<string>();
 
+        /// <summary>
+        /// Assemblies citados no RuntimeInitializeOnLoads.json que não estão no app (ver
+        /// <see cref="InicializadoresDoBuild.Orfaos"/>). O Unity tentaria chamá-los ao abrir.
+        /// </summary>
+        public List<string> InicializadoresOrfaos { get; } = new List<string>();
+
         private static readonly Regex LinhaDoPacote =
             new Regex(@"^package: name='([^']*)' versionCode='(\d+)' versionName='([^']*)'");
         private static readonly Regex LinhaDePermissao = new Regex(@"^uses-permission: name='([^']*)'");
@@ -126,6 +132,10 @@ namespace LaboratorioParalelepipedo.Editor.Release
                     if (arquivo.EndsWith("/" + biblioteca, StringComparison.Ordinal))
                         problemas.Add($"Biblioteca de telemetria no APK: {arquivo}.");
             }
+
+            foreach (string assembly in InicializadoresOrfaos)
+                problemas.Add($"RuntimeInitializeOnLoads.json chama o assembly '{assembly}', que não está no APK. " +
+                              "Confira o LimparInicializadoresDoBuild.");
 
             if (!temArm64) problemas.Add("Nenhuma biblioteca em lib/arm64-v8a: o Quest exige 64 bits.");
             return problemas;
