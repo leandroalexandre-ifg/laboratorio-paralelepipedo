@@ -1,5 +1,6 @@
 using LaboratorioParalelepipedo.Apresentacao;
 using LaboratorioParalelepipedo.Nucleo;
+using LaboratorioParalelepipedo.Nucleo.Dados;
 using LaboratorioParalelepipedo.XR;
 using NUnit.Framework;
 using UnityEditor;
@@ -194,6 +195,150 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(locomocao.Mirar(new Vector3(0.45f, 1.1f, 0.1f), new Vector3(0f, -0.3f, 1f)).Motivo,
                 Is.EqualTo(Nucleo.Interacao.MotivoDoTeleporte.NaMesa));
             Assert.That(locomocao.Mirar(new Vector3(0f, 1f, 0f), Vector3.back).Valido);
+        }
+        private TelaEscura Tela()
+        {
+            var esfera = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            esfera.transform.SetParent(_raiz.transform, false);
+            Object.DestroyImmediate(esfera.GetComponent<Collider>());
+            var tela = esfera.AddComponent<TelaEscura>();
+            tela.Configurar(esfera.GetComponent<MeshRenderer>());
+            return tela;
+        }
+
+        private RecentralizacaoDoAluno Recentralizacao(float olharDaCabeca, out Transform rig, out Transform cabeca,
+            out TelaEscura tela)
+        {
+            rig = new GameObject("Rig").transform;
+            rig.SetParent(_raiz.transform, false);
+            rig.SetPositionAndRotation(new Vector3(1.5f, 0f, -0.8f), Quaternion.Euler(0f, 30f, 0f));
+            cabeca = new GameObject("Cabeca").transform;
+            cabeca.SetParent(rig, false);
+            cabeca.localPosition = new Vector3(0.2f, 1.5f, -0.1f);
+            // Inclinada para baixo, olhando (no mundo) para olharDaCabeca.
+            cabeca.localRotation = Quaternion.Euler(15f, olharDaCabeca - 30f, 0f);
+            tela = Tela();
+            var recentralizacao = rig.gameObject.AddComponent<RecentralizacaoDoAluno>();
+            var serializado = new SerializedObject(recentralizacao);
+            serializado.FindProperty("_rig").objectReferenceValue = rig;
+            serializado.FindProperty("_cabeca").objectReferenceValue = cabeca;
+            serializado.FindProperty("_telaEscura").objectReferenceValue = tela;
+            serializado.ApplyModifiedPropertiesWithoutUndo();
+            return recentralizacao;
+        }
+
+        [TestCase(180f)]   // a mesa às costas, como apareceu no Quest 2
+        [TestCase(-90f)]
+        [TestCase(45f)]
+        public void Recentralizacao_PoeOAlunoNoPontoDePartida_DeFrenteParaAMesa(float olhar)
+        {
+            var recentralizacao = Recentralizacao(olhar, out Transform rig, out Transform cabeca, out _);
+            float altura = cabeca.position.y;
+            float inclinacao = cabeca.eulerAngles.x;
+
+            recentralizacao.Repor();
+
+            Perto(new Vector3(cabeca.position.x, 0f, cabeca.position.z), Vector3.zero);
+            Assert.That(cabeca.position.y, Is.EqualTo(altura).Within(1e-4f), "a altura não muda");
+            Assert.That(Mathf.DeltaAngle(cabeca.eulerAngles.y, 0f), Is.EqualTo(0f).Within(0.01f), "olhando para +z, a mesa");
+            Assert.That(Mathf.DeltaAngle(cabeca.eulerAngles.x, inclinacao), Is.EqualTo(0f).Within(0.01f));
+            Assert.That(cabeca.localPosition, Is.EqualTo(new Vector3(0.2f, 1.5f, -0.1f)), "a câmera não é movida");
+            Assert.That(rig.eulerAngles.x, Is.EqualTo(0f).Within(1e-4f), "o rig só gira no eixo vertical");
+        }
+
+        [Test]
+        public void Recentralizacao_SoRepoeComATelaEscura_EDepoisClareia()
+        {
+            var recentralizacao = Recentralizacao(180f, out _, out Transform cabeca, out TelaEscura tela);
+            recentralizacao.Pedir();
+            const float quadro = 1f / 64f;
+            int passos = 0;
+            while (recentralizacao.Reposicoes == 0 && passos++ < 400)
+            {
+                recentralizacao.Avancar(true, quadro);
+                if (recentralizacao.Reposicoes == 0)
+                    Assert.That(Mathf.DeltaAngle(cabeca.eulerAngles.y, 180f), Is.EqualTo(0f).Within(0.01f), "nada se move antes do escuro");
+            }
+
+            Assert.That(recentralizacao.Reposicoes, Is.EqualTo(1));
+            Assert.That(tela.OpacidadeDaRecentralizacao, Is.EqualTo(1f), "repôs no escuro");
+            for (int i = 0; i < 30; i++) recentralizacao.Avancar(true, quadro);
+            Assert.That(recentralizacao.Ativa, Is.False);
+            Assert.That(tela.OpacidadeDaRecentralizacao, Is.EqualTo(0f));
+            Assert.That(recentralizacao.Reposicoes, Is.EqualTo(1), "uma vez só por pedido");
+        }
+
+        [Test]
+        public void Recentralizacao_SemPoseDaCabeca_NaoRepoe()
+        {
+            var recentralizacao = Recentralizacao(180f, out _, out _, out _);
+            recentralizacao.Pedir();
+            for (int i = 0; i < 64 * 4; i++) recentralizacao.Avancar(false, 1f / 64f);
+
+            Assert.That(recentralizacao.Reposicoes, Is.EqualTo(0));
+            Assert.That(recentralizacao.Ativa, Is.False, "clareia: o aluno não fica preso no escuro");
+        }
+
+        [Test]
+        public void TelaEscura_MostraAMaiorOpacidade_EDesligaNoZero()
+        {
+            var tela = Tela();
+            var esfera = tela.GetComponent<MeshRenderer>();
+
+            tela.Aplicar();
+            Assert.That(esfera.enabled, Is.False);
+
+            tela.OpacidadeDoGiro = 0.4f;
+            tela.OpacidadeDaRecentralizacao = 0.7f;
+            tela.Aplicar();
+            Assert.That(esfera.enabled);
+            var bloco = new MaterialPropertyBlock();
+            esfera.GetPropertyBlock(bloco);
+            Assert.That(bloco.GetColor("_BaseColor").a, Is.EqualTo(0.7f).Within(1e-6f));
+
+            tela.OpacidadeDoGiro = 0f;
+            tela.OpacidadeDaRecentralizacao = 0f;
+            tela.Aplicar();
+            Assert.That(esfera.enabled, Is.False);
+        }
+
+        [Test]
+        public void Dica_MostraOQueAMaoPodeFazer()
+        {
+            var dados = _raiz.AddComponent<DadosDoLaboratorio>();
+            dados.Configurar(AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Projeto/Dados/textos.json"),
+                AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Projeto/Dados/desafios.json"));
+            Transform mao = Mao(new Vector3(0.2f, 1f, 0.3f));
+            var objeto = new GameObject("Dica");
+            objeto.transform.SetParent(mao, false);
+            var conteudo = new GameObject("Conteudo");
+            conteudo.transform.SetParent(objeto.transform, false);
+            var texto = new GameObject("Texto", typeof(RectTransform)).AddComponent<TMPro.TextMeshPro>();
+            texto.transform.SetParent(conteudo.transform, false);
+            var dica = objeto.AddComponent<DicaDaMao>();
+            dica.Configurar(dados, mao, null, conteudo, texto, null);
+
+            dica.Atualizar();
+            Assert.That(dica.ChaveMostrada, Is.Null);
+            Assert.That(conteudo.activeSelf, Is.False);
+
+            dica.ApontandoParaPegar = true;
+            dica.Atualizar();
+            Assert.That(dica.ChaveMostrada, Is.EqualTo(ChavesDeTexto.DicaPegar));
+            Assert.That(conteudo.activeSelf);
+            Assert.That(texto.text, Is.EqualTo(dados.Catalogo.Obter(ChavesDeTexto.DicaPegar)));
+            Assert.That(objeto.transform.position.y, Is.GreaterThan(mao.position.y), "acima da mão");
+
+            dica.Segurando = true;
+            dica.Atualizar();
+            Assert.That(dica.ChaveMostrada, Is.Null, "segurando a caixa, a dica de pegar some");
+
+            dica.Mirar(true, false);
+            dica.Atualizar();
+            Assert.That(dica.ChaveMostrada, Is.EqualTo(ChavesDeTexto.DicaTeleporteInvalido));
+            dica.Mirar(true, true);
+            dica.Atualizar();
+            Assert.That(texto.text, Is.EqualTo(dados.Catalogo.Obter(ChavesDeTexto.DicaTeleporteValido)));
         }
     }
 }

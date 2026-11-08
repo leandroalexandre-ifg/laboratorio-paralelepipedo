@@ -19,6 +19,8 @@ namespace LaboratorioParalelepipedo.XR
         [SerializeField] private Material _materialNoAlvo;
         [SerializeField, Tooltip("Modelo simples do controle: some quando o controle está desligado.")]
         private GameObject _modelo;
+        [SerializeField, Tooltip("Dica acima do controle (opcional).")]
+        private DicaDaMao _dica;
         [SerializeField] private float _alcance = 6f;
         [SerializeField] private LayerMask _camadas = ~0;
 
@@ -37,6 +39,12 @@ namespace LaboratorioParalelepipedo.XR
 
         /// <summary>Se o raio aponta para algo que acende ou se pega.</summary>
         public bool NoAlvo => _alvo != null || _pegavel != null;
+
+        /// <summary>Dica acima deste controle (pode ser nula).</summary>
+        public DicaDaMao Dica => _dica;
+
+        /// <summary>Liga a dica acima do controle (usado pelo gerador da cena).</summary>
+        public void ConfigurarDica(DicaDaMao dica) => _dica = dica;
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
         public void Configurar(OVRInput.Controller controle, LineRenderer linha, Material livre, Material noAlvo, GameObject modelo)
@@ -70,6 +78,7 @@ namespace LaboratorioParalelepipedo.XR
             _gatilho.Reiniciar();
             _botaoLateral.Reiniciar();
             if (_linha != null) _linha.enabled = false;
+            AtualizarDica();
         }
 
         private void Update()
@@ -115,6 +124,15 @@ namespace LaboratorioParalelepipedo.XR
                     Largar();
                     break;
             }
+
+            AtualizarDica();
+        }
+
+        private void AtualizarDica()
+        {
+            if (_dica == null) return;
+            _dica.ApontandoParaPegar = _pegavel != null;
+            _dica.Segurando = _naMao != null;
         }
 
         /// <summary>Acha o que o raio atinge e devolve onde ele termina (público para os testes no Editor).</summary>

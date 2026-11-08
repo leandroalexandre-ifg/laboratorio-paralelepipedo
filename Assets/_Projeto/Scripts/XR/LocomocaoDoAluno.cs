@@ -33,7 +33,7 @@ namespace LaboratorioParalelepipedo.XR
 
         [Header("Giro")]
         [SerializeField, Tooltip("Esfera escura presa à cabeça, desligada fora do giro.")]
-        private Renderer _escurecimento;
+        private TelaEscura _telaEscura;
 
         [Header("Sala (metros)")]
         [SerializeField] private Vector2 _centroDaSala = Vector2.zero;
@@ -42,8 +42,6 @@ namespace LaboratorioParalelepipedo.XR
         [SerializeField] private Vector2 _tamanhoDaMesa = new Vector2(1.2f, 0.8f);
         [SerializeField] private float _alturaDaMesa = 0.76f;
         [SerializeField] private CaixaPegavel _caixa;
-
-        private static readonly int CorBase = Shader.PropertyToID("_BaseColor");
 
         private readonly ComandoDoAnalogico _analogicoEsquerdo = new ComandoDoAnalogico();
         private readonly ComandoDoAnalogico _analogicoDireito = new ComandoDoAnalogico();
@@ -54,7 +52,6 @@ namespace LaboratorioParalelepipedo.XR
         private RaioDoControle _mirando;
         private int _corMostrada = -1;   // -1: nenhuma; 0: inválido; 1: válido
         private double _giroPendente;
-        private MaterialPropertyBlock _bloco;
 
         /// <summary>Regras do teleporte desta sala (para os testes no Editor).</summary>
         public RegrasDoTeleporte Regras => _regras ?? (_regras = CriarRegras());
@@ -62,9 +59,7 @@ namespace LaboratorioParalelepipedo.XR
         private void Awake()
         {
             _regras = CriarRegras();
-            _bloco = new MaterialPropertyBlock();
             MostrarArco(false);
-            if (_escurecimento != null) _escurecimento.enabled = false;
         }
 
         private RegrasDoTeleporte CriarRegras()
@@ -79,9 +74,23 @@ namespace LaboratorioParalelepipedo.XR
 
         private void Update()
         {
+            // Recentralizando (tela escurecendo ou escura): nada de teleporte nem giro até clarear.
+            if (_telaEscura != null && _telaEscura.OpacidadeDaRecentralizacao > 0f)
+            {
+                if (_mirando != null) PararDeMirar();
+                _analogicoEsquerdo.Reiniciar();
+                _analogicoDireito.Reiniciar();
+                AtualizarEscurecimento(Time.deltaTime);
+                return;
+            }
+
             Processar(_analogicoEsquerdo, OVRInput.Controller.LTouch, _raioEsquerdo);
             Processar(_analogicoDireito, OVRInput.Controller.RTouch, _raioDireito);
-            if (_mirando != null) AtualizarArco();
+            if (_mirando != null)
+            {
+                AtualizarArco();
+                if (_mirando.Dica != null) _mirando.Dica.Mirar(true, _destino.Valido);
+            }
             AtualizarEscurecimento(Time.deltaTime);
         }
 
@@ -151,7 +160,11 @@ namespace LaboratorioParalelepipedo.XR
 
         private void PararDeMirar()
         {
-            if (_mirando != null) _mirando.Ocultar(false);
+            if (_mirando != null)
+            {
+                _mirando.Ocultar(false);
+                if (_mirando.Dica != null) _mirando.Dica.Mirar(false, false);
+            }
             _mirando = null;
             MostrarArco(false);
         }
@@ -183,7 +196,6 @@ namespace LaboratorioParalelepipedo.XR
         {
             if (!_escurecimentoDoGiro.Iniciar()) return;
             _giroPendente = graus;
-            if (_escurecimento != null) _escurecimento.enabled = true;
         }
 
         private void AtualizarEscurecimento(float segundos)
@@ -191,16 +203,7 @@ namespace LaboratorioParalelepipedo.XR
             if (!_escurecimentoDoGiro.Ativo) return;
             double opacidade = _escurecimentoDoGiro.Avancar(segundos, out bool girarAgora);
             if (girarAgora) Girar(_giroPendente);
-
-            if (_escurecimento == null) return;
-            if (!_escurecimentoDoGiro.Ativo)
-            {
-                _escurecimento.enabled = false;
-                return;
-            }
-
-            _bloco.SetColor(CorBase, new Color(0f, 0f, 0f, (float)opacidade));
-            _escurecimento.SetPropertyBlock(_bloco);
+            if (_telaEscura != null) _telaEscura.OpacidadeDoGiro = _escurecimentoDoGiro.Ativo ? (float)opacidade : 0f;
         }
 
         /// <summary>Gira o rig em torno da cabeça (público para os testes no Editor).</summary>
