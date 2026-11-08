@@ -1,0 +1,51 @@
+{
+  "versao": 1,
+  "textos": [
+    { "chave": "app.titulo", "texto": "Laboratório do Paralelepípedo" },
+    { "chave": "app.creditos", "texto": "Desenvolvido por NumbERS · IFG – Câmpus Inhumas" },
+
+    { "chave": "geral.acerto", "texto": "Muito bem!" },
+    { "chave": "geral.erro", "texto": "Ainda não. Tente de novo!" },
+    { "chave": "geral.proximo", "texto": "Próximo" },
+    { "chave": "geral.tentarDeNovo", "texto": "Tentar de novo" },
+    { "chave": "geral.recomecar", "texto": "Recomeçar" },
+
+    { "chave": "controles.apontar", "texto": "Aponte e aperte o gatilho para escolher." },
+    { "chave": "controles.pegar", "texto": "Aperte o botão lateral para pegar e soltar." },
+    { "chave": "controles.teleporte", "texto": "Empurre o analógico para a frente, mire no chão e solte para ir até lá." },
+    { "chave": "controles.giro", "texto": "Empurre o analógico para o lado para girar." },
+
+    { "chave": "estacao.elementos.titulo", "texto": "1. Elementos" },
+    { "chave": "estacao.elementos.instrucao", "texto": "Toque os vértices, as arestas e as faces da caixa." },
+    { "chave": "estacao.elementos.vertices", "texto": "Vértices: {0} de {1}" },
+    { "chave": "estacao.elementos.arestas", "texto": "Arestas: {0} de {1}" },
+    { "chave": "estacao.elementos.faces", "texto": "Faces: {0} de {1}" },
+    { "chave": "estacao.elementos.faceMontada", "texto": "Você montou a face {0}!" },
+    { "chave": "estacao.elementos.naoEhFace", "texto": "Esses vértices não formam uma face. Comece de novo." },
+
+    { "chave": "estacao.diagonais.titulo", "texto": "2. Diagonais" },
+    { "chave": "estacao.diagonais.instrucao", "texto": "Trace a diagonal da base e veja o triângulo se levantar." },
+    { "chave": "estacao.diagonais.formulaDaBase", "texto": "d² = a² + b²" },
+    { "chave": "estacao.diagonais.formulaDaDiagonal", "texto": "D² = d² + c²" },
+    { "chave": "estacao.diagonais.triangulo", "texto": "O triângulo de lados d, c e D é retângulo. Use Pitágoras!" },
+
+    { "chave": "estacao.areas.titulo", "texto": "3. Áreas" },
+    { "chave": "estacao.areas.instrucao", "texto": "Abra a caixa e compare as faces da mesma cor." },
+    { "chave": "estacao.areas.abrir", "texto": "Abrir a caixa" },
+    { "chave": "estacao.areas.fechar", "texto": "Fechar a caixa" },
+    { "chave": "estacao.areas.pares", "texto": "Faces da mesma cor são paralelas e têm a mesma área." },
+    { "chave": "estacao.areas.formulaDaBase", "texto": "A<sub>b</sub> = a · b" },
+    { "chave": "estacao.areas.formulaLateral", "texto": "A<sub>ℓ</sub> = 2(ac + bc)" },
+    { "chave": "estacao.areas.formulaTotal", "texto": "A<sub>T</sub> = 2(ab + ac + bc)" },
+
+    { "chave": "estacao.volume.titulo", "texto": "4. Volume" },
+    { "chave": "estacao.volume.instrucao", "texto": "Encha a caixa com cubinhos, camada por camada." },
+    { "chave": "estacao.volume.encher", "texto": "Encher a caixa" },
+    { "chave": "estacao.volume.esvaziar", "texto": "Esvaziar" },
+    { "chave": "estacao.volume.camadas", "texto": "Camadas: {0}" },
+    { "chave": "estacao.volume.porCamada", "texto": "Cubinhos por camada: {0}" },
+    { "chave": "estacao.volume.total", "texto": "Total: {0} cubinhos" },
+    { "chave": "estacao.volume.formula", "texto": "V = A<sub>b</sub> · c = a · b · c" },
+    { "chave": "estacao.volume.ressalva", "texto": "Atenção: as medidas desta caixa não são todas inteiras, e os cubinhos de aresta 1 não a preenchem exatamente. Eles são só um exemplo. A fórmula V = a · b · c vale para quaisquer medidas." }
+  ]
+}
