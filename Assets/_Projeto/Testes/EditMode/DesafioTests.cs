@@ -31,6 +31,53 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Criar(grandeza: grandeza).RespostaCorreta, Is.EqualTo(esperada).Within(Eps));
         }
 
+        [TestCase(Grandeza.NumeroDeVertices, 8)]
+        [TestCase(Grandeza.NumeroDeArestas, 12)]
+        [TestCase(Grandeza.NumeroDeFaces, 6)]
+        public void Contagens_TemRespostaInteiraEToleranciaPadraoZero(Grandeza grandeza, int esperada)
+        {
+            var desafio = Criar(Estacao.Elementos, grandeza: grandeza, bncc: "EF06MA17");
+
+            Assert.That(desafio.RespostaCorreta, Is.EqualTo(esperada));
+            Assert.That(desafio.Tolerancia, Is.EqualTo(0));
+            Assert.That(Desafio.ToleranciaPadraoPara(grandeza), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Contagem_AceitaToleranciaZeroExplicitaEDistratores()
+        {
+            var desafio = Criar(Estacao.Elementos, grandeza: Grandeza.NumeroDeArestas,
+                distratores: new[] { 8.0, 6.0, 10.0 }, tolerancia: 0);
+
+            Assert.That(desafio.Distratores, Is.EqualTo(new[] { 8.0, 6.0, 10.0 }));
+        }
+
+        [Test]
+        public void Contagem_RecusaDistratorIgualAResposta()
+        {
+            Assert.Throws<DesafioInvalidoException>(() =>
+                Criar(Estacao.Elementos, grandeza: Grandeza.NumeroDeFaces, distratores: new[] { 8.0, 6.0 }));
+        }
+
+        [Test]
+        public void ToleranciaZero_EhRecusadaForaDasContagens()
+        {
+            var erro = Assert.Throws<DesafioInvalidoException>(() => Criar(tolerancia: 0));
+
+            Assert.That(erro.Message, Does.Contain("maior que zero"));
+        }
+
+        [Test]
+        public void GrandezasReais_TemToleranciaPadraoDeUmCentesimo()
+        {
+            foreach (Grandeza g in new[]
+                     {
+                         Grandeza.DiagonalDaBase, Grandeza.Diagonal, Grandeza.AreaDaBase,
+                         Grandeza.AreaLateral, Grandeza.AreaTotal, Grandeza.Volume,
+                     })
+                Assert.That(Desafio.ToleranciaPadraoPara(g), Is.EqualTo(0.01), g.ToString());
+        }
+
         [Test]
         public void GuardaOsDadosDoDesafio()
         {

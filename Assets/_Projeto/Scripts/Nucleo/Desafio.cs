@@ -13,6 +13,9 @@ namespace LaboratorioParalelepipedo.Nucleo
         /// <summary>Tolerância padrão para respostas reais: ±0,01 (aceita 3,60 e 3,61 para √13 ≈ 3,6056).</summary>
         public const double ToleranciaPadrao = 0.01;
 
+        /// <summary>Tolerância padrão da grandeza: 0 para contagens (resposta inteira), ±0,01 para as demais.</summary>
+        public static double ToleranciaPadraoPara(Grandeza grandeza) => grandeza.EhContagem() ? 0 : ToleranciaPadrao;
+
         /// <summary>Maior dimensão aceita nos desafios da estação de volume.</summary>
         public const double DimensaoMaximaNaEstacaoDeVolume = 10;
 
@@ -56,9 +59,12 @@ namespace LaboratorioParalelepipedo.Nucleo
             if (!Enum.IsDefined(typeof(Grandeza), grandeza))
                 throw new DesafioInvalidoException(id, $"grandeza desconhecida ({(int)grandeza}).");
 
-            double tol = tolerancia ?? ToleranciaPadrao;
-            if (double.IsNaN(tol) || double.IsInfinity(tol) || tol <= 0)
-                throw new DesafioInvalidoException(id, $"a tolerância deve ser um número positivo (veio {tol}).");
+            double tol = tolerancia ?? ToleranciaPadraoPara(grandeza);
+            if (double.IsNaN(tol) || double.IsInfinity(tol) || tol < 0)
+                throw new DesafioInvalidoException(id, $"a tolerância não pode ser negativa (veio {tol}).");
+            if (tol == 0 && !grandeza.EhContagem())
+                throw new DesafioInvalidoException(id,
+                    "para diagonais, áreas e volume, a tolerância deve ser maior que zero.");
 
             if (estacao == Estacao.Volume)
                 ValidarDimensoesDaEstacaoDeVolume(id, caixa);

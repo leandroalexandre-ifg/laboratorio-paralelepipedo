@@ -67,6 +67,17 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void Contagem_SoAceitaORespostaExata()
+        {
+            var arestas = new Desafio("elem", Estacao.Elementos, "EF06MA17", "Quantas arestas?",
+                new Paralelepipedo(4, 3, 2), Grandeza.NumeroDeArestas);
+
+            Assert.That(AvaliadorDeResposta.Avaliar(arestas, 12).Correta, Is.True);
+            Assert.That(AvaliadorDeResposta.Avaliar(arestas, 12.01).Correta, Is.False);
+            Assert.That(AvaliadorDeResposta.Avaliar(arestas, 11).Correta, Is.False);
+        }
+
+        [Test]
         public void Resultado_TrazRespostasEDiferenca()
         {
             var resultado = AvaliadorDeResposta.Avaliar(Com(Grandeza.Diagonal, 2, 3, 6), 6.5);
