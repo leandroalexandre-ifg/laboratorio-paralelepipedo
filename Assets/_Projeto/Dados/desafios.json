@@ -1,0 +1,131 @@
+{
+  "versao": 1,
+  "desafios": [
+    {
+      "id": "elem-01",
+      "tipo": "montarFace",
+      "estacao": "elementos",
+      "bncc": "EF06MA17",
+      "enunciado": "Monte a face ABFE: toque os vértices dela, um depois do outro.",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "face": "ABFE"
+    },
+    {
+      "id": "elem-02",
+      "tipo": "montarFace",
+      "estacao": "elementos",
+      "bncc": "EF06MA17",
+      "enunciado": "Monte qualquer face da caixa: toque os 4 vértices dela, em ordem.",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "face": "qualquer"
+    },
+    {
+      "id": "elem-03",
+      "estacao": "elementos",
+      "bncc": "EF06MA17",
+      "enunciado": "Quantas arestas tem a caixa?",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "grandeza": "numeroDeArestas",
+      "distratores": ["8", "6", "10"]
+    },
+    {
+      "id": "elem-04",
+      "estacao": "elementos",
+      "bncc": "EF06MA17",
+      "enunciado": "Quantas faces tem a caixa?",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "grandeza": "numeroDeFaces",
+      "distratores": ["4", "8", "12"]
+    },
+    {
+      "id": "diag-01",
+      "estacao": "diagonais",
+      "bncc": "EF09MA14",
+      "enunciado": "Quanto mede a diagonal d da base?",
+      "dimensoes": { "a": "2", "b": "3", "c": "6" },
+      "grandeza": "diagonalDaBase",
+      "distratores": ["5", "√5", "13"]
+    },
+    {
+      "id": "diag-02",
+      "estacao": "diagonais",
+      "bncc": "EF09MA14",
+      "enunciado": "Quanto mede a diagonal D da caixa?",
+      "dimensoes": { "a": "2", "b": "3", "c": "6" },
+      "grandeza": "diagonal",
+      "distratores": ["11", "√13", "49"]
+    },
+    {
+      "id": "diag-03",
+      "estacao": "diagonais",
+      "bncc": "EF09MA14",
+      "enunciado": "Quanto mede a diagonal D desta caixa?",
+      "dimensoes": { "a": "3", "b": "4", "c": "12" },
+      "grandeza": "diagonal",
+      "distratores": ["19", "5", "169"]
+    },
+    {
+      "id": "diag-04",
+      "estacao": "diagonais",
+      "bncc": "EF09MA14",
+      "enunciado": "Esta caixa é um cubo. Quanto mede a diagonal D?",
+      "dimensoes": { "a": "2", "b": "2", "c": "2" },
+      "grandeza": "diagonal",
+      "distratores": ["2√2", "6", "√6"]
+    },
+    {
+      "id": "area-01",
+      "estacao": "areas",
+      "bncc": "EF09MA19",
+      "enunciado": "Qual é a área total da caixa?",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "grandeza": "areaTotal",
+      "distratores": ["24", "26", "40"]
+    },
+    {
+      "id": "area-02",
+      "estacao": "areas",
+      "bncc": "EF09MA19",
+      "enunciado": "Qual é a área lateral da caixa?",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "grandeza": "areaLateral",
+      "distratores": ["52", "14", "24"]
+    },
+    {
+      "id": "area-03",
+      "estacao": "areas",
+      "bncc": "EF09MA19",
+      "enunciado": "Qual é a área da base da caixa?",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "grandeza": "areaDaBase",
+      "distratores": ["7", "14", "24"]
+    },
+    {
+      "id": "vol-01",
+      "estacao": "volume",
+      "bncc": "EF09MA19",
+      "enunciado": "Quantos cubinhos enchem a caixa? Qual é o volume?",
+      "dimensoes": { "a": "4", "b": "3", "c": "3" },
+      "grandeza": "volume",
+      "distratores": ["10", "12", "48"]
+    },
+    {
+      "id": "vol-02",
+      "estacao": "volume",
+      "bncc": "EF09MA19",
+      "enunciado": "Os cubinhos não enchem esta caixa. Qual é o volume dela?",
+      "dimensoes": { "a": "2,5", "b": "1,2", "c": "√2" },
+      "grandeza": "volume",
+      "distratores": ["2", "3", "4"]
+    },
+    {
+      "id": "vol-03",
+      "estacao": "volume",
+      "bncc": "EF09MA19",
+      "enunciado": "Esta caixa é um cubo. Qual é o volume dela?",
+      "dimensoes": { "a": "2", "b": "2", "c": "2" },
+      "grandeza": "volume",
+      "distratores": ["6", "12", "4"]
+    }
+  ]
+}
