@@ -8,7 +8,7 @@ namespace LaboratorioParalelepipedo.Nucleo
     /// Convenção dos vértices: ABCD no topo (A frente-esquerda, B fundo-esquerda, C fundo-direita,
     /// D frente-direita) e EFGH embaixo, com E sob A, F sob B, G sob C e H sob D; a = EH, b = HG, c = AE.
     /// </summary>
-    public sealed class Paralelepipedo
+    public sealed class Paralelepipedo : IPrisma
     {
         /// <summary>Comprimento (a = EH).</summary>
         public double A { get; }
@@ -72,6 +72,24 @@ namespace LaboratorioParalelepipedo.Nucleo
         /// O triângulo de catetos d e c e hipotenusa D é retângulo.
         /// </summary>
         public double Diagonal => Math.Sqrt(A * A + B * B + C * C);
+
+        /// <summary>Altura do prisma: c.</summary>
+        public double Altura => C;
+
+        /// <summary>Área da base: A_b = a·b.</summary>
+        public double AreaDaBase => A * B;
+
+        /// <summary>Perímetro da base: 2(a + b).</summary>
+        public double PerimetroDaBase => 2 * (A + B);
+
+        /// <summary>Área lateral (frente, fundo, esquerda e direita): A_ℓ = 2(ac + bc).</summary>
+        public double AreaLateral => 2 * (A * C + B * C);
+
+        /// <summary>Área total: A_T = 2(ab + ac + bc).</summary>
+        public double AreaTotal => 2 * (A * B + A * C + B * C);
+
+        /// <summary>Volume: V = A_b · c = a·b·c.</summary>
+        public double Volume => AreaDaBase * C;
 
         /// <summary>Vértice pelo nome ("A" a "H"), ou null se não existir.</summary>
         public Vertice ObterVertice(string nome)
