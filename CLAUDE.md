@@ -59,14 +59,22 @@ Assets/_Projeto/
       Dados/       # DTOs dos JSON, LeitorDeTextos, LeitorDeDesafios, CatalogoDeTextos, ChavesDeTexto
     Apresentacao/  # MonoBehaviours finos que leem o núcleo e atualizam a cena; CarregadorDeDados (JsonUtility)
     XR/            # raio, gatilho, grip, teleporte, giro por passos
+    Editor/        # configuração do projeto, gerador da cena e prévia renderizada (menu "Laboratório")
   Dados/           # JSON (TextAsset) de textos e desafios
+  Fontes/          # Nunito SemiBold (.ttf via LFS, licença OFL) e a fonte TextMeshPro dinâmica "Nunito SDF"
   Cenas/  Prefabs/  Materiais/
   Testes/EditMode/
 ```
 
 Assemblies: `LaboratorioParalelepipedo.Nucleo` (`noEngineReferences: true`), `LaboratorioParalelepipedo.Apresentacao`
 (→ Núcleo), `LaboratorioParalelepipedo.XR` (→ Núcleo, Apresentação), `LaboratorioParalelepipedo.Testes.EditMode`
-(→ Núcleo e Apresentação, só Editor). Namespaces `LaboratorioParalelepipedo.<Área>`.
+(→ Núcleo e Apresentação, só Editor), `LaboratorioParalelepipedo.Editor` (→ Núcleo, Apresentação, TextMeshPro,
+Meta XR Core e OpenXR, só Editor). Namespaces `LaboratorioParalelepipedo.<Área>`.
+
+Ficam fora de `Assets/_Projeto/` só os arquivos que o Unity e os pacotes exigem nos lugares padrão:
+`Assets/TextMesh Pro/` (recursos essenciais), `Assets/XR/` (OpenXR), `Assets/Settings/Build Profiles/Meta Quest.asset`
+(perfil de build; com ele ativo, as Player Settings do Android ficam no perfil), `Assets/Oculus/` e `Assets/Resources/`
+(Meta SDK).
 
 Não criar arquivos fora de `Assets/_Projeto/` sem pedir. Não editar `Library/`, `Temp/`, `Logs/` nem pacotes de
 terceiros.
@@ -156,7 +164,18 @@ UNITY=/Applications/Unity/Hub/Editor/6000.6.7f1/Unity.app/Contents/MacOS/Unity
 # Testes EditMode
 "$UNITY" -batchmode -nographics -projectPath . -runTests -testPlatform EditMode \
   -testResults Logs/editmode-results.xml -logFile Logs/editmode.log
+
+# Gerar a cena de novo (depois de mudar o GeradorDaCena) e renderizar a prévia em Logs/previa-*.png
+"$UNITY" -batchmode -nographics -projectPath . -executeMethod LaboratorioParalelepipedo.Editor.GeradorDaCena.Gerar \
+  -quit -logFile Logs/cena.log
+"$UNITY" -batchmode -projectPath . -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar \
+  -quit -logFile Logs/previa.log
 ```
+
+Configuração do zero (já feita; os passos estão no comentário de `ConfiguracaoDoProjeto`): recursos do TextMeshPro,
+perfil Meta Quest, Player Settings e OpenXR, fonte Nunito SDF. Glifos das fontes: `Tools/verificar_glifos.py`.
+Dar Play no Editor pode alterar `Nunito SDF.asset` e `LiberationSans SDF.asset` (glifos dinâmicos); descarte essas
+mudanças.
 
 O Unity não pode estar aberto neste projeto durante comandos em `-batchmode`. Se falhar por isso, avise em vez de
 contornar.

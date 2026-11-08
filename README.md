@@ -12,6 +12,9 @@ O app é 100% offline e não coleta nenhum dado pessoal.
 
 Desenvolvido por **NumbERS · IFG – Câmpus Inhumas**. Proposta pedagógica do professor Kariton Lula.
 
+Fonte [Nunito](https://github.com/googlefonts/nunito) (The Nunito Project Authors), sob a SIL Open Font License 1.1
+([`Assets/_Projeto/Fontes/Nunito-OFL.txt`](Assets/_Projeto/Fontes/Nunito-OFL.txt)).
+
 ## Documentação
 
 - [`CLAUDE.md`](CLAUDE.md): conteúdo matemático, arquitetura, regras do projeto e comandos.
