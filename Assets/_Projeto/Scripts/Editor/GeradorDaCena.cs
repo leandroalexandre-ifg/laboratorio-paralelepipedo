@@ -492,14 +492,14 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
-        /// Esfera preta vista por dentro (culling da frente), desenhada por cima de tudo o que está a mais de 15 cm.
-        /// A opacidade vem da TelaEscura (giro e recentralização), por MaterialPropertyBlock.
+        /// Esfera preta vista por dentro (culling da frente), na fila Transparent (o URP a recalcula pelo tipo de
+        /// superfície ao importar). Centrada na câmera, é a última dos transparentes e cobre tudo o que está a mais de
+        /// 15 cm. A opacidade vem da TelaEscura (giro e recentralização), por MaterialPropertyBlock.
         /// </summary>
         private static Material MaterialDoEscurecimento()
         {
             Material material = MaterialTranslucido("EscurecimentoDoGiro", new Color(0f, 0f, 0f, 0f));
             material.SetFloat("_Cull", (float)CullMode.Front);
-            material.renderQueue = (int)RenderQueue.Overlay;
             EditorUtility.SetDirty(material);
             return material;
         }
