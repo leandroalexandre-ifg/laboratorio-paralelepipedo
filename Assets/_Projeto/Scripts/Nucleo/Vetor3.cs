@@ -29,6 +29,8 @@ namespace LaboratorioParalelepipedo.Nucleo
 
         public static Vetor3 operator -(Vetor3 p, Vetor3 q) => new Vetor3(p.X - q.X, p.Y - q.Y, p.Z - q.Z);
 
+        public static Vetor3 operator *(Vetor3 p, double k) => new Vetor3(p.X * k, p.Y * k, p.Z * k);
+
         public bool Equals(Vetor3 outro) => X.Equals(outro.X) && Y.Equals(outro.Y) && Z.Equals(outro.Z);
 
         public override bool Equals(object obj) => obj is Vetor3 outro && Equals(outro);
