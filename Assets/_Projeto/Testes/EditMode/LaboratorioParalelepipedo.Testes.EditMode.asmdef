@@ -5,6 +5,7 @@
         "LaboratorioParalelepipedo.Nucleo",
         "LaboratorioParalelepipedo.Apresentacao",
         "LaboratorioParalelepipedo.XR",
+        "LaboratorioParalelepipedo.Editor",
         "Unity.TextMeshPro",
         "Unity.XR.Management",
         "Unity.XR.Management.Editor",
