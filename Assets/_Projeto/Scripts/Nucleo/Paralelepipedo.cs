@@ -91,6 +91,23 @@ namespace LaboratorioParalelepipedo.Nucleo
         /// <summary>Volume: V = A_b · c = a·b·c.</summary>
         public double Volume => AreaDaBase * C;
 
+        /// <summary>Valor da grandeza pedida (diagonal, área ou volume).</summary>
+        /// <exception cref="ArgumentOutOfRangeException">Se a grandeza não existir.</exception>
+        public double Medir(Grandeza grandeza)
+        {
+            switch (grandeza)
+            {
+                case Grandeza.DiagonalDaBase: return DiagonalDaBase;
+                case Grandeza.Diagonal: return Diagonal;
+                case Grandeza.AreaDaBase: return AreaDaBase;
+                case Grandeza.AreaLateral: return AreaLateral;
+                case Grandeza.AreaTotal: return AreaTotal;
+                case Grandeza.Volume: return Volume;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(grandeza), grandeza, "Grandeza desconhecida.");
+            }
+        }
+
         /// <summary>Vértice pelo nome ("A" a "H"), ou null se não existir.</summary>
         public Vertice ObterVertice(string nome)
         {
