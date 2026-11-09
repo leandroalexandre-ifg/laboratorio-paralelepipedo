@@ -13,7 +13,8 @@ namespace LaboratorioParalelepipedo.Editor
     /// Renderiza a cena do laboratório e salva em Logs/previa-*.png: a vista inicial do aluno (origem, olhos a 1,4 m,
     /// como o modo Editor), uma vista da sala de fora e um momento por etapa das Estações 1 (e1-*: abertura, face da frente em
     /// montagem e pronta, erro, ajuda, face ABFE montada, outra face, pergunta com dica, acerto, fechamento) e 2 (e2-*: passo 1, passo 1 concluído, passo 2 concluído,
-    /// pergunta, erro, acerto, fechamento), com as estações conduzidas pelos mesmos métodos que o gatilho chama.
+    /// pergunta, erro, acerto, fechamento) e 3 (e3-*: caixa fechada, abrindo, aberta, pares, pergunta com dica, acerto,
+        /// fechamento, fechando, mais a planificação vista de frente), com as estações conduzidas pelos mesmos métodos que o gatilho chama.
     /// Serve para conferir o visual sem o óculos. Nada é salvo na cena. Batchmode (sem -nographics):
     /// -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar -quit
     /// </summary>
@@ -106,6 +107,59 @@ namespace LaboratorioParalelepipedo.Editor
             Salvar(camera, alvo, "e2-6-acerto");
             estacao.ConcluirAgora();
             Salvar(camera, alvo, "e2-7-fechamento");
+
+            var areas = UnityEngine.Object.FindFirstObjectByType<EstacaoDasAreasNaCena>();
+            if (areas == null)
+            {
+                Debug.LogError("[Prévia] A cena não tem a Estação 3.");
+                return;
+            }
+            areas.Inicializar();
+            estacao.IrParaAProximaEstacao();   // o botão "Ir para a Estação 3"
+            RenderizarAEstacao3(camera, alvo, areas);
+        }
+
+        // Estação 3: da caixa fechada ao fechamento, olhando como o aluno (entre a mesa e o painel) e, numa vista
+        // extra, de frente para a planificação, da mesma posição inicial.
+        private static void RenderizarAEstacao3(Camera camera, RenderTexture alvo, EstacaoDasAreasNaCena estacao)
+        {
+            var planificacao = UnityEngine.Object.FindFirstObjectByType<PlanificacaoNaCena>();
+            int Indice(Func<Nucleo.Estacoes.OpcaoDeResposta, bool> condicao) =>
+                estacao.Estacao.Opcoes.ToList().FindIndex(o => condicao(o));
+
+            Salvar(camera, alvo, "e3-1-caixa-fechada");
+            estacao.Abrir();
+            planificacao.Avancar(PlanificacaoNaCena.DuracaoDaAbertura / 2);
+            Salvar(camera, alvo, "e3-2-abrindo");
+            estacao.TerminarAnimacao();
+            Salvar(camera, alvo, "e3-3-aberta");
+            Quaternion comoOAluno = camera.transform.rotation;
+            camera.transform.LookAt(new Vector3(0f, 0.95f, 1.0f));
+            Salvar(camera, alvo, "e3-3b-aberta-de-frente");
+            estacao.TocarFace("ABCD");
+            estacao.TocarFace("ADHE");
+            Salvar(camera, alvo, "e3-4-dois-pares-de-frente");
+            camera.transform.rotation = comoOAluno;
+            estacao.TocarFace("ABFE");
+            Salvar(camera, alvo, "e3-5-tres-pares");
+            estacao.ContinuarAgora();
+            int errada = Indice(o => !o.Correta && o.ChaveDaDica == Nucleo.Dados.ChavesDeTexto.AreasDicaSomou);
+            estacao.Responder(errada >= 0 ? errada : Indice(o => !o.Correta));
+            Salvar(camera, alvo, "e3-6-pergunta-dica");
+            estacao.Responder(Indice(o => o.Correta));
+            Salvar(camera, alvo, "e3-7-acerto");
+            estacao.ContinuarAgora();
+            estacao.Responder(Indice(o => o.Correta));
+            estacao.ContinuarAgora();
+            estacao.Responder(Indice(o => o.Correta));
+            Salvar(camera, alvo, "e3-8-acerto-da-total");
+            estacao.ContinuarAgora();
+            Salvar(camera, alvo, "e3-9-fechamento");
+            estacao.Fechar();
+            planificacao.Avancar(PlanificacaoNaCena.DuracaoDaAbertura / 2);
+            Salvar(camera, alvo, "e3-10-fechando");
+            estacao.TerminarAnimacao();
+            Salvar(camera, alvo, "e3-11-fechada-de-novo");
         }
 
         // Estação 1: abertura, erro, ajuda, face montada, outra face, pergunta com dica, acerto e fechamento.
