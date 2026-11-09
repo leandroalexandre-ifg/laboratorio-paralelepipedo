@@ -74,11 +74,11 @@ namespace LaboratorioParalelepipedo.Editor
             CriarModoEditor(instanciaDoRig);
             CriarSala();
             CriarMesa();
-            CaixaPegavel caixa = CriarCaixa(fonte);
+            CriarCaixa(fonte);
 
             var dados = new GameObject("DadosDoLaboratorio").AddComponent<DadosDoLaboratorio>();
             dados.Configurar(textos, desafios);
-            CriarInteracao(instanciaDoRig, caixa, dados, fonte);
+            RecentralizacaoDoAluno recentralizacao = CriarInteracao(instanciaDoRig, dados, fonte);
 
             // Título no alto, ao fundo; instruções logo atrás da mesa, abaixo do título, sem esconder um ao outro.
             Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.85f, 2.4f), new Vector2(1.5f, 0.46f), dados, fonte,
@@ -86,6 +86,7 @@ namespace LaboratorioParalelepipedo.Editor
             CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.17f, 0f), 1.38f);
             CriarPainelDeInstrucoes(dados, fonte);
             Debug.Log($"[Cena] Painel de instruções com: {AcoesDisponiveis()}.");
+            CriarPainelDeDiagnostico(dados, fonte, recentralizacao);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -205,31 +206,21 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
-        /// Raios dos dois controles (com um modelo simples e uma dica acima de cada um), teleporte (arco e marcador no
-        /// chão), giro por passos e recentralização (as duas com a mesma esfera escura presa à cabeça, desligada fora
-        /// delas).
+        /// Experiência estacionária: raios dos dois controles (com um modelo simples e uma dica acima de cada um) e
+        /// recentralização com a esfera escura presa à cabeça. Sem teleporte nem giro por passos: o analógico não faz
+        /// nada (o código da locomoção continua no projeto, fora da cena).
         /// </summary>
-        private static void CriarInteracao(GameObject rig, CaixaPegavel caixa, DadosDoLaboratorio dados, TMP_FontAsset fonte)
+        private static RecentralizacaoDoAluno CriarInteracao(GameObject rig, DadosDoLaboratorio dados, TMP_FontAsset fonte)
         {
             Material livre = MaterialOpaco("Raio", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
             Material noAlvo = MaterialOpaco("RaioNoAlvo", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
             Material controle = MaterialOpaco("Controle", ShaderUnlit, PaletaDoLaboratorio.PeDaMesa);
-            Material valido = MaterialOpaco("Teleporte", ShaderUnlit, PaletaDoLaboratorio.Teleporte);
-            Material invalido = MaterialOpaco("TeleporteInvalido", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja);
             Material escuro = MaterialDoEscurecimento();
 
             RaioDoControle esquerdo = CriarRaio(rig.transform, "TrackingSpace/LeftHandAnchor/LeftControllerAnchor",
                 OVRInput.Controller.LTouch, livre, noAlvo, controle);
             RaioDoControle direito = CriarRaio(rig.transform, "TrackingSpace/RightHandAnchor/RightControllerAnchor",
                 OVRInput.Controller.RTouch, livre, noAlvo, controle);
-
-            var arco = new GameObject("ArcoDoTeleporte").AddComponent<LineRenderer>();
-            ConfigurarLinha(arco, 0.012f, valido);
-            arco.positionCount = 0;
-            arco.enabled = false;
-            Transform marcador = Primitiva(PrimitiveType.Cylinder, arco.transform, "MarcadorDoTeleporte", Vector3.zero,
-                new Vector3(0.3f, 0.003f, 0.3f), valido);
-            marcador.GetComponent<MeshRenderer>().enabled = false;
 
             Transform cabeca = rig.transform.Find("TrackingSpace/CenterEyeAnchor");
             Material fundoDaDica = MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel);
@@ -242,22 +233,39 @@ namespace LaboratorioParalelepipedo.Editor
             var telaEscura = esfera.gameObject.AddComponent<TelaEscura>();
             telaEscura.Configurar(esfera.GetComponent<MeshRenderer>());
 
-            var locomocao = rig.AddComponent<LocomocaoDoAluno>();
-            Definir(locomocao,
-                ("_rig", rig.transform), ("_cabeca", cabeca), ("_raioEsquerdo", esquerdo), ("_raioDireito", direito),
-                ("_arco", arco), ("_marcador", marcador.GetComponent<MeshRenderer>()),
-                ("_materialValido", valido), ("_materialInvalido", invalido),
-                ("_telaEscura", telaEscura), ("_caixa", caixa));
-            var serializado = new SerializedObject(locomocao);
-            float ladoPorDentro = LadoDaSala - EspessuraDaParede;
-            serializado.FindProperty("_salaPorDentro").vector2Value = new Vector2(ladoPorDentro, ladoPorDentro);
-            serializado.FindProperty("_centroDaMesa").vector3Value = CentroDaMesa;
-            serializado.FindProperty("_tamanhoDaMesa").vector2Value = new Vector2(TamanhoDoTampo.x, TamanhoDoTampo.z);
-            serializado.FindProperty("_alturaDaMesa").floatValue = AlturaDoTampo;
-            serializado.ApplyModifiedPropertiesWithoutUndo();
-
             var recentralizacao = rig.AddComponent<RecentralizacaoDoAluno>();
             Definir(recentralizacao, ("_rig", rig.transform), ("_cabeca", cabeca), ("_telaEscura", telaEscura));
+            return recentralizacao;
+        }
+
+        /// <summary>
+        /// Diagnóstico para o professor, num painel próprio à direita da mesa, virado para o aluno e longe dos
+        /// créditos: versão, recentralização (quando rodou), controles e erros. Letra grande, poucas linhas.
+        /// </summary>
+        private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            RecentralizacaoDoAluno recentralizacao)
+        {
+            var tamanho = new Vector2(1.3f, 0.95f);
+            var painel = new GameObject("PainelDiagnostico").transform;
+            painel.position = new Vector3(1.55f, 1.35f, 1.1f);
+            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
+            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
+            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+
+            var objeto = new GameObject("Diagnostico", typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = 0.3f;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.TopLeft;
+            texto.richText = false;
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.overflowMode = TextOverflowModes.Truncate;
+            texto.rectTransform.sizeDelta = tamanho - new Vector2(0.1f, 0.1f);
+            texto.text = "Diagnóstico";
+            objeto.AddComponent<PainelDeDiagnostico>().Configurar(texto, dados, recentralizacao);
         }
 
         /// <summary>

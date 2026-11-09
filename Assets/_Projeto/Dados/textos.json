@@ -14,7 +14,7 @@
 
     { "chave": "controles.titulo", "texto": "Como usar os controles" },
     { "chave": "controles.apontar", "texto": "<b>Gatilho</b> (dedo indicador): aponte e aperte para escolher." },
-    { "chave": "controles.pegar", "texto": "<b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Solte para devolver." },
+    { "chave": "controles.pegar", "texto": "<b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Gire a mão para girar a caixa. Solte para devolver." },
     { "chave": "controles.teleporte", "texto": "<b>Analógico para a frente</b>: mire no chão e solte para ir até lá." },
     { "chave": "controles.giro", "texto": "<b>Analógico para o lado</b>: virar." },
 

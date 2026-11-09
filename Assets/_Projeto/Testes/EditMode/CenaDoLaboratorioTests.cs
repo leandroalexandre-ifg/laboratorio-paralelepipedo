@@ -140,9 +140,8 @@ namespace LaboratorioParalelepipedo.Testes
             if (componentes.Any(c => c is LocomocaoDoAluno)) acoes |= AcoesDoControle.Teleporte | AcoesDoControle.Giro;
 
             Assert.That(painel.Chaves, Is.EqualTo(TextosDosControles.Chaves(acoes)));
-            Assert.That(painel.Chaves, Is.EqualTo(new[]
-                { ChavesDeTexto.ControlesPegar, ChavesDeTexto.ControlesTeleporte, ChavesDeTexto.ControlesGiro }),
-                "por enquanto não há alvo para o gatilho: o 'apontar e escolher' chega com as estações");
+            Assert.That(painel.Chaves, Is.EqualTo(new[] { ChavesDeTexto.ControlesPegar }),
+                "estacionária: sem teleporte nem giro; o 'apontar e escolher' chega com as estações");
         }
 
         [Test]
@@ -163,24 +162,46 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void Locomocao_NoRig_ComASalaEAMesaDaCena()
+        public void Estacionaria_SemTeleporteNemGiro()
         {
-            var locomocao = Todos<LocomocaoDoAluno>().Single();
-            var serializado = new SerializedObject(locomocao);
+            Assert.That(Todos<LocomocaoDoAluno>(), Is.Empty, "o analógico não faz nada");
+            Assert.That(Todos<Transform>().Where(t => t.name == "ArcoDoTeleporte" || t.name == "MarcadorDoTeleporte"), Is.Empty,
+                "nem o arco nem a circunferência do destino do teleporte");
+        }
 
-            Assert.That(locomocao.gameObject.name, Is.EqualTo("OVRCameraRig"));
-            Assert.That(((Transform)serializado.FindProperty("_rig").objectReferenceValue).name, Is.EqualTo("OVRCameraRig"));
-            Assert.That(((Transform)serializado.FindProperty("_cabeca").objectReferenceValue).name, Is.EqualTo("CenterEyeAnchor"));
-            foreach (string campo in new[] { "_raioEsquerdo", "_raioDireito", "_arco", "_marcador", "_materialValido",
-                         "_materialInvalido", "_telaEscura", "_caixa" })
-                Assert.That(serializado.FindProperty(campo).objectReferenceValue, Is.Not.Null, campo);
-            MesmaCor(((Material)serializado.FindProperty("_materialValido").objectReferenceValue).GetColor("_BaseColor"),
-                PaletaDoLaboratorio.Teleporte);
+        [Test]
+        public void PegarACaixa_NuncaMoveOAlunoNemAMesa()
+        {
+            var caixa = Todos<CaixaPegavel>().Single();
+            Transform rig = Todos<RecentralizacaoDoAluno>().Single().transform;
+            Transform mesa = _cena.GetRootGameObjects().Single(g => g.name == "Mesa").transform;
+            Vector3 rigAntes = rig.position, mesaAntes = mesa.position, caixaAntes = caixa.transform.position;
+            Quaternion giroDoRigAntes = rig.rotation, giroDaMesaAntes = mesa.rotation;
+            var mao = new GameObject("MaoDeTeste").transform;
+            try
+            {
+                mao.SetPositionAndRotation(caixaAntes + new Vector3(0.1f, 0.2f, -0.3f), Quaternion.identity);
+                caixa.GuardarPosicaoNaMesa();   // o Awake faz isto ao dar Play
+                caixa.Pegar(mao);
+                for (int i = 0; i < 60; i++)
+                {
+                    mao.SetPositionAndRotation(mao.position + new Vector3(0.01f, 0.005f, -0.01f), Quaternion.Euler(0f, i * 3f, i * 2f));
+                    caixa.Avancar(1f / 72f);
+                }
+                Assert.That(Vector3.Distance(caixa.transform.position, caixaAntes), Is.GreaterThan(0.1f), "a caixa foi com a mão");
+                caixa.Soltar(mao);
+                for (int i = 0; i < 72; i++) caixa.Avancar(1f / 72f);
 
-            var regras = locomocao.Regras;
-            Assert.That(regras.Avaliar(0, 1), Is.EqualTo(MotivoDoTeleporte.NaMesa));
-            Assert.That(regras.Avaliar(0, 3.7), Is.EqualTo(MotivoDoTeleporte.PertoDaParede));
-            Assert.That(regras.Avaliar(0, 0), Is.EqualTo(MotivoDoTeleporte.Nenhum), "onde o aluno começa vale");
+                Assert.That(rig.position, Is.EqualTo(rigAntes), "o aluno não se move");
+                Assert.That(rig.rotation, Is.EqualTo(giroDoRigAntes));
+                Assert.That(mesa.position, Is.EqualTo(mesaAntes), "a mesa não se move");
+                Assert.That(mesa.rotation, Is.EqualTo(giroDaMesaAntes));
+                Assert.That(Vector3.Distance(caixa.transform.position, caixaAntes), Is.LessThan(1e-4f), "a caixa voltou à mesa");
+            }
+            finally
+            {
+                Object.DestroyImmediate(mao.gameObject);
+            }
         }
 
         [Test]
@@ -227,9 +248,19 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void SemPainelDeDiagnostico()
+        public void Diagnostico_NumPainelSeparado_LigadoARecentralizacao_ComAVersaoNosCreditos()
         {
-            Assert.That(Todos<PainelDeDiagnostico>(), Is.Empty, "o diagnóstico era só para os testes no óculos");
+            var painel = Todos<PainelDeDiagnostico>().Single();
+            var serializado = new SerializedObject(painel);
+
+            Assert.That(painel.transform.root.name, Is.EqualTo("PainelDiagnostico"), "painel próprio, preso ao mundo");
+            Assert.That(serializado.FindProperty("_recentralizacao").objectReferenceValue,
+                Is.EqualTo(Todos<RecentralizacaoDoAluno>().Single()));
+            Assert.That(serializado.FindProperty("_dados").objectReferenceValue, Is.Not.Null);
+            Assert.That(Todos<TextoDaVersao>().Single().transform.parent.name, Is.EqualTo("PainelTitulo"),
+                "a versão continua nos créditos");
+            Transform titulo = _cena.GetRootGameObjects().Single(g => g.name == "PainelTitulo").transform;
+            Assert.That(Vector3.Distance(painel.transform.root.position, titulo.position), Is.GreaterThan(1.2f), "longe dos créditos");
         }
 
         [Test]
