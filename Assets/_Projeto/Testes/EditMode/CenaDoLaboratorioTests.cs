@@ -222,10 +222,9 @@ namespace LaboratorioParalelepipedo.Testes
             var caixa = Todos<CaixaPegavel>().Single();
             var colisor = caixa.GetComponent<BoxCollider>();
 
-            // A primeira caixa da estação de diagonais, 2 × 3 × 6 a 10 cm por unidade (EscalaDaCaixa):
-            // 20 × 60 × 30 cm (x, altura, z).
-            Assert.That(Vector3.Distance(colisor.size, new Vector3(0.2f, 0.6f, 0.3f)), Is.LessThan(1e-4f));
-            Assert.That(Vector3.Distance(colisor.center, new Vector3(0f, 0.3f, 0f)), Is.LessThan(1e-4f));
+            // A caixa 4 × 3 × 2 da Estação 1, a primeira que o aluno vê (x = a, y = c, z = b; 1 unidade = 10 cm).
+            Assert.That(Vector3.Distance(colisor.size, new Vector3(0.4f, 0.2f, 0.3f)), Is.LessThan(1e-4f));
+            Assert.That(Vector3.Distance(colisor.center, new Vector3(0f, 0.1f, 0f)), Is.LessThan(1e-4f));
             Assert.That(caixa.GetComponent<Rigidbody>().isKinematic);
             Assert.That(new SerializedObject(caixa).FindProperty("_materialDaArestaDestacada").objectReferenceValue, Is.Not.Null);
         }
@@ -243,6 +242,7 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Todos<BotaoDoPainel>().Select(b => b.name), Is.EquivalentTo(new[]
             {
                 "BotaoComecar", "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoProximoDesafio", "BotaoRefazer",
+                "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoIrParaAEstacao2", "BotaoRefazer",
             }));
         }
 
@@ -373,19 +373,38 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void TituloTemBotaoComecar_EEstacaoEscondidaAteComecar()
+        public void TituloTemBotaoComecar_QueLevaAEstacao1_QueLevaAEstacao2()
         {
-            var estacao = Todos<EstacaoDasDiagonaisNaCena>().Single();
-            var serializado = new SerializedObject(estacao);
-            var comecar = (BotaoDoPainel)serializado.FindProperty("_comecar").objectReferenceValue;
-
+            var elementos = new SerializedObject(Todos<EstacaoDosElementosNaCena>().Single());
+            var comecar = (BotaoDoPainel)elementos.FindProperty("_comecar").objectReferenceValue;
             Assert.That(comecar.name, Is.EqualTo("BotaoComecar"));
             Assert.That(comecar.transform.parent.name, Is.EqualTo("PainelTitulo"));
-            Assert.That(((GameObject)serializado.FindProperty("_painelDaEstacao").objectReferenceValue).activeSelf, Is.False);
-            Assert.That(serializado.FindProperty("_dados").objectReferenceValue, Is.Not.Null);
-            Assert.That(serializado.FindProperty("_desenho").objectReferenceValue, Is.EqualTo(Todos<DesenhoDasDiagonais>().Single()));
-            Assert.That(serializado.FindProperty("_opcoes").arraySize, Is.EqualTo(4));
+            Assert.That(((GameObject)elementos.FindProperty("_painelDaEstacao").objectReferenceValue).activeSelf, Is.False);
+            Assert.That(elementos.FindProperty("_dados").objectReferenceValue, Is.Not.Null);
+            Assert.That(elementos.FindProperty("_desenho").objectReferenceValue, Is.EqualTo(Todos<DesenhoDaFace>().Single()));
+            Assert.That(elementos.FindProperty("_opcoes").arraySize, Is.EqualTo(4));
+            Assert.That(elementos.FindProperty("_proximaEstacao").objectReferenceValue,
+                Is.EqualTo(Todos<EstacaoDasDiagonaisNaCena>().Single()));
+
+            var diagonais = new SerializedObject(Todos<EstacaoDasDiagonaisNaCena>().Single());
+            Assert.That(diagonais.FindProperty("_comecar").objectReferenceValue, Is.Null, "a Estação 2 começa pela 1");
+            Assert.That(((GameObject)diagonais.FindProperty("_painelDaEstacao").objectReferenceValue).activeSelf, Is.False);
+            Assert.That(diagonais.FindProperty("_desenho").objectReferenceValue, Is.EqualTo(Todos<DesenhoDasDiagonais>().Single()));
+            Assert.That(diagonais.FindProperty("_opcoes").arraySize, Is.EqualTo(4));
+
+            var vibracao = new SerializedObject(Todos<VibracaoDoAcerto>().Single());
+            Assert.That(vibracao.FindProperty("_estacao").objectReferenceValue, Is.Not.Null);
+            Assert.That(vibracao.FindProperty("_estacaoDosElementos").objectReferenceValue, Is.Not.Null);
             Assert.That(Todos<VibracaoDoAcerto>().Single().gameObject.name, Is.EqualTo("OVRCameraRig"));
+        }
+
+        [Test]
+        public void PaineisDasDuasEstacoes_NoMesmoLugar()
+        {
+            Transform um = Todos<Transform>().Single(t => t.name == "PainelEstacaoDosElementos");
+            Transform dois = Todos<Transform>().Single(t => t.name == "PainelEstacao");
+            Assert.That(Vector3.Distance(um.position, dois.position), Is.LessThan(1e-4f));
+            Assert.That(Quaternion.Angle(um.rotation, dois.rotation), Is.LessThan(0.01f));
         }
 
         [Test]

@@ -18,6 +18,7 @@ namespace LaboratorioParalelepipedo.Testes
         private const string CaminhoDaCena = "Assets/_Projeto/Cenas/Laboratorio.unity";
         private Scene _cena;
         private EstacaoDasDiagonaisNaCena _estacao;
+        private EstacaoDosElementosNaCena _elementos;
         private VisualDaCaixa _visual;
         private DesenhoDasDiagonais _desenho;
 
@@ -28,7 +29,34 @@ namespace LaboratorioParalelepipedo.Testes
             _estacao = Todos<EstacaoDasDiagonaisNaCena>().Single();
             _visual = Todos<VisualDaCaixa>().Single();
             _desenho = Todos<DesenhoDasDiagonais>().Single();
+            _elementos = Todos<EstacaoDosElementosNaCena>().Single();
+            _elementos.Inicializar();
             _estacao.Inicializar();
+        }
+
+        // A Estação 1 inteira, pelos mesmos métodos que o gatilho chama, até o fechamento dela.
+        private void ConcluirAEstacao1()
+        {
+            _elementos.Comecar();
+            foreach (string nome in new[] { "A", "B", "F", "E" }) _elementos.TocarVertice(nome);
+            _elementos.ContinuarAgora();
+            foreach (string nome in new[] { "A", "B", "C", "D" }) _elementos.TocarVertice(nome);
+            _elementos.ContinuarAgora();
+            for (int pergunta = 0; pergunta < 2; pergunta++)
+            {
+                var opcoes = _elementos.Estacao.Opcoes;
+                for (int i = 0; i < opcoes.Count; i++)
+                    if (opcoes[i].Correta) _elementos.Responder(i);
+                _elementos.ContinuarAgora();
+            }
+            Assert.That(_elementos.Estacao.Etapa, Is.EqualTo(EtapaDosElementos.Fechamento));
+        }
+
+        // "Ir para a Estação 2" no fechamento da Estação 1: o caminho do aluno até aqui.
+        private void ChegarAEstacao2()
+        {
+            ConcluirAEstacao1();
+            _elementos.IrParaAProximaEstacao();
         }
 
         [TearDown]
@@ -40,8 +68,10 @@ namespace LaboratorioParalelepipedo.Testes
         private T[] Todos<T>() where T : Component =>
             _cena.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<T>(true)).ToArray();
 
-        private T Campo<T>(string nome) where T : Object =>
-            (T)new SerializedObject(_estacao).FindProperty(nome).objectReferenceValue;
+        private T Campo<T>(string nome) where T : Object => CampoDe<T>(_estacao, nome);
+
+        private static T CampoDe<T>(Object componente, string nome) where T : Object =>
+            (T)new SerializedObject(componente).FindProperty(nome).objectReferenceValue;
 
         private BotaoDoPainel Opcao(int i) =>
             (BotaoDoPainel)new SerializedObject(_estacao).FindProperty("_opcoes").GetArrayElementAtIndex(i).objectReferenceValue;
@@ -80,7 +110,7 @@ namespace LaboratorioParalelepipedo.Testes
 
         private void AteAPergunta()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
             _estacao.TocarVertice("E");
             _estacao.TocarVertice("G");
             _estacao.TocarVertice("E");
@@ -89,10 +119,24 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void Abertura_PainelEscondido_CaixaComOsOitoVerticesClicaveis()
+        public void Abertura_PainelEscondido_AteAEstacao1Terminar()
         {
             Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.Abertura));
             Assert.That(Campo<GameObject>("_painelDaEstacao").activeSelf, Is.False);
+            Assert.That(_estacao.VerticesEscolhiveis, Is.Zero, "a caixa é da Estação 1");
+            ConcluirAEstacao1();
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.Abertura), "só pelo botão do fechamento");
+            Assert.That(Campo<GameObject>("_painelDaEstacao").activeSelf, Is.False);
+        }
+
+        [Test]
+        public void IrParaAEstacao2_TrocaOPainel_ECaixaComOsOitoVerticesClicaveis()
+        {
+            ChegarAEstacao2();
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.DiagonalDaBase));
+            Assert.That(Campo<GameObject>("_painelDaEstacao").activeSelf, Is.True);
+            Assert.That(CampoDe<GameObject>(_elementos, "_painelDaEstacao").activeSelf, Is.False, "o painel da Estação 1 some");
+            Assert.That(_visual.transform.Find(DesenhoDaFace.NomeDoGrupo), Is.Null, "o desenho da face some");
             foreach (string nome in new[] { "A", "B", "C", "D", "E", "F", "G", "H" })
             {
                 Assert.That(Alvo(nome), Is.Not.Null, nome);
@@ -106,8 +150,9 @@ namespace LaboratorioParalelepipedo.Testes
         public void PeloRaio_TodosOsVerticesSaoEscolhiveis_MesmoAtrasDaCaixa()
         {
             RaioDoControle raio = RaioNaMao();
-            Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_comecar")));
-            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.DiagonalDaBase), "o gatilho no Começar");
+            ConcluirAEstacao1();
+            Gatilho(raio, FundoDe(CampoDe<BotaoDoPainel>(_elementos, "_irParaAProxima")));
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.DiagonalDaBase), "o gatilho no Ir para a Estação 2");
 
             // B, C, F e G ficam dentro do colisor da caixa, vistos da mão: o raio passa por ela até o vértice.
             foreach (string nome in new[] { "A", "B", "C", "D", "F", "H" })
@@ -122,6 +167,7 @@ namespace LaboratorioParalelepipedo.Testes
         {
             // No óculos, o Destroy só apaga no fim do quadro: por um instante, as esferas antigas continuam ali com o
             // mesmo nome. Na 0.3.0, a busca pelo nome achava a antiga e o alvo do gatilho sumia com ela.
+            ChegarAEstacao2();   // a Estação 2 refaz a caixa com os alvos dela
             var antigo = new GameObject(VisualDaCaixa.GrupoVertices).transform;
             antigo.SetParent(_visual.transform, false);
             antigo.SetSiblingIndex(0);
@@ -137,11 +183,14 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Diagnostico_ContaOsOitoVerticesEscolhiveis()
         {
-            Assert.That(_estacao.VerticesEscolhiveis, Is.EqualTo(8));
+            Assert.That(_elementos.VerticesEscolhiveis, Is.EqualTo(8), "na abertura, os da Estação 1");
             var painel = Todos<PainelDeDiagnostico>().Single();
             Assert.That(new SerializedObject(painel).FindProperty("_estacao").objectReferenceValue, Is.EqualTo(_estacao));
+            Assert.That(new SerializedObject(painel).FindProperty("_estacaoDosElementos").objectReferenceValue, Is.EqualTo(_elementos));
 
-            _estacao.Comecar();
+            ChegarAEstacao2();
+            Assert.That(_estacao.VerticesEscolhiveis, Is.EqualTo(8));
+            Assert.That(_elementos.VerticesEscolhiveis, Is.Zero);
             _estacao.TocarVertice("E");
             _estacao.TocarVertice("G");
             _estacao.TocarVertice("E");
@@ -154,10 +203,11 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void PeloRaio_AEstacaoInteira_DoComecarAoProximoDesafio()
+        public void PeloRaio_AEstacaoInteira_DaEstacao1AoProximoDesafio()
         {
             RaioDoControle raio = RaioNaMao();
-            Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_comecar")));
+            ConcluirAEstacao1();
+            Gatilho(raio, FundoDe(CampoDe<BotaoDoPainel>(_elementos, "_irParaAProxima")));
             foreach (string nome in new[] { "E", "G", "E", "C" })
                 Gatilho(raio, _visual.Vertice(nome));
             Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.Pergunta));
@@ -206,7 +256,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Comecar_MostraOPainelEABaseDestacada()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
 
             Assert.That(Campo<GameObject>("_painelDaEstacao").activeSelf, Is.True);
             Assert.That(_desenho.Base.activeSelf, Is.True);
@@ -220,7 +270,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Painel_SemGrandeAreaVazia_CresceComOConteudo()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
             float soTexto = _estacao.AlturaDoFundo;
             _estacao.TocarVertice("E");
             _estacao.TocarVertice("G");
@@ -233,7 +283,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Pulso_SegueOVerticePedido_EParaForaDosPassos()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
             Vector3 normal = Alvo("E").transform.localScale;
             Alvo("E").Avancar(AlvoDeVertice.PeriodoDoPulso / 2);
             Assert.That(Alvo("E").transform.localScale.x, Is.GreaterThan(normal.x * 1.5f), "cresce no auge");
@@ -284,7 +334,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void VerticeErrado_Pisca_ESoAvancaComAsPontasCertas()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
 
             Assert.That(_estacao.TocarVertice("B"), Is.EqualTo(ResultadoDoToque.Errado));
             Assert.That(Alvo("B").Piscando, Is.True);
@@ -297,7 +347,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Passo2_TrianguloSobe_EAsOpcoesSoAparecemDepois()
         {
-            _estacao.Comecar();
+            ChegarAEstacao2();
             _estacao.TocarVertice("E");
             _estacao.TocarVertice("G");
             _estacao.TocarVertice("C");
