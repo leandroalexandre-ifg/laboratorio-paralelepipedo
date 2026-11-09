@@ -33,6 +33,9 @@ namespace LaboratorioParalelepipedo.Editor
         public const string CaminhoDoPerfil = "Assets/Settings/Build Profiles/Meta Quest.asset";
         public const string CaminhoDosTextos = "Assets/_Projeto/Dados/textos.json";
         public const string CaminhoDosDesafios = "Assets/_Projeto/Dados/desafios.json";
+        /// <summary>Logo do NumbERS que o sistema do Quest mostra enquanto o app carrega (PNG, copiado como está).</summary>
+        public const string CaminhoDoLogoDeAbertura = "Assets/_Projeto/Imagens/Logo_Intro.png";
+        public const string ConfiguracaoDoMetaSdk = "Assets/Oculus/OculusProjectConfig.asset";
 
         private const string IdDaPlataformaMetaQuest = "80657fe557de4d17822398b3a01b8c9e";
         private const string NomeDoPerfil = "Meta Quest";
@@ -122,11 +125,42 @@ namespace LaboratorioParalelepipedo.Editor
             // Exigências da Meta no envio: orientação paisagem e android:installLocation="auto".
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.Android.preferredInstallLocation = AndroidPreferredInstallLocation.Auto;
+            // Sem o logo do Unity: a abertura é o logo do NumbERS, mostrado pelo sistema do Quest ao carregar.
+            PlayerSettings.SplashScreen.show = false;
             EditorUtility.SetDirty(perfil);
 
+            ConfigurarAberturaDoQuest();
             ConfigurarOpenXr();
             AssetDatabase.SaveAssets();
             Debug.Log("[Configuração] Perfil Meta Quest ativo e configurado.");
+        }
+
+        /// <summary>
+        /// Tela de abertura do sistema (Meta SDK): o Horizon OS mostra o PNG num fundo preto enquanto o app carrega,
+        /// antes do primeiro quadro da sala. O SDK copia o arquivo para o APK como vr_splash.png.
+        /// </summary>
+        private static void ConfigurarAberturaDoQuest()
+        {
+            var logo = AssetDatabase.LoadAssetAtPath<Texture2D>(CaminhoDoLogoDeAbertura);
+            if (logo == null)
+            {
+                Debug.LogError($"[Configuração] Logo de abertura não encontrado em '{CaminhoDoLogoDeAbertura}'.");
+                return;
+            }
+
+            // Pelo SerializedObject, sem depender do assembly de editor do Meta SDK.
+            var asset = AssetDatabase.LoadMainAssetAtPath(ConfiguracaoDoMetaSdk);
+            if (asset == null)
+            {
+                Debug.LogError($"[Configuração] '{ConfiguracaoDoMetaSdk}' não encontrado.");
+                return;
+            }
+
+            var configuracao = new SerializedObject(asset);
+            configuracao.FindProperty("systemSplashScreen").objectReferenceValue = logo;
+            configuracao.FindProperty("systemSplashScreenType").enumValueIndex = 0; // Mono: a mesma imagem nos dois olhos
+            configuracao.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
         }
 
         private static void ConfigurarOpenXr()
