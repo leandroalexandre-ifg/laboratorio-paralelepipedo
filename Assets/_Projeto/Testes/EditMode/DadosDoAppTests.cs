@@ -112,7 +112,8 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Buscar<DesafioDeResposta>("diag-02").RespostaCorreta, Is.EqualTo(7).Within(1e-9));
             Assert.That(Buscar<DesafioDeResposta>("area-01").RespostaCorreta, Is.EqualTo(52).Within(1e-9));
             Assert.That(Buscar<DesafioDeResposta>("vol-01").RespostaCorreta, Is.EqualTo(36).Within(1e-9));
-            Assert.That(Buscar<DesafioDeMontarFace>("elem-01").FaceAlvo.Nome, Is.EqualTo("ABFE"));
+            Assert.That(Buscar<DesafioDeMontarFace>("elem-01").FaceAlvo.Nome, Is.EqualTo("ADHE"));
+            Assert.That(Buscar<DesafioDeMontarFace>("elem-02").FaceAlvo.Nome, Is.EqualTo("ABFE"));
         }
 
         [Test]

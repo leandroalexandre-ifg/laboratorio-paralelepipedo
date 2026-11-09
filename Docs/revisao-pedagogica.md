@@ -102,10 +102,11 @@ Observações gerais:
 
 | Id | Enunciado | Caixa (a × b × c) | Pergunta | Resposta esperada | Distratores e o erro que cada um imita | Ok? | Sugestão |
 |---|---|---|---|---|---|---|---|
-| `elem-01` | Monte a face ABFE: toque os vértices dela, um depois do outro. | 4 × 3 × 2 | montar uma face | face ABFE (qualquer vértice inicial, nos dois sentidos) | — | | |
-| `elem-02` | Monte qualquer face da caixa: toque os 4 vértices dela, em ordem. | 4 × 3 × 2 | montar uma face | qualquer uma das 6 faces | — | | |
-| `elem-03` | Quantas arestas tem a caixa? | 4 × 3 × 2 | número de arestas | 12 | **8**: contou os vértices em vez das arestas<br>**6**: contou as faces em vez das arestas<br>**9**: contou só as arestas visíveis (de um ponto de vista comum, 3 ficam escondidas) | | |
-| `elem-04` | Quantas faces tem a caixa? | 4 × 3 × 2 | número de faces | 6 | **4**: contou só as faces laterais, sem as duas bases<br>**8**: contou os vértices em vez das faces<br>**12**: contou as arestas em vez das faces | | |
+| `elem-01` | Monte a face ADHE, a da frente: toque os vértices dela, um depois do outro. | 4 × 3 × 2 | montar uma face | face ADHE (qualquer vértice inicial, nos dois sentidos) | — | | |
+| `elem-02` | Monte a face ABFE: toque os vértices dela, um depois do outro. | 4 × 3 × 2 | montar uma face | face ABFE (qualquer vértice inicial, nos dois sentidos) | — | | |
+| `elem-03` | Monte qualquer face da caixa: toque os 4 vértices dela, em ordem. | 4 × 3 × 2 | montar uma face | qualquer uma das 6 faces | — | | |
+| `elem-04` | Quantas arestas tem a caixa? | 4 × 3 × 2 | número de arestas | 12 | **8**: contou os vértices em vez das arestas<br>**6**: contou as faces em vez das arestas<br>**9**: contou só as arestas visíveis (de um ponto de vista comum, 3 ficam escondidas) | | |
+| `elem-05` | Quantas faces tem a caixa? | 4 × 3 × 2 | número de faces | 6 | **4**: contou só as faces laterais, sem as duas bases<br>**8**: contou os vértices em vez das faces<br>**12**: contou as arestas em vez das faces | | |
 
 ### 2. Diagonais (BNCC EF09MA14)
 

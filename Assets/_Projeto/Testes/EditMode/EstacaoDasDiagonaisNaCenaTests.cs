@@ -38,6 +38,8 @@ namespace LaboratorioParalelepipedo.Testes
         private void ConcluirAEstacao1()
         {
             _elementos.Comecar();
+            foreach (string nome in new[] { "A", "D", "H", "E" }) _elementos.TocarVertice(nome);
+            _elementos.ContinuarAgora();
             foreach (string nome in new[] { "A", "B", "F", "E" }) _elementos.TocarVertice(nome);
             _elementos.ContinuarAgora();
             foreach (string nome in new[] { "A", "B", "C", "D" }) _elementos.TocarVertice(nome);

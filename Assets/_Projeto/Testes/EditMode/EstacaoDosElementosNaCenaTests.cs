@@ -64,9 +64,18 @@ namespace LaboratorioParalelepipedo.Testes
             foreach (char letra in letras) _estacao.TocarVertice(letra.ToString());
         }
 
-        private void AteAPerguntaDasArestas()
+        // "Começar" e a face da frente (ADHE) pronta: no desafio da face ABFE.
+        private void ComecarNaFaceABFE()
         {
             _estacao.Comecar();
+            Tocar("ADHE");
+            _estacao.ContinuarAgora();
+            Assert.That(_estacao.Estacao.Desafio.Id, Is.EqualTo("elem-02"));
+        }
+
+        private void AteAPerguntaDasArestas()
+        {
+            ComecarNaFaceABFE();
             Tocar("ABFE");
             _estacao.ContinuarAgora();
             Tocar("ABCD");
@@ -114,8 +123,8 @@ namespace LaboratorioParalelepipedo.Testes
 
             Assert.That(Campo<GameObject>("_painelDaEstacao").activeSelf, Is.True);
             Assert.That(Campo<BotaoDoPainel>("_comecar").gameObject.activeSelf, Is.False);
-            Assert.That(_estacao.Instrucao, Does.Contain("ABFE"), "o enunciado no destaque do alto");
-            Assert.That(_estacao.TextoDoPainel, Does.Contain("Desafio 1 de 4"));
+            Assert.That(_estacao.Instrucao, Does.Contain("ADHE"), "o enunciado no destaque do alto: a face da frente");
+            Assert.That(_estacao.TextoDoPainel, Does.Contain("Desafio 1 de 5"));
             Assert.That(_estacao.TextoDoPainel, Does.Not.Contain("a = "), "a Estação 1 não fala em medidas");
             Assert.That(_visual.GetComponentsInChildren<TMPro.TMP_Text>().Select(t => t.text),
                 Has.None.Contains("="), "na caixa, só as letras dos vértices");
@@ -124,7 +133,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void MontarFace_ArestasAparecem_EAFaceProntaGanhaACorDoPar()
         {
-            _estacao.Comecar();
+            ComecarNaFaceABFE();
             Tocar("AB");
             Assert.That(_desenho.ArestasVisiveis, Is.EqualTo(1));
             Assert.That(Alvo("A").GetComponent<Renderer>().sharedMaterial, Is.EqualTo(Alvo("B").GetComponent<Renderer>().sharedMaterial));
@@ -143,7 +152,7 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(_estacao.Instrucao, Does.Contain("Você montou a face ABFE"));
 
             _estacao.ContinuarAgora();
-            Assert.That(_estacao.Estacao.Desafio.Id, Is.EqualTo("elem-02"));
+            Assert.That(_estacao.Estacao.Desafio.Id, Is.EqualTo("elem-03"));
             Assert.That(_desenho.ArestasVisiveis, Is.Zero, "a próxima face começa do zero");
             Assert.That(_desenho.FacePreenchida, Is.False);
             Assert.That(_estacao.VerticesEscolhiveis, Is.EqualTo(8));
@@ -152,7 +161,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void VerticeErrado_Pisca_MantemOsCertos_EDoisErrosFazemAFacePulsar()
         {
-            _estacao.Comecar();
+            ComecarNaFaceABFE();
             Tocar("AB");
             Assert.That(_estacao.TocarVertice("C"), Is.EqualTo(ResultadoDoToque.Errado));
             Assert.That(Alvo("C").Piscando, Is.True);
@@ -187,7 +196,7 @@ namespace LaboratorioParalelepipedo.Testes
                 if (i != certa) Assert.That(Opcao(i).Estado, Is.EqualTo(EstadoDoBotao.Normal), "erradas voltam ao normal");
 
             _estacao.ContinuarAgora();
-            Assert.That(_estacao.Estacao.Desafio.Id, Is.EqualTo("elem-04"));
+            Assert.That(_estacao.Estacao.Desafio.Id, Is.EqualTo("elem-05"));
             for (int i = 0; i < 4; i++) Assert.That(Opcao(i).Estado, Is.EqualTo(EstadoDoBotao.Normal), "pergunta nova, botões normais");
             Assert.That(_estacao.AlturaDoFundo, Is.EqualTo(comBotoes).Within(1e-4f));
         }
@@ -195,7 +204,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Painel_SemGrandeAreaVazia_CresceComOsBotoes()
         {
-            _estacao.Comecar();
+            ComecarNaFaceABFE();
             float soTexto = _estacao.AlturaDoFundo;
             Tocar("ABFE");
             _estacao.ContinuarAgora();
@@ -234,6 +243,9 @@ namespace LaboratorioParalelepipedo.Testes
             Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_comecar")));
             Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDosElementos.MontarFace), "o gatilho no Começar");
 
+            foreach (string nome in new[] { "A", "D", "H", "E" }) Gatilho(raio, _visual.Vertice(nome));
+            Assert.That(_estacao.Estacao.FaceMontada?.Nome, Is.EqualTo("ADHE"), "a face da frente");
+            _estacao.ContinuarAgora();
             // B e F ficam atrás da caixa, vistos da mão: o raio passa pelo corpo dela até o vértice.
             foreach (string nome in new[] { "A", "B", "F", "E" }) Gatilho(raio, _visual.Vertice(nome));
             Assert.That(_estacao.Estacao.FaceMontada?.Nome, Is.EqualTo("ABFE"));

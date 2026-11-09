@@ -39,12 +39,12 @@ PERGUNTAS = {
 
 # (id do desafio, distrator como está no JSON) -> erro que o distrator imita.
 ERROS_DOS_DISTRATORES = {
-    ("elem-03", "8"): "contou os vértices em vez das arestas",
-    ("elem-03", "6"): "contou as faces em vez das arestas",
-    ("elem-03", "9"): "contou só as arestas visíveis (de um ponto de vista comum, 3 ficam escondidas)",
-    ("elem-04", "4"): "contou só as faces laterais, sem as duas bases",
-    ("elem-04", "8"): "contou os vértices em vez das faces",
-    ("elem-04", "12"): "contou as arestas em vez das faces",
+    ("elem-04", "8"): "contou os vértices em vez das arestas",
+    ("elem-04", "6"): "contou as faces em vez das arestas",
+    ("elem-04", "9"): "contou só as arestas visíveis (de um ponto de vista comum, 3 ficam escondidas)",
+    ("elem-05", "4"): "contou só as faces laterais, sem as duas bases",
+    ("elem-05", "8"): "contou os vértices em vez das faces",
+    ("elem-05", "12"): "contou as arestas em vez das faces",
     ("diag-01", "5"): "somou a + b em vez de usar Pitágoras (2 + 3)",
     ("diag-01", "√5"): "somou a + b dentro da raiz: √(2 + 3)",
     ("diag-01", "13"): "esqueceu a raiz: a² + b² = 13",

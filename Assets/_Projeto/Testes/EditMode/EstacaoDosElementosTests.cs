@@ -17,18 +17,30 @@ namespace LaboratorioParalelepipedo.Testes
             new DesafioDeResposta(id, Nucleo.Estacao.Elementos, "EF06MA17", "Quantos?", 4, 3, 2, grandeza,
                 distratores.Select(M).ToArray());
 
-        // Os 4 desafios do desafios.json, na mesma ordem.
+        // Os 5 desafios do desafios.json, na mesma ordem.
         private static EstacaoDosElementos Nova(int semente = 0) => new EstacaoDosElementos(new Desafio[]
         {
-            Face("elem-01", "ABFE"),
-            Face("elem-02", "qualquer"),
-            Contagem("elem-03", Grandeza.NumeroDeArestas, "8", "6", "9"),
-            Contagem("elem-04", Grandeza.NumeroDeFaces, "4", "8", "12"),
+            Face("elem-01", "ADHE"),
+            Face("elem-02", "ABFE"),
+            Face("elem-03", "qualquer"),
+            Contagem("elem-04", Grandeza.NumeroDeArestas, "8", "6", "9"),
+            Contagem("elem-05", Grandeza.NumeroDeFaces, "4", "8", "12"),
         }, semente);
 
         private static void Tocar(EstacaoDosElementos estacao, string letras)
         {
             foreach (char letra in letras) estacao.TocarVertice(letra.ToString());
+        }
+
+        // Primeiro desafio (ADHE, a face da frente) pronto e já no segundo (ABFE).
+        private static EstacaoDosElementos NaFaceABFE(int semente = 0)
+        {
+            var estacao = Nova(semente);
+            estacao.Comecar();
+            Tocar(estacao, "ADHE");
+            estacao.Continuar();
+            Assert.That(estacao.Desafio.Id, Is.EqualTo("elem-02"));
+            return estacao;
         }
 
         private static int Indice(EstacaoDosElementos estacao, string texto) =>
@@ -50,14 +62,25 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(estacao.VerticesDeAjuda, Is.Empty, "no começo nada pulsa");
         }
 
+        [Test]
+        public void PrimeiroDesafio_AFaceDaFrenteADHE()
+        {
+            var estacao = Nova();
+            estacao.Comecar();
+            Assert.That(estacao.DesafioDeFace.FaceAlvo.Nome, Is.EqualTo("ADHE"));
+            Tocar(estacao, "HDAE");
+            Assert.That(estacao.FaceMontada?.Nome, Is.EqualTo("ADHE"));
+            estacao.Continuar();
+            Assert.That(estacao.DesafioDeFace.FaceAlvo.Nome, Is.EqualTo("ABFE"));
+        }
+
         [TestCase("ABFE")]
         [TestCase("EFBA")]
         [TestCase("FEAB")]
         [TestCase("BAEF")]
         public void FacePedida_QualquerInicioEQualquerSentido(string toques)
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             for (int i = 0; i < 3; i++)
                 Assert.That(estacao.TocarVertice(toques[i].ToString()), Is.EqualTo(ResultadoDoToque.Escolheu));
             Assert.That(estacao.TocarVertice(toques[3].ToString()), Is.EqualTo(ResultadoDoToque.Ligou));
@@ -68,8 +91,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void VerticeForaDaFace_PiscaEDescartaSoEsseToque()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "AB");
 
             Assert.That(estacao.TocarVertice("C"), Is.EqualTo(ResultadoDoToque.Errado));
@@ -85,8 +107,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void VerticeDaFaceForaDeOrdem_NaoContinuaAFace()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             estacao.TocarVertice("A");
             Assert.That(estacao.TocarVertice("F"), Is.EqualTo(ResultadoDoToque.Errado), "F é da face, mas não vizinho de A");
             Assert.That(estacao.ChaveDoVerticeErrado, Is.EqualTo(ChavesDeTexto.ElementosNaoEhFace));
@@ -96,8 +117,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void TocarDeNovoUmVerticeJaEscolhido_NaoMudaNada()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "AB");
             Assert.That(estacao.TocarVertice("A"), Is.EqualTo(ResultadoDoToque.Ignorado));
             Assert.That(estacao.TocarVertice("B"), Is.EqualTo(ResultadoDoToque.Ignorado));
@@ -108,8 +128,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void DoisErrosSeguidos_OsQuatroVerticesDaFacePedidaPulsam()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             estacao.TocarVertice("C");
             Assert.That(estacao.VerticesDeAjuda, Is.Empty, "um erro ainda não ajuda");
             estacao.TocarVertice("D");
@@ -124,8 +143,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void ErrosSeparadosPorUmAcerto_NaoContamComoSeguidos()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             estacao.TocarVertice("C");
             estacao.TocarVertice("A");
             estacao.TocarVertice("G");
@@ -139,11 +157,10 @@ namespace LaboratorioParalelepipedo.Testes
         {
             foreach (string toques in new[] { "ABCD", "HGFE", "ADHE", "GCBF", "ABFE", "CDHG" })
             {
-                var estacao = Nova();
-                estacao.Comecar();
+                var estacao = NaFaceABFE();
                 Tocar(estacao, "ABFE");
                 estacao.Continuar();
-                Assert.That(estacao.Desafio.Id, Is.EqualTo("elem-02"));
+                Assert.That(estacao.Desafio.Id, Is.EqualTo("elem-03"));
                 Tocar(estacao, toques);
                 Assert.That(estacao.Etapa, Is.EqualTo(EtapaDosElementos.Acertou), toques);
                 Assert.That(estacao.FaceMontada, Is.Not.Null, toques);
@@ -153,8 +170,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void QualquerFace_VerticeQueNaoContinuaNenhuma_EAAjudaSegueOQueJaFoiTocado()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "ABFE");
             estacao.Continuar();
 
@@ -169,8 +185,7 @@ namespace LaboratorioParalelepipedo.Testes
         [Test]
         public void Pergunta_OpcoesComARespostaCalculadaEOsDistratores_Embaralhadas()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "ABFE");
             estacao.Continuar();
             Tocar(estacao, "ABCD");
@@ -187,8 +202,7 @@ namespace LaboratorioParalelepipedo.Testes
         {
             EstacaoDosElementos NaPergunta(int semente)
             {
-                var estacao = Nova(semente);
-                estacao.Comecar();
+                var estacao = NaFaceABFE(semente);
                 Tocar(estacao, "ABFE");
                 estacao.Continuar();
                 Tocar(estacao, "ABCD");
@@ -204,8 +218,7 @@ namespace LaboratorioParalelepipedo.Testes
         [TestCase("9", ChavesDeTexto.ElementosDicaArestasEscondidas)]
         public void Arestas_CadaDistratorTemADicaDoErroQueImita(string distrator, string chave)
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "ABFE");
             estacao.Continuar();
             Tocar(estacao, "ABCD");
@@ -228,15 +241,14 @@ namespace LaboratorioParalelepipedo.Testes
 
         private static EstacaoDosElementos NaUltimaPergunta()
         {
-            var estacao = Nova();
-            estacao.Comecar();
+            var estacao = NaFaceABFE();
             Tocar(estacao, "ABFE");
             estacao.Continuar();
             Tocar(estacao, "ABCD");
             estacao.Continuar();
             estacao.Responder(Correta(estacao));
             estacao.Continuar();
-            Assert.That(estacao.Desafio.Id, Is.EqualTo("elem-04"));
+            Assert.That(estacao.Desafio.Id, Is.EqualTo("elem-05"));
             return estacao;
         }
 
@@ -303,12 +315,12 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void DesafiosDoJson_AEstacaoUsaOsQuatro()
+        public void DesafiosDoJson_AEstacaoUsaOsCinco_ComecandoPelaFaceDaFrente()
         {
             var desafios = Apresentacao.CarregadorDeDados.CarregarDesafios(
                 UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.TextAsset>("Assets/_Projeto/Dados/desafios.json"));
             Assert.That(EstacaoDosElementos.DesafiosDaEstacao(desafios).Select(d => d.Id),
-                Is.EqualTo(new[] { "elem-01", "elem-02", "elem-03", "elem-04" }));
+                Is.EqualTo(new[] { "elem-01", "elem-02", "elem-03", "elem-04", "elem-05" }));
         }
 
         [Test]

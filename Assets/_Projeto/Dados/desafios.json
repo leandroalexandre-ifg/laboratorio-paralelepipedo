@@ -6,12 +6,21 @@
       "tipo": "montarFace",
       "estacao": "elementos",
       "bncc": "EF06MA17",
+      "enunciado": "Monte a face ADHE, a da frente: toque os vértices dela, um depois do outro.",
+      "dimensoes": { "a": "4", "b": "3", "c": "2" },
+      "face": "ADHE"
+    },
+    {
+      "id": "elem-02",
+      "tipo": "montarFace",
+      "estacao": "elementos",
+      "bncc": "EF06MA17",
       "enunciado": "Monte a face ABFE: toque os vértices dela, um depois do outro.",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
       "face": "ABFE"
     },
     {
-      "id": "elem-02",
+      "id": "elem-03",
       "tipo": "montarFace",
       "estacao": "elementos",
       "bncc": "EF06MA17",
@@ -20,7 +29,7 @@
       "face": "qualquer"
     },
     {
-      "id": "elem-03",
+      "id": "elem-04",
       "estacao": "elementos",
       "bncc": "EF06MA17",
       "enunciado": "Quantas arestas tem a caixa?",
@@ -29,7 +38,7 @@
       "distratores": ["8", "6", "9"]
     },
     {
-      "id": "elem-04",
+      "id": "elem-05",
       "estacao": "elementos",
       "bncc": "EF06MA17",
       "enunciado": "Quantas faces tem a caixa?",
