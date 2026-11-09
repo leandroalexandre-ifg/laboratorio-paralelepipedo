@@ -15,7 +15,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         public const string NomeDoGrupo = "Face";
         private const float Espessura = 0.014f;
         private const float AfastamentoDaFace = 0.003f;
-        private const float AfastamentoDoNome = 0.03f;
+        private const float AfastamentoDoNome = 0.05f;
 
         [SerializeField] private VisualDaCaixa _visual;
         [SerializeField] private Material _aresta;

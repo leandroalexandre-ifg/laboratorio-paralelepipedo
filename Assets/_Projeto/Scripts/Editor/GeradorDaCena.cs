@@ -326,15 +326,16 @@ namespace LaboratorioParalelepipedo.Editor
             return texto;
         }
 
-        /// <summary>Botões da pergunta, 2 × 2, escondidos.</summary>
-        private static BotaoDoPainel[] OpcoesDaEstacao(Transform painel, DadosDoLaboratorio dados, TMP_FontAsset fonte)
+        /// <summary>Botões da pergunta, 2 × 2, escondidos, com as linhas em <paramref name="yDaPrimeira"/> e <paramref name="yDaSegunda"/>.</summary>
+        private static BotaoDoPainel[] OpcoesDaEstacao(Transform painel, DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            float yDaPrimeira = -0.21f, float yDaSegunda = -0.335f)
         {
             float largura = LarguraUtilDaEstacao;
             var opcoes = new BotaoDoPainel[4];
             for (int i = 0; i < opcoes.Length; i++)
             {
                 float x = (i % 2 == 0 ? -1 : 1) * largura / 4;
-                float y = i < 2 ? -0.21f : -0.335f;
+                float y = i < 2 ? yDaPrimeira : yDaSegunda;
                 opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), TamanhoDoBotaoDaEstacao, dados, fonte,
                     null, principal: false);
                 opcoes[i].gameObject.SetActive(false);
@@ -362,10 +363,12 @@ namespace LaboratorioParalelepipedo.Editor
             tocados.fontStyle = FontStyles.Bold;
             tocados.textWrappingMode = TextWrappingModes.NoWrap;
 
-            BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte);
-            BotaoDoPainel irParaAProxima = CriarBotao(painel, "BotaoIrParaAEstacao2", new Vector3(-largura / 4, -0.27f, 0f),
+            // Os botões logo abaixo dos vértices tocados (vazios na pergunta e no fechamento): sem área vazia.
+            const float primeiraLinha = -0.12f, segundaLinha = -0.245f, meiaAltura = 0.055f;
+            BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte, primeiraLinha, segundaLinha);
+            BotaoDoPainel irParaAProxima = CriarBotao(painel, "BotaoIrParaAEstacao2", new Vector3(-largura / 4, primeiraLinha, 0f),
                 TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosProximaEstacao, principal: true);
-            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.27f, 0f),
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, primeiraLinha, 0f),
                 TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosRefazer, principal: false);
             irParaAProxima.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
@@ -378,7 +381,7 @@ namespace LaboratorioParalelepipedo.Editor
                 MaterialOpaco("VerticeApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
                 MaterialOpaco("VerticeErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja));
             estacao.ConfigurarFundo(fundo, TamanhoDoPainelDaEstacao.y / 2, baseSoTexto: topo - 0.465f - MargemDaEstacao,
-                baseComBotoes: -TamanhoDoPainelDaEstacao.y / 2);
+                baseComOpcoes: segundaLinha - meiaAltura - MargemDaEstacao, baseNoFechamento: primeiraLinha - meiaAltura - MargemDaEstacao);
             return estacao;
         }
 

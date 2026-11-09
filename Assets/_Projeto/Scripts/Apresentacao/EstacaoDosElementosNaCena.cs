@@ -44,7 +44,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private BotaoDoPainel _refazer;
         [SerializeField, Tooltip("Fundo do painel: cresce para baixo quando aparecem os botões.")]
         private Transform _fundo;
-        [SerializeField] private float _topoDoFundo, _baseSoTexto, _baseComBotoes;
+        [SerializeField] private float _topoDoFundo, _baseSoTexto, _baseComOpcoes, _baseNoFechamento;
 
         [Header("Vértices")]
         [SerializeField] private Material _verticeNormal;
@@ -122,12 +122,13 @@ namespace LaboratorioParalelepipedo.Apresentacao
         }
 
         /// <summary>Liga o fundo que acompanha o conteúdo (usado pelo gerador da cena): topo fixo, base por etapa.</summary>
-        public void ConfigurarFundo(Transform fundo, float topo, float baseSoTexto, float baseComBotoes)
+        public void ConfigurarFundo(Transform fundo, float topo, float baseSoTexto, float baseComOpcoes, float baseNoFechamento)
         {
             _fundo = fundo;
             _topoDoFundo = topo;
             _baseSoTexto = baseSoTexto;
-            _baseComBotoes = baseComBotoes;
+            _baseComOpcoes = baseComOpcoes;
+            _baseNoFechamento = baseNoFechamento;
         }
 
         private void Start() => Inicializar();
@@ -362,8 +363,8 @@ namespace LaboratorioParalelepipedo.Apresentacao
         private void AjustarFundo(EtapaDosElementos etapa)
         {
             if (_fundo == null) return;
-            bool comBotoes = PerguntaAVista(etapa) || etapa == EtapaDosElementos.Fechamento;
-            float baseDoFundo = comBotoes ? _baseComBotoes : _baseSoTexto;
+            float baseDoFundo = PerguntaAVista(etapa) ? _baseComOpcoes
+                : etapa == EtapaDosElementos.Fechamento ? _baseNoFechamento : _baseSoTexto;
             Vector3 posicao = _fundo.localPosition;
             Vector3 escala = _fundo.localScale;
             _fundo.localPosition = new Vector3(posicao.x, (_topoDoFundo + baseDoFundo) / 2, posicao.z);
@@ -393,7 +394,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
                     s.Append(_estacao.Desafio.Enunciado);
                     string dica = Dica();
                     if (dica != null) s.Append("\n<size=80%><color=").Append(_corDaDica).Append('>').Append(dica).Append("</color></size>");
-                    else if (_estacao.VerticesDeAjuda.Count > 0)
+                    if (_estacao.VerticesDeAjuda.Count > 0)
                         s.Append("\n<size=80%>").Append(Texto(ChavesDeTexto.ElementosAjuda)).Append("</size>");
                     break;
                 case EtapaDosElementos.Acertou:
