@@ -18,8 +18,10 @@ namespace LaboratorioParalelepipedo.Apresentacao
         public const string NomeDoGrupo = "Diagonais";
         public const float DuracaoDaSubida = 0.6f;
         private const float Espessura = 0.01f;
-        private const float LadoDaMarca = 0.03f;
-        private const float AfastamentoDoRotulo = 0.05f;
+        private const float LadoDaMarca = 0.045f;
+        private const float EspessuraDaMarca = 0.008f;
+        // Folga entre a aresta e o começo do rótulo de medida (o rótulo se afasta mais a metade da própria largura).
+        private const float FolgaDaMedida = 0.03f;
 
         [SerializeField] private VisualDaCaixa _visual;
         [SerializeField] private Material _linhaDaBase;
@@ -92,8 +94,8 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _malhaDoTrianguloDaBase = Malha("Triangulo EHG", new[] { _e + levinho, h + levinho, _g + levinho }, new[] { 0, 1, 2 });
             Desenhar(_passo1.transform, "Triangulo EHG", _malhaDoTrianguloDaBase, _trianguloDaBase);
             MarcaDeAnguloReto(_passo1.transform, "Angulo reto em H", h + levinho, (_e - h).normalized, (_g - h).normalized);
-            Rotulo(_passo1.transform, "Rotulo a", (_e + h) / 2 + ParaFora((_e + h) / 2, centro), rotuloA, PaletaDoLaboratorio.Texto);
-            Rotulo(_passo1.transform, "Rotulo b", (h + _g) / 2 + ParaFora((h + _g) / 2, centro), rotuloB, PaletaDoLaboratorio.Texto);
+            RotuloDeMedida(_passo1.transform, "Rotulo a", (_e + h) / 2, centro, rotuloA);
+            RotuloDeMedida(_passo1.transform, "Rotulo b", (h + _g) / 2, centro, rotuloB);
             Rotulo(_passo1.transform, "Rotulo d", centro + Vector3.up * 0.03f, rotuloD, PaletaDoLaboratorio.DestaqueAzul);
 
             // Passo 2: D e o triângulo EGC (C sobe de G); no fim, ângulo reto em G e rótulos c, D.
@@ -109,8 +111,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _fimDoPasso2.transform.SetParent(_passo2.transform, false);
             MarcaDeAnguloReto(_fimDoPasso2.transform, "Angulo reto em G", _g, (_e - _g).normalized, Vector3.up);
             Vector3 meioDeGC = (_g + _c) / 2;
-            Rotulo(_fimDoPasso2.transform, "Rotulo c", meioDeGC + ParaFora(meioDeGC, new Vector3(0f, meioDeGC.y, 0f)), rotuloC,
-                PaletaDoLaboratorio.Texto);
+            RotuloDeMedida(_fimDoPasso2.transform, "Rotulo c", meioDeGC, new Vector3(centro.x, meioDeGC.y, centro.z), rotuloC);
             Rotulo(_fimDoPasso2.transform, "Rotulo D", (_e + _c) / 2 + Vector3.up * 0.03f, rotuloDaDiagonal,
                 PaletaDoLaboratorio.DestaqueLaranja);
 
@@ -198,14 +199,6 @@ namespace LaboratorioParalelepipedo.Apresentacao
             if (objeto != null && objeto.activeSelf != ativo) objeto.SetActive(ativo);
         }
 
-        // Para fora da caixa, na horizontal, a partir do centro dado.
-        private static Vector3 ParaFora(Vector3 ponto, Vector3 centro)
-        {
-            Vector3 direcao = ponto - centro;
-            direcao.y = 0f;
-            return direcao.sqrMagnitude > 1e-8f ? direcao.normalized * AfastamentoDoRotulo + Vector3.up * 0.015f : Vector3.up * 0.03f;
-        }
-
         private static Mesh Malha(string nome, Vector3[] pontos, int[] frente)
         {
             // As duas faces: o triângulo aparece de qualquer lado.
@@ -264,12 +257,23 @@ namespace LaboratorioParalelepipedo.Apresentacao
             marca.SetParent(pai, false);
             Vector3 canto = vertice + (u + v) * LadoDaMarca;
             Segmento(marca, "Lado 1", vertice + u * LadoDaMarca, canto, _marca).localScale =
-                new Vector3(Espessura * 0.5f, Espessura * 0.5f, LadoDaMarca + Espessura * 0.5f);
+                new Vector3(EspessuraDaMarca, EspessuraDaMarca, LadoDaMarca + EspessuraDaMarca);
             Segmento(marca, "Lado 2", vertice + v * LadoDaMarca, canto, _marca).localScale =
-                new Vector3(Espessura * 0.5f, Espessura * 0.5f, LadoDaMarca + Espessura * 0.5f);
+                new Vector3(EspessuraDaMarca, EspessuraDaMarca, LadoDaMarca + EspessuraDaMarca);
         }
 
-        private void Rotulo(Transform pai, string nome, Vector3 posicao, string texto, Color cor)
+        /// <summary>Rótulo de medida (a, b, c) fora da aresta: afasta-se do eixo da caixa a folga mais meia largura do texto.</summary>
+        private void RotuloDeMedida(Transform pai, string nome, Vector3 meioDaAresta, Vector3 centro, string texto)
+        {
+            TextMeshPro tmp = Rotulo(pai, nome, meioDaAresta, texto, PaletaDoLaboratorio.Texto);
+            Vector3 direcao = meioDaAresta - centro;
+            direcao.y = 0f;
+            direcao = direcao.sqrMagnitude > 1e-8f ? direcao.normalized : Vector3.forward;
+            float meiaLargura = tmp.GetPreferredValues(texto).x / 2;
+            tmp.transform.localPosition = meioDaAresta + direcao * (FolgaDaMedida + meiaLargura) + Vector3.up * 0.015f;
+        }
+
+        private TextMeshPro Rotulo(Transform pai, string nome, Vector3 posicao, string texto, Color cor)
         {
             var objeto = new GameObject(nome, typeof(RectTransform));
             objeto.transform.SetParent(pai, false);
@@ -285,6 +289,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
             tmp.rectTransform.sizeDelta = new Vector2(0.2f, 0.05f);
             objeto.AddComponent<RotuloVoltadoParaOAluno>();
+            return tmp;
         }
 
         private static void Destruir(Object objeto)
