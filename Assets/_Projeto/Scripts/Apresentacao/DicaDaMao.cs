@@ -5,8 +5,8 @@ using UnityEngine;
 namespace LaboratorioParalelepipedo.Apresentacao
 {
     /// <summary>
-    /// Dica curta logo acima de um controle, virada para o aluno: "Segure o botão lateral para pegar" com o raio na
-    /// caixa, "Solte para ir até lá" ou "Aqui não dá" ao mirar o teleporte (regra em <see cref="DicasDosControles"/>,
+    /// Dica curta logo acima de um controle, virada para o aluno: "Aperte o gatilho para escolher" com o raio num
+    /// vértice ou botão, "Segure o botão lateral para pegar" com o raio na caixa, "Solte para ir até lá" ou "Aqui não dá" ao mirar o teleporte (regra em <see cref="DicasDosControles"/>,
     /// textos no textos.json). O texto só é trocado quando a dica muda; a cada quadro só a posição e a direção.
     /// </summary>
     public sealed class DicaDaMao : MonoBehaviour
@@ -28,6 +28,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         /// <summary>O raio desta mão está numa coisa que se pega.</summary>
         public bool ApontandoParaPegar { get; set; }
+
+        /// <summary>O raio desta mão está num alvo do gatilho (vértice, botão).</summary>
+        public bool ApontandoParaEscolher { get; set; }
 
         /// <summary>Esta mão está segurando algo.</summary>
         public bool Segurando { get; set; }
@@ -65,7 +68,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         /// <summary>Escolhe a dica e a põe acima da mão (público para os testes no Editor).</summary>
         public void Atualizar()
         {
-            string chave = DicasDosControles.Chave(MirandoTeleporte, TeleporteValido, ApontandoParaPegar, Segurando);
+            string chave = DicasDosControles.Chave(MirandoTeleporte, TeleporteValido, ApontandoParaPegar, Segurando, ApontandoParaEscolher);
             if (!_iniciada || !ReferenceEquals(chave, _chaveMostrada)) Mostrar(chave);
             if (chave == null || _mao == null) return;
 

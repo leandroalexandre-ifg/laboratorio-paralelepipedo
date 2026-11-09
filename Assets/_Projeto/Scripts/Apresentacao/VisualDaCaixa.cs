@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 namespace LaboratorioParalelepipedo.Apresentacao
 {
     /// <summary>
-    /// Desenha um prisma do núcleo: arestas, faces translúcidas, vértices e os rótulos A–H.
+    /// Desenha um prisma do núcleo: arestas, faces translúcidas, vértices e os rótulos A–H (sempre virados para o aluno).
     /// A base fica apoiada em y = 0 do objeto e centrada em x e z; a frente (z = 0 do núcleo) fica do lado do aluno.
     /// A escala vem do núcleo (<see cref="EscalaDaCaixa"/>): a maior dimensão ocupa no máximo 0,6 m.
     /// Monta os filhos uma vez (no Awake ou ao chamar <see cref="Construir"/>); nada roda por frame.
@@ -30,10 +30,12 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private Material _materialDaFace;
         [SerializeField] private Material _materialDoVertice;
         [SerializeField] private TMP_FontAsset _fonte;
+        [SerializeField, Tooltip("Material da fonte que aparece através da caixa (opcional).")]
+        private Material _materialDoRotulo;
         [SerializeField] private float _espessuraDaAresta = 0.008f;
-        [SerializeField] private float _diametroDoVertice = 0.02f;
-        [SerializeField] private float _tamanhoDoRotulo = 0.35f;
-        [SerializeField] private float _afastamentoDoRotulo = 0.035f;
+        [SerializeField] private float _diametroDoVertice = 0.03f;
+        [SerializeField] private float _tamanhoDoRotulo = 0.4f;
+        [SerializeField] private float _afastamentoDoRotulo = 0.04f;
 
         private readonly List<Mesh> _malhasCriadas = new List<Mesh>();
         private IPrisma _prisma;
@@ -50,13 +52,18 @@ namespace LaboratorioParalelepipedo.Apresentacao
         public Vector3 TamanhoNaCena => new Vector3(_comprimento, _altura, _largura) * _metrosPorUnidade;
 
         /// <summary>Liga a aparência (usado pelo gerador da cena e pelos testes).</summary>
-        public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte)
+        public void Configurar(Material aresta, Material face, Material vertice, TMP_FontAsset fonte,
+            Material materialDoRotulo = null)
         {
             _materialDaAresta = aresta;
             _materialDaFace = face;
             _materialDoVertice = vertice;
             _fonte = fonte;
+            _materialDoRotulo = materialDoRotulo;
         }
+
+        /// <summary>Material dos rótulos, que aparece através da caixa (nulo: o material padrão da fonte).</summary>
+        public Material MaterialDoRotulo => _materialDoRotulo;
 
         private void Awake()
         {
@@ -160,20 +167,31 @@ namespace LaboratorioParalelepipedo.Apresentacao
             var objeto = new GameObject($"Rotulo {vertice.Nome}", typeof(RectTransform));
             objeto.transform.SetParent(grupo, false);
             // Para fora na horizontal; os de cima sobem um pouco e os de baixo ficam rente à mesa (sem entrar nela).
+            // Os de cima do fundo (B, C) sobem mais, para não ficarem sobre os da frente (A, D) vistos do aluno.
             Vector3 paraFora = posicao - centro;
             paraFora.y = 0f;
-            float subida = posicao.y > centro.y ? _afastamentoDoRotulo * 0.5f : _tamanhoDoRotulo * 0.05f;
+            bool emCima = posicao.y > centro.y;
+            bool noFundo = posicao.z > centro.z;
+            float subida = emCima ? _afastamentoDoRotulo * (noFundo ? 1.6f : 0.5f) : _tamanhoDoRotulo * 0.05f;
             objeto.transform.localPosition = posicao + paraFora.normalized * _afastamentoDoRotulo + Vector3.up * subida;
 
             var texto = objeto.AddComponent<TextMeshPro>();
             if (_fonte != null) texto.font = _fonte;
+            if (_materialDoRotulo != null) texto.fontSharedMaterial = _materialDoRotulo;
             texto.text = vertice.Nome;
             texto.fontSize = _tamanhoDoRotulo;
             texto.color = PaletaDoLaboratorio.Texto;
             texto.alignment = TextAlignmentOptions.Center;
             texto.textWrappingMode = TextWrappingModes.NoWrap;
-            texto.rectTransform.sizeDelta = new Vector2(0.06f, 0.04f);
+            texto.rectTransform.sizeDelta = new Vector2(0.06f, 0.05f);
+            objeto.AddComponent<RotuloVoltadoParaOAluno>();
         }
+
+        /// <summary>Esfera do vértice com o nome dado (A a H), ou nula.</summary>
+        public Transform Vertice(string nome) => transform.Find($"{GrupoVertices}/Vertice {nome}");
+
+        /// <summary>Diâmetro da esfera de cada vértice, em metros.</summary>
+        public float DiametroDoVertice => _diametroDoVertice;
 
         private GameObject CriarMalha(Transform grupo, string nome, Mesh malha, Material material)
         {
