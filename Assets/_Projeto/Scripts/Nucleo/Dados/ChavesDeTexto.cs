@@ -10,6 +10,7 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string AppCreditos = "app.creditos";
         public const string AppVersao = "app.versao";
         public const string DiagnosticoTitulo = "diagnostico.titulo";
+        public const string AberturaComecar = "abertura.comecar";
 
         public const string GeralAcerto = "geral.acerto";
         public const string GeralErro = "geral.erro";
@@ -24,6 +25,7 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string ControlesGiro = "controles.giro";
 
         public const string DicaPegar = "dica.pegar";
+        public const string DicaEscolher = "dica.escolher";
         public const string DicaTeleporteValido = "dica.teleporteValido";
         public const string DicaTeleporteInvalido = "dica.teleporteInvalido";
 
@@ -40,6 +42,26 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string DiagonaisFormulaDaBase = "estacao.diagonais.formulaDaBase";
         public const string DiagonaisFormulaDaDiagonal = "estacao.diagonais.formulaDaDiagonal";
         public const string DiagonaisTriangulo = "estacao.diagonais.triangulo";
+        public const string DiagonaisObjetivo = "estacao.diagonais.objetivo";
+        public const string DiagonaisDimensoes = "estacao.diagonais.dimensoes";
+        public const string DiagonaisPasso1 = "estacao.diagonais.passo1";
+        public const string DiagonaisPasso2 = "estacao.diagonais.passo2";
+        public const string DiagonaisProximoVertice = "estacao.diagonais.proximoVertice";
+        public const string DiagonaisVerticeErrado = "estacao.diagonais.verticeErrado";
+        public const string DiagonaisContaDaBase = "estacao.diagonais.contaDaBase";
+        public const string DiagonaisResultadoDaBase = "estacao.diagonais.resultadoDaBase";
+        public const string DiagonaisContaDaDiagonal = "estacao.diagonais.contaDaDiagonal";
+        public const string DiagonaisIncognita = "estacao.diagonais.incognita";
+        public const string DiagonaisAcerto = "estacao.diagonais.acerto";
+        public const string DiagonaisDicaSemRaiz = "estacao.diagonais.dica.semRaiz";
+        public const string DiagonaisDicaSomou = "estacao.diagonais.dica.somou";
+        public const string DiagonaisDicaDiagonalDaBase = "estacao.diagonais.dica.diagonalDaBase";
+        public const string DiagonaisDicaGeral = "estacao.diagonais.dica.geral";
+        public const string DiagonaisConcluida = "estacao.diagonais.concluida";
+        public const string DiagonaisFormulaGeral = "estacao.diagonais.formulaGeral";
+        public const string DiagonaisProximoDesafio = "estacao.diagonais.proximoDesafio";
+        public const string DiagonaisRefazer = "estacao.diagonais.refazer";
+        public const string DiagonaisRotulo = "estacao.diagonais.rotulo";
 
         public const string AreasTitulo = "estacao.areas.titulo";
         public const string AreasInstrucao = "estacao.areas.instrucao";
@@ -63,14 +85,18 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         /// <summary>Todas as chaves que o textos.json deve ter.</summary>
         public static readonly string[] Todas =
         {
-            AppTitulo, AppCreditos, AppVersao, DiagnosticoTitulo,
+            AppTitulo, AppCreditos, AppVersao, DiagnosticoTitulo, AberturaComecar,
             GeralAcerto, GeralErro, GeralProximo, GeralTentarDeNovo, GeralRecomecar,
             ControlesTitulo, ControlesApontar, ControlesPegar, ControlesTeleporte, ControlesGiro,
-            DicaPegar, DicaTeleporteValido, DicaTeleporteInvalido,
+            DicaPegar, DicaEscolher, DicaTeleporteValido, DicaTeleporteInvalido,
             ElementosTitulo, ElementosInstrucao, ElementosVertices, ElementosArestas, ElementosFaces,
             ElementosFaceMontada, ElementosNaoEhFace,
             DiagonaisTitulo, DiagonaisInstrucao, DiagonaisFormulaDaBase, DiagonaisFormulaDaDiagonal,
-            DiagonaisTriangulo,
+            DiagonaisTriangulo, DiagonaisObjetivo, DiagonaisDimensoes, DiagonaisPasso1, DiagonaisPasso2,
+            DiagonaisProximoVertice, DiagonaisVerticeErrado, DiagonaisContaDaBase, DiagonaisResultadoDaBase,
+            DiagonaisContaDaDiagonal, DiagonaisIncognita, DiagonaisAcerto, DiagonaisDicaSemRaiz, DiagonaisDicaSomou,
+            DiagonaisDicaDiagonalDaBase, DiagonaisDicaGeral, DiagonaisConcluida, DiagonaisFormulaGeral,
+            DiagonaisProximoDesafio, DiagonaisRefazer, DiagonaisRotulo,
             AreasTitulo, AreasInstrucao, AreasAbrir, AreasFechar, AreasPares,
             AreasFormulaDaBase, AreasFormulaLateral, AreasFormulaTotal,
             VolumeTitulo, VolumeInstrucao, VolumeEncher, VolumeEsvaziar, VolumeCamadas, VolumePorCamada,

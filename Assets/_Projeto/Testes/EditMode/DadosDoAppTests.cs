@@ -67,7 +67,7 @@ namespace LaboratorioParalelepipedo.Testes
             foreach (string chave in catalogo.Chaves)
             {
                 string texto = catalogo.Obter(chave);
-                Assert.DoesNotThrow(() => string.Format(texto, "x", "y"), chave);
+                Assert.DoesNotThrow(() => string.Format(texto, "x", "y", "z"), chave);
             }
         }
 
