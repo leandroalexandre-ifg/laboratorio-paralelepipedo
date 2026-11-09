@@ -59,6 +59,17 @@ namespace LaboratorioParalelepipedo.Nucleo
         }
 
         /// <summary>
+        /// Verdadeiro se os vértices tocados até agora ainda podem completar a face <paramref name="face"/>
+        /// (qualquer vértice inicial, os dois sentidos). A sequência vazia sempre pode continuar.
+        /// </summary>
+        public bool PodeContinuar(Face face, IReadOnlyList<string> nomesTocados)
+        {
+            if (face == null) throw new ArgumentNullException(nameof(face));
+            if (nomesTocados == null) throw new ArgumentNullException(nameof(nomesTocados));
+            return nomesTocados.Count == 0 || SegueOContorno(face, nomesTocados);
+        }
+
+        /// <summary>
         /// Verdadeiro se a sequência percorre o contorno da face a partir de algum vértice, em algum sentido,
         /// sem passar de uma volta completa (no máximo n + 1 vértices, o último igual ao primeiro).
         /// </summary>

@@ -97,6 +97,22 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.Throws<ArgumentNullException>(() => new ValidadorDeFace(null));
         }
 
+        [TestCase("", true)]
+        [TestCase("A", true)]
+        [TestCase("AB", true)]
+        [TestCase("FB", true)]
+        [TestCase("EAB", true)]
+        [TestCase("ABFE", true)]
+        [TestCase("C", false)]
+        [TestCase("AF", false)]
+        [TestCase("ABC", false)]
+        public void PodeContinuar_UmaFaceEspecifica(string toques, bool esperado)
+        {
+            var face = new Paralelepipedo(4, 3, 2).ObterFace("ABFE");
+            Assert.That(_validador.PodeContinuar(face, Toques(toques)), Is.EqualTo(esperado), toques);
+            Assert.Throws<ArgumentNullException>(() => _validador.PodeContinuar(null, Toques(toques)));
+        }
+
         private void AssertForma(string toques, string faceEsperada)
         {
             Assert.That(_validador.TentarIdentificar(Toques(toques), out var face), Is.True, toques);
