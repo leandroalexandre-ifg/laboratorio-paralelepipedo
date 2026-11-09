@@ -109,8 +109,13 @@ terceiros.
     direto a ela. Usa só os desafios de diagonais cuja grandeza é a diagonal D, na ordem do JSON, e volta ao
     primeiro depois do último. Ligar E–G e depois E–C, nos dois sentidos; vértice errado pisca laranja com uma
     dica, sem penalidade. Pergunta com as opções embaralhadas; cada distrator tem uma dica própria (D², a + b + c,
-    diagonal da base ou geral). Painel da estação à direita da mesa. Os rótulos da caixa usam o shader Overlay do
+    diagonal da base ou geral). O vértice pedido pulsa. Painel da estação à direita da caixa, a 1,25 m e virado
+    para o aluno: instrução em destaque no alto, medidas, contas de d e D em duas colunas grandes; o fundo cresce
+    conforme o conteúdo. No acerto, só o botão certo fica verde. Os rótulos da caixa usam o shader Overlay do
     TextMeshPro (aparecem através das faces; a tela escura continua por cima).
+  - Caixa girada **20°** na mesa (`GeradorDaCena.GiroDaCaixaNaMesa`), para os 8 vértices ficarem separados da
+    posição inicial em todas as caixas da estação (com 30°, A cobriria C na 2×3×6). Título acima dos rótulos B e C
+    (olhos de 1,3 m a 1,7 m); painel de controles inteiro na vista inicial (bordas a menos de 45°).
   - **[REVISAR-PROFESSOR] textos novos da 0.3.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
     `abertura.comecar`, `dica.escolher`, `estacao.diagonais.titulo`, `.objetivo`, `.dimensoes`, `.passo1`,
     `.passo2`, `.proximoVertice`, `.verticeErrado`, `.contaDaBase`, `.resultadoDaBase`, `.contaDaDiagonal`,
