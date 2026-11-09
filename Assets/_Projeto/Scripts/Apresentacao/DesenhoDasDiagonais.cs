@@ -219,7 +219,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             return malha;
         }
 
-        private static Renderer Desenhar(Transform pai, string nome, Mesh malha, Material material)
+        internal static Renderer Desenhar(Transform pai, string nome, Mesh malha, Material material)
         {
             var objeto = new GameObject(nome);
             objeto.transform.SetParent(pai, false);
@@ -240,7 +240,11 @@ namespace LaboratorioParalelepipedo.Apresentacao
             return segmento;
         }
 
-        private static void Posicionar(Transform segmento, Vector3 inicio, Vector3 fim)
+        private static void Posicionar(Transform segmento, Vector3 inicio, Vector3 fim) =>
+            Posicionar(segmento, inicio, fim, Espessura);
+
+        /// <summary>Estica um cubo de lado 1 entre <paramref name="inicio"/> e <paramref name="fim"/> (usado também pelo desenho da face).</summary>
+        internal static void Posicionar(Transform segmento, Vector3 inicio, Vector3 fim, float espessura)
         {
             Vector3 direcao = fim - inicio;
             float comprimento = direcao.magnitude;
@@ -248,7 +252,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             segmento.localRotation = comprimento > 1e-6f ? Quaternion.LookRotation(direcao, Vector3.up) : Quaternion.identity;
             if (comprimento > 1e-6f && Mathf.Abs(Vector3.Dot(direcao / comprimento, Vector3.up)) > 0.999f)
                 segmento.localRotation = Quaternion.LookRotation(direcao, Vector3.forward);
-            segmento.localScale = new Vector3(Espessura, Espessura, comprimento + Espessura);
+            segmento.localScale = new Vector3(espessura, espessura, comprimento + espessura);
         }
 
         private void MarcaDeAnguloReto(Transform pai, string nome, Vector3 vertice, Vector3 u, Vector3 v)
