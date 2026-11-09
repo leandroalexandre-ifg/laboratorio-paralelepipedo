@@ -26,7 +26,7 @@ Observações gerais:
 | `geral.recomecar` | Recomeçar | | |
 | `controles.titulo` | Como usar os controles | | |
 | `controles.apontar` | <b>Gatilho</b> (dedo indicador): aponte e aperte para escolher. | | |
-| `controles.pegar` | <b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Solte para devolver. | | |
+| `controles.pegar` | <b>Botão lateral</b> (dedo médio): aponte para a caixa e segure para pegar. Gire a mão para girar a caixa. Solte para devolver. | | |
 | `controles.teleporte` | <b>Analógico para a frente</b>: mire no chão e solte para ir até lá. | | |
 | `controles.giro` | <b>Analógico para o lado</b>: virar. | | |
 | `dica.pegar` | Segure o botão lateral para pegar | | |
