@@ -100,10 +100,22 @@ terceiros.
     e ao confirmar. **Sem teleporte nem giro por passos na cena:** o analógico não faz nada. O código deles
     (`ComandoDoAnalogico`, `RegrasDoTeleporte`, `MovimentoDoRig`, `LocomocaoDoAluno`) continua no projeto, testado,
     fora da cena. Só o rig se move (na recentralização), nunca a câmera. O painel "Como usar os controles" fica à
-    frente, logo atrás da mesa, uma linha por botão, e mostra só as ações que existem na cena (o gatilho volta
-    quando houver alvos, nas estações). Dica curta acima do controle com o raio na caixa.
-  - Diagnóstico para o professor num painel próprio, à direita da mesa: versão, eventos da recentralização,
-    controles e erros. A versão aparece sempre também nos créditos.
+    à esquerda da mesa, virado para o aluno, uma linha por botão, e mostra só as ações que existem na cena
+    (gatilho: vértices e botões; botão lateral: caixa). Dica curta acima do controle com o raio num alvo.
+  - Diagnóstico para o professor num painel próprio, à direita, **escondido**: abre e fecha com os **dois
+    analógicos afundados por 3 s** (`AtalhoDoDiagnostico`). Mostra versão, eventos da recentralização, controles
+    e erros. A versão aparece sempre também nos créditos.
+  - Estação 2 · Diagonais (`Nucleo/Estacoes/EstacaoDasDiagonais`, 0.3.0): "Começar" no painel do título leva
+    direto a ela. Usa só os desafios de diagonais cuja grandeza é a diagonal D, na ordem do JSON, e volta ao
+    primeiro depois do último. Ligar E–G e depois E–C, nos dois sentidos; vértice errado pisca laranja com uma
+    dica, sem penalidade. Pergunta com as opções embaralhadas; cada distrator tem uma dica própria (D², a + b + c,
+    diagonal da base ou geral). Painel da estação à direita da mesa. Os rótulos da caixa usam o shader Overlay do
+    TextMeshPro (aparecem através das faces; a tela escura continua por cima).
+  - **[REVISAR-PROFESSOR] textos novos da 0.3.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
+    `abertura.comecar`, `dica.escolher`, `estacao.diagonais.titulo`, `.objetivo`, `.dimensoes`, `.passo1`,
+    `.passo2`, `.proximoVertice`, `.verticeErrado`, `.contaDaBase`, `.resultadoDaBase`, `.contaDaDiagonal`,
+    `.incognita`, `.acerto`, `.dica.semRaiz`, `.dica.somou`, `.dica.diagonalDaBase`, `.dica.geral`, `.concluida`,
+    `.formulaGeral`, `.proximoDesafio`, `.refazer`, `.rotulo`.
   - Recentralização (`SequenciaDeRecentralizacao`, `RecentralizacaoDoAluno`): o aluno é posto na origem, olhando para
     a mesa (+z), ao abrir o app, ao recentralizar com o botão Meta, quando a origem do rastreamento muda e ao voltar
     do menu ou da pausa. Move o rig com a tela escura (0,15 s para escurecer e clarear), depois de a cabeça ficar

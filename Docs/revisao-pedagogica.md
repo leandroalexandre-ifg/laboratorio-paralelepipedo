@@ -18,6 +18,7 @@ Observações gerais:
 | `app.titulo` | Laboratório do Paralelepípedo | | |
 | `app.creditos` | Desenvolvido por NumbERS · IFG – Câmpus Inhumas | | |
 | `app.versao` | Versão {0} | | |
+| `abertura.comecar` | Começar | | |
 | `diagnostico.titulo` | Diagnóstico dos controles (para o professor) | | |
 | `geral.acerto` | Muito bem! | | |
 | `geral.erro` | Ainda não. Tente de novo! | | |
@@ -30,6 +31,7 @@ Observações gerais:
 | `controles.teleporte` | <b>Analógico para a frente</b>: mire no chão e solte para ir até lá. | | |
 | `controles.giro` | <b>Analógico para o lado</b>: virar. | | |
 | `dica.pegar` | Segure o botão lateral para pegar | | |
+| `dica.escolher` | Aperte o gatilho para escolher | | |
 | `dica.teleporteValido` | Solte para ir até lá | | |
 | `dica.teleporteInvalido` | Aqui não dá | | |
 | `estacao.elementos.titulo` | 1. Elementos | | |
@@ -39,11 +41,31 @@ Observações gerais:
 | `estacao.elementos.faces` | Faces: {0} de {1} | | |
 | `estacao.elementos.faceMontada` | Você montou a face {0}! | | |
 | `estacao.elementos.naoEhFace` | Esses vértices não formam uma face. Comece de novo. | | |
-| `estacao.diagonais.titulo` | 2. Diagonais | | |
+| `estacao.diagonais.titulo` | Estação 2 · Diagonais | | |
 | `estacao.diagonais.instrucao` | Trace a diagonal da base e veja o triângulo se levantar. | | |
 | `estacao.diagonais.formulaDaBase` | d² = a² + b² | | |
 | `estacao.diagonais.formulaDaDiagonal` | D² = d² + c² | | |
 | `estacao.diagonais.triangulo` | O triângulo de lados d, c e D é retângulo. Use Pitágoras! | | |
+| `estacao.diagonais.objetivo` | Descubra quanto mede a diagonal D da caixa, de um canto ao canto oposto. | | |
+| `estacao.diagonais.dimensoes` | a = {0}    b = {1}    c = {2} | | |
+| `estacao.diagonais.passo1` | Aponte para o vértice E e aperte o gatilho. Depois, para o G. | | |
+| `estacao.diagonais.passo2` | Agora ligue E até C. | | |
+| `estacao.diagonais.proximoVertice` | Agora aponte para o vértice {0}. | | |
+| `estacao.diagonais.verticeErrado` | Esse é o vértice {0}. Procure o {1}. | | |
+| `estacao.diagonais.contaDaBase` | d² = {0} + {1} | | |
+| `estacao.diagonais.resultadoDaBase` | d = {0} | | |
+| `estacao.diagonais.contaDaDiagonal` | D² = {0} + {1} = {2} | | |
+| `estacao.diagonais.incognita` | D = ? | | |
+| `estacao.diagonais.acerto` | Isso! D = {0}. | | |
+| `estacao.diagonais.dica.semRaiz` | {0} é D². Falta tirar a raiz. | | |
+| `estacao.diagonais.dica.somou` | {0} é a + b + c. Some os quadrados, não as medidas. | | |
+| `estacao.diagonais.dica.diagonalDaBase` | {0} é a diagonal d da base. Falta usar a altura c. | | |
+| `estacao.diagonais.dica.geral` | Ainda não. Use D² = d² + c² e tire a raiz. | | |
+| `estacao.diagonais.concluida` | Estação concluída! | | |
+| `estacao.diagonais.formulaGeral` | D = √(a² + b² + c²) | | |
+| `estacao.diagonais.proximoDesafio` | Próximo desafio | | |
+| `estacao.diagonais.refazer` | Refazer | | |
+| `estacao.diagonais.rotulo` | {0} = {1} | | |
 | `estacao.areas.titulo` | 3. Áreas | | |
 | `estacao.areas.instrucao` | Abra a caixa e compare as faces da mesma cor. | | |
 | `estacao.areas.abrir` | Abrir a caixa | | |
