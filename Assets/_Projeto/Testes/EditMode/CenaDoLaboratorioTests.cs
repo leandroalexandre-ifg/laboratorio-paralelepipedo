@@ -400,6 +400,27 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void LaranjaCheioSoParaAvancar_RefazerEAbrirFecharSaoSecundarios()
+        {
+            // Laranja nas opções quer dizer "resposta errada": só os botões de avançar são laranja.
+            Color Cor(BotaoDoPainel botao) => botao.transform.Find("Fundo").GetComponent<Renderer>().sharedMaterial.color;
+            bool Igual(Color x, Color y) => Mathf.Abs(x.r - y.r) + Mathf.Abs(x.g - y.g) + Mathf.Abs(x.b - y.b) < 0.01f;
+            foreach (BotaoDoPainel botao in Todos<BotaoDoPainel>())
+            {
+                bool avancar = botao.name == "BotaoComecar" || botao.name.StartsWith("BotaoIrParaAEstacao");
+                bool secundario = botao.name == "BotaoRefazer" || botao.name == "BotaoAbrirOuFechar" ||
+                    botao.name == "BotaoProximoDesafio";
+                Assert.That(Igual(Cor(botao), PaletaDoLaboratorio.BotaoPrincipal), Is.EqualTo(avancar), botao.name);
+                if (!secundario) continue;
+                Assert.That(Igual(Cor(botao), Color.white), Is.True, botao.name);
+                Transform contorno = botao.transform.Find("Contorno");
+                Assert.That(contorno, Is.Not.Null, botao.name);
+                Assert.That(Igual(contorno.GetComponent<Renderer>().sharedMaterial.color, PaletaDoLaboratorio.Texto), Is.True);
+                Assert.That(contorno.GetComponent<Collider>(), Is.Null);
+            }
+        }
+
+        [Test]
         public void PaineisDasTresEstacoes_NoMesmoLugar()
         {
             Transform um = Todos<Transform>().Single(t => t.name == "PainelEstacaoDosElementos");

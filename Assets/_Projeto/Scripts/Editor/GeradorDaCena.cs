@@ -97,7 +97,7 @@ namespace LaboratorioParalelepipedo.Editor
                 (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.2f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, 0.05f));
             CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.28f);
             BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
-                dados, fonte, ChavesDeTexto.AberturaComecar, principal: true);
+                dados, fonte, ChavesDeTexto.AberturaComecar, EstiloDoBotao.Principal);
             // "Começar" leva à Estação 1; o fechamento dela, à Estação 2; o da 2, à Estação 3 (mesmo lugar do painel).
             EstacaoDasAreasNaCena areas = CriarEstacaoDasAreas(dados, fonte, caixa);
             EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, null, areas);
@@ -338,7 +338,7 @@ namespace LaboratorioParalelepipedo.Editor
                 float x = (i % 2 == 0 ? -1 : 1) * largura / 4;
                 float y = i < 2 ? yDaPrimeira : yDaSegunda;
                 opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), TamanhoDoBotaoDaEstacao, dados, fonte,
-                    null, principal: false);
+                    null, EstiloDoBotao.Opcao);
                 opcoes[i].gameObject.SetActive(false);
             }
             return opcoes;
@@ -368,9 +368,9 @@ namespace LaboratorioParalelepipedo.Editor
             const float primeiraLinha = -0.12f, segundaLinha = -0.245f, meiaAltura = 0.055f;
             BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte, primeiraLinha, segundaLinha);
             BotaoDoPainel irParaAProxima = CriarBotao(painel, "BotaoIrParaAEstacao2", new Vector3(-largura / 4, primeiraLinha, 0f),
-                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosProximaEstacao, principal: true);
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosProximaEstacao, EstiloDoBotao.Principal);
             BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, primeiraLinha, 0f),
-                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosRefazer, principal: false);
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosRefazer, EstiloDoBotao.Secundario);
             irParaAProxima.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
             painel.gameObject.SetActive(false);
@@ -407,9 +407,9 @@ namespace LaboratorioParalelepipedo.Editor
             const float primeiraLinha = -0.12f, segundaLinha = -0.245f, terceiraLinha = -0.37f, meiaAltura = 0.055f;
             BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte, primeiraLinha, segundaLinha);
             BotaoDoPainel abrirOuFechar = CriarBotao(painel, "BotaoAbrirOuFechar", new Vector3(-largura / 4, primeiraLinha, 0f),
-                TamanhoDoBotaoDaEstacao, dados, fonte, null, principal: true);
+                TamanhoDoBotaoDaEstacao, dados, fonte, null, EstiloDoBotao.Secundario);
             BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, primeiraLinha, 0f),
-                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.AreasRefazer, principal: false);
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.AreasRefazer, EstiloDoBotao.Secundario);
             abrirOuFechar.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
             painel.gameObject.SetActive(false);
@@ -476,11 +476,11 @@ namespace LaboratorioParalelepipedo.Editor
 
             // Fechamento: "Próximo desafio" e "Refazer" lado a lado; embaixo, "Ir para a Estação 3".
             BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-largura / 4, -0.21f, 0f),
-                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
+                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, EstiloDoBotao.Secundario);
             BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.21f, 0f),
-                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisRefazer, principal: false);
+                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisRefazer, EstiloDoBotao.Secundario);
             BotaoDoPainel irParaAEstacao3 = CriarBotao(painel, "BotaoIrParaAEstacao3", new Vector3(0f, -0.335f, 0f),
-                new Vector2(largura, tamanhoDaOpcao.y), dados, fonte, ChavesDeTexto.DiagonaisProximaEstacao, principal: true);
+                new Vector2(largura, tamanhoDaOpcao.y), dados, fonte, ChavesDeTexto.DiagonaisProximaEstacao, EstiloDoBotao.Principal);
             proximo.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
             irParaAEstacao3.gameObject.SetActive(false);
@@ -503,16 +503,42 @@ namespace LaboratorioParalelepipedo.Editor
         /// Botão de painel: fundo com colisor (o raio acerta) e texto na frente. Com <paramref name="chave"/>, o texto
         /// vem do textos.json; sem ela, quem usa o botão escreve. O principal é laranja, com texto branco.
         /// </summary>
+        /// <summary>
+        /// Principal: laranja cheio, só para avançar (Começar, Ir para a Estação N). Secundário: fundo branco, contorno e
+        /// texto escuros (Refazer, Abrir/Fechar a caixa, Próximo desafio). Opção: as respostas da pergunta, que ficam
+        /// verdes no acerto e laranja no erro.
+        /// </summary>
+        private enum EstiloDoBotao { Principal, Secundario, Opcao }
+
+        private const float ContornoDoBotao = 0.006f;
+
         private static BotaoDoPainel CriarBotao(Transform painel, string nome, Vector3 posicao, Vector2 tamanho,
-            DadosDoLaboratorio dados, TMP_FontAsset fonte, string chave, bool principal)
+            DadosDoLaboratorio dados, TMP_FontAsset fonte, string chave, EstiloDoBotao estilo)
         {
             var botao = new GameObject(nome).transform;
             botao.SetParent(painel, false);
             botao.localPosition = posicao;
+            bool principal = estilo == EstiloDoBotao.Principal;
 
-            Material normal = principal
-                ? MaterialOpaco("BotaoPrincipal", ShaderUnlit, PaletaDoLaboratorio.BotaoPrincipal)
+            Material normal = principal ? MaterialOpaco("BotaoPrincipal", ShaderUnlit, PaletaDoLaboratorio.BotaoPrincipal)
+                : estilo == EstiloDoBotao.Secundario ? MaterialOpaco("BotaoSecundario", ShaderUnlit, Color.white)
                 : MaterialOpaco("BotaoNormal", ShaderUnlit, PaletaDoLaboratorio.Parede);
+            if (estilo == EstiloDoBotao.Secundario)
+            {
+                // Contorno: um bloco escuro um pouco maior, atrás do fundo branco (sem colisor).
+                var contorno = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                contorno.name = "Contorno";
+                Object.DestroyImmediate(contorno.GetComponent<Collider>());
+                contorno.transform.SetParent(botao, false);
+                contorno.transform.localScale =
+                    new Vector3(tamanho.x + 2 * ContornoDoBotao, tamanho.y + 2 * ContornoDoBotao, 0.012f);
+                var doContorno = contorno.GetComponent<MeshRenderer>();
+                doContorno.sharedMaterial = MaterialOpaco("ContornoDoBotao", ShaderUnlit, PaletaDoLaboratorio.Texto);
+                doContorno.shadowCastingMode = ShadowCastingMode.Off;
+                doContorno.receiveShadows = false;
+                doContorno.lightProbeUsage = LightProbeUsage.Off;
+                doContorno.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            }
             var fundo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             fundo.name = "Fundo";
             fundo.transform.SetParent(botao, false);

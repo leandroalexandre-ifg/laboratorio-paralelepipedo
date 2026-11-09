@@ -209,7 +209,9 @@ Lidos com `JsonUtility` por `CarregadorDeDados` (Apresentação) e conferidos po
 Paleta: parede `#DCE6EC`, piso `#B8C7D1`, mesa `#5E6E7C` / `#43515E`, arestas `#134B6E`, faces translúcidas `#9FD3F2`
 (~28% de opacidade), destaque azul `#1E78C8`, destaque laranja `#C2410C`, pares de faces (bases `#DCD3F0`/`#3B2A73`,
 a·c `#CFE6F5`/`#134B6E`, b·c `#F8DCC0`/`#7A3A0B`), cubinhos `#E9B949`/`#A9771F`, botão principal `#D9661F`, teleporte
-`#17807D`, texto `#1B2A3A`. Fonte arredondada (Nunito via TextMeshPro), textos curtos e grandes.
+`#17807D`, texto `#1B2A3A`. Botões: laranja cheio **só para avançar** (Começar, Ir para a Estação N), porque nas
+opções laranja quer dizer "resposta errada"; os demais (Refazer, Abrir/Fechar a caixa, Próximo desafio) são
+secundários: fundo branco, contorno e texto `#1B2A3A`. Fonte arredondada (Nunito via TextMeshPro), textos curtos e grandes.
 
 ## Convenções de código
 
