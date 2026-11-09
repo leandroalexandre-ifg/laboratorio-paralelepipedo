@@ -177,6 +177,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         private void OnDestroy() => Limpar();
 
+        /// <summary>Apaga o desenho (ao sair da estação).</summary>
+        public void Apagar() => Limpar();
+
         private void Limpar()
         {
             if (_grupo != null) Destruir(_grupo.gameObject);

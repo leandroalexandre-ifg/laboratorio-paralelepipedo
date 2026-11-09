@@ -106,6 +106,28 @@ namespace LaboratorioParalelepipedo.Apresentacao
             }
         }
 
+        /// <summary>Mostra ou esconde a caixa desenhada (arestas, faces, vértices e rótulos), sem apagar nada.</summary>
+        public void MostrarCaixa(bool visivel)
+        {
+            foreach (string grupo in Grupos)
+            {
+                Transform filho = transform.Find(grupo);
+                if (filho != null && filho.gameObject.activeSelf != visivel) filho.gameObject.SetActive(visivel);
+            }
+        }
+
+        private static readonly string[] Grupos = { GrupoArestas, GrupoFaces, GrupoVertices, GrupoRotulos };
+
+        /// <summary>Se a caixa desenhada está à vista.</summary>
+        public bool CaixaAVista
+        {
+            get
+            {
+                Transform arestas = transform.Find(GrupoArestas);
+                return arestas != null && arestas.gameObject.activeSelf;
+            }
+        }
+
         /// <summary>Posição local, em metros, de um ponto do núcleo.</summary>
         public Vector3 PosicaoNaCena(Vetor3 ponto) =>
             (new Vector3((float)ponto.X, (float)ponto.Y, (float)ponto.Z) - _centroDaBase) * _metrosPorUnidade;

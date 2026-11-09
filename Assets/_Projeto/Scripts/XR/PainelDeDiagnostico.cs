@@ -30,6 +30,8 @@ namespace LaboratorioParalelepipedo.XR
         private EstacaoDasDiagonaisNaCena _estacao;
         [SerializeField, Tooltip("Estação 1: etapa e vértices escolhíveis.")]
         private EstacaoDosElementosNaCena _estacaoDosElementos;
+        [SerializeField, Tooltip("Estação 3: etapa, pares e caixa aberta.")]
+        private EstacaoDasAreasNaCena _estacaoDasAreas;
 
         private readonly StringBuilder _linhas = new StringBuilder(1024);
         private int _totalDeErros;
@@ -42,8 +44,10 @@ namespace LaboratorioParalelepipedo.XR
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
         public void Configurar(TMP_Text texto, DadosDoLaboratorio dados, RecentralizacaoDoAluno recentralizacao, GameObject conteudo,
-            Transform cabeca = null, EstacaoDasDiagonaisNaCena estacao = null, EstacaoDosElementosNaCena estacaoDosElementos = null)
+            Transform cabeca = null, EstacaoDasDiagonaisNaCena estacao = null, EstacaoDosElementosNaCena estacaoDosElementos = null,
+            EstacaoDasAreasNaCena estacaoDasAreas = null)
         {
+            _estacaoDasAreas = estacaoDasAreas;
             _estacaoDosElementos = estacaoDosElementos;
             _cabeca = cabeca;
             _estacao = estacao;
@@ -130,10 +134,16 @@ namespace LaboratorioParalelepipedo.XR
                     .Append(" | vértices escolhíveis: ").Append(_estacaoDosElementos.VerticesEscolhiveis).Append("/8\n");
             else s.Append("Estação 1: não iniciada (sem desafios?)\n");
             if (_estacao != null && _estacao.Estacao != null)
-                s.Append("Estação 2: ").Append(_estacao.Estacao.Etapa.ToString())
+                s.Append("Estação 2: ").Append(_estacao.Saiu ? "concluída" : _estacao.Estacao.Etapa.ToString())
                     .Append(" | desafio ").Append(_estacao.Estacao.IndiceDoDesafio + 1)
                     .Append(" | vértices escolhíveis: ").Append(_estacao.VerticesEscolhiveis).Append("/8\n");
             else s.Append("Estação 2: não iniciada (sem desafios?)\n");
+            if (_estacaoDasAreas != null && _estacaoDasAreas.Estacao != null)
+                s.Append("Estação 3: ").Append(_estacaoDasAreas.Estacao.Etapa.ToString())
+                    .Append(" | pares ").Append(_estacaoDasAreas.Estacao.ParesEncontrados.Count).Append("/3")
+                    .Append(" | pergunta ").Append(_estacaoDasAreas.Estacao.IndiceDoDesafio + 1)
+                    .Append(" | caixa aberta: ").Append(_estacaoDasAreas.Estacao.Aberta ? "sim" : "não").Append('\n');
+            else s.Append("Estação 3: não iniciada (sem desafios?)\n");
             s.Append("Analógico afundado E/D: ").Append(AtalhoDoDiagnostico.EsquerdoAfundado ? "sim" : "não")
                 .Append(" / ").Append(AtalhoDoDiagnostico.DireitoAfundado ? "sim" : "não").Append('\n');
             s.Append("Erros no log: ").Append(_totalDeErros);

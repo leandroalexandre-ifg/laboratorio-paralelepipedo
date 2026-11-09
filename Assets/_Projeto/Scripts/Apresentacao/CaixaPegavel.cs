@@ -27,6 +27,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         private MeshRenderer[] _arestas;
         private Material _materialDaAresta;
         private int _raiosApontando;
+        private bool _posicaoGuardada;
 
         /// <summary>Se está voltando para a mesa agora.</summary>
         public bool Voltando => _retorno.Ativa;
@@ -48,6 +49,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             Preparar();
             _posicaoNaMesa = transform.position;
             _rotacaoNaMesa = transform.rotation;
+            _posicaoGuardada = true;
         }
 
         private void Preparar()
@@ -66,9 +68,35 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _arestas = null;
         }
 
+        /// <summary>Posição da caixa na mesa (para onde ela volta ao ser solta).</summary>
+        /// Antes do Awake (no Editor parado), é a posição atual, que é a da mesa.
+        public Vector3 PosicaoNaMesa => _posicaoGuardada ? _posicaoNaMesa : transform.position;
+
+        /// <summary>Orientação da caixa na mesa.</summary>
+        public Quaternion RotacaoNaMesa => _posicaoGuardada ? _rotacaoNaMesa : transform.rotation;
+
+        /// <summary>Se o botão lateral consegue pegar a caixa (desligado com a caixa aberta na Estação 3).</summary>
+        public bool Pegavel => _colisor == null || _colisor.enabled;
+
+        /// <summary>
+        /// Liga ou desliga a pega: desligada, o colisor some (o raio passa) e, se estava na mão, a caixa volta à mesa
+        /// na hora.
+        /// </summary>
+        public void DefinirPegavel(bool pegavel)
+        {
+            Preparar();
+            if (!pegavel && _mao != null)
+            {
+                _mao = null;
+                _retorno.Parar();
+                transform.SetPositionAndRotation(_posicaoNaMesa, _rotacaoNaMesa);
+            }
+            if (_colisor != null && _colisor.enabled != pegavel) _colisor.enabled = pegavel;
+        }
+
         public void Pegar(Transform mao)
         {
-            if (mao == null) return;
+            if (mao == null || !Pegavel) return;
             _retorno.Parar();
             _mao = mao;
             Quaternion inversa = Quaternion.Inverse(mao.rotation);

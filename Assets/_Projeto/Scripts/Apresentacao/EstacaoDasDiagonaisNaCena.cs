@@ -40,6 +40,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private BotaoDoPainel[] _opcoes = new BotaoDoPainel[0];
         [SerializeField] private BotaoDoPainel _proximoDesafio;
         [SerializeField] private BotaoDoPainel _refazer;
+        [SerializeField, Tooltip("\"Ir para a Estação 3\", no fechamento de cada desafio.")]
+        private BotaoDoPainel _irParaAProxima;
+        [SerializeField] private EstacaoDasAreasNaCena _proximaEstacao;
         [SerializeField, Tooltip("Fundo do painel: cresce para baixo conforme aparecem as contas e os botões.")]
         private Transform _fundo;
         [SerializeField] private float _topoDoFundo, _baseSoTexto, _baseComContas, _baseComBotoes;
@@ -59,6 +62,10 @@ namespace LaboratorioParalelepipedo.Apresentacao
         private float _ateAsOpcoes = -1f;
         private float _ateOFechamento = -1f;
         private string _corDaDica, _corDoAcerto;
+        private bool _saiu;
+
+        /// <summary>Se o aluno já foi para a Estação 3.</summary>
+        public bool Saiu => _saiu;
 
         /// <summary>A estação do núcleo (para a prévia e os testes).</summary>
         public EstacaoDasDiagonais Estacao => _estacao;
@@ -75,6 +82,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         {
             get
             {
+                if (_saiu) return 0;
                 int total = 0;
                 for (int i = 0; i < _alvos.Length; i++)
                     if (_alvos[i] != null && _alvos[i].isActiveAndEnabled && _alvos[i].transform.IsChildOf(_visual.transform))
@@ -141,6 +149,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             }
             if (_proximoDesafio != null) _proximoDesafio.Acionado += AoPedirProximo;
             if (_refazer != null) _refazer.Acionado += AoRefazer;
+            if (_irParaAProxima != null) _irParaAProxima.Acionado += AoIrParaAProxima;
 
             // Sem "Começar" próprio, a estação espera a anterior chamar Comecar: até lá, a caixa é a dela.
             if (_comecar != null) MontarCaixa();
@@ -181,6 +190,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         /// <summary>Gatilho num vértice (público para a prévia e os testes).</summary>
         public ResultadoDoToque TocarVertice(string nome)
         {
+            if (_saiu) return ResultadoDoToque.Ignorado;
             EtapaDasDiagonais antes = _estacao.Etapa;
             ResultadoDoToque resultado = _estacao.TocarVertice(nome);
             if (resultado == ResultadoDoToque.Errado) Alvo(nome)?.Piscar();
@@ -218,6 +228,35 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _estacao.ProximoDesafio();
             MontarCaixa();
             Mostrar();
+        }
+
+        /// <summary>Liga a passagem para a Estação 3 (usado pelo gerador da cena).</summary>
+        public void ConfigurarProximaEstacao(BotaoDoPainel irParaAProxima, EstacaoDasAreasNaCena proximaEstacao)
+        {
+            _irParaAProxima = irParaAProxima;
+            _proximaEstacao = proximaEstacao;
+        }
+
+        private void AoIrParaAProxima(BotaoDoPainel botao) => IrParaAProximaEstacao();
+
+        /// <summary>"Ir para a Estação 3": esconde esta estação e começa a próxima (público para a prévia e os testes).</summary>
+        public void IrParaAProximaEstacao()
+        {
+            if (_estacao == null || _estacao.Etapa != EtapaDasDiagonais.Fechamento || _saiu) return;
+            _saiu = true;
+            _desenho.Apagar();
+            for (int i = 0; i < _alvos.Length; i++)
+            {
+                if (_alvos[i] == null) continue;
+                _alvos[i].Acionado -= AoTocarVertice;
+                _alvos[i].DefinirPulsando(false);
+                _alvos[i].DefinirEscolhido(false);
+            }
+            _alvos = new AlvoDeVertice[0];
+            _ateAsOpcoes = -1f;
+            _ateOFechamento = -1f;
+            Mostrar();
+            if (_proximaEstacao != null) _proximaEstacao.Comecar();
         }
 
         private void AoRefazer(BotaoDoPainel botao) => Refazer();
@@ -319,6 +358,12 @@ namespace LaboratorioParalelepipedo.Apresentacao
         private void Mostrar()
         {
             EtapaDasDiagonais etapa = _estacao.Etapa;
+            if (_saiu)
+            {
+                if (_painelDaEstacao != null && _painelDaEstacao.activeSelf) _painelDaEstacao.SetActive(false);
+                MostrarBotoes(etapa);
+                return;
+            }
             bool nosPassos = etapa != EtapaDasDiagonais.Abertura;
 
             if (_comecar != null) _comecar.Mostrar(etapa == EtapaDasDiagonais.Abertura);
@@ -344,7 +389,8 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         private void MostrarBotoes(EtapaDasDiagonais etapa)
         {
-            bool perguntaAVista = (etapa == EtapaDasDiagonais.Pergunta && _ateAsOpcoes < 0f) || etapa == EtapaDasDiagonais.Acertou;
+            bool perguntaAVista = !_saiu &&
+                ((etapa == EtapaDasDiagonais.Pergunta && _ateAsOpcoes < 0f) || etapa == EtapaDasDiagonais.Acertou);
             for (int i = 0; i < _opcoes.Length; i++)
             {
                 bool visivel = perguntaAVista && i < _estacao.Opcoes.Count;
@@ -356,9 +402,10 @@ namespace LaboratorioParalelepipedo.Apresentacao
                     _opcoes[i].DefinirEstado(EstadoDoBotao.Normal);
             }
 
-            bool fechamento = etapa == EtapaDasDiagonais.Fechamento;
+            bool fechamento = etapa == EtapaDasDiagonais.Fechamento && !_saiu;
             if (_proximoDesafio != null) _proximoDesafio.Mostrar(fechamento);
             if (_refazer != null) _refazer.Mostrar(fechamento);
+            if (_irParaAProxima != null) _irParaAProxima.Mostrar(fechamento && _proximaEstacao != null);
         }
 
         private void MontarTexto(EtapaDasDiagonais etapa)

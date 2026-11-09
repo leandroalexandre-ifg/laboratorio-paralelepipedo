@@ -3,17 +3,20 @@ using UnityEngine;
 
 namespace LaboratorioParalelepipedo.XR
 {
-    /// <summary>Vibração curta nos dois controles quando o aluno acerta um desafio da Estação 1 ou a pergunta da Estação 2.</summary>
+    /// <summary>Vibração curta nos dois controles quando o aluno acerta um desafio da Estação 1 ou uma pergunta das Estações 2 e 3.</summary>
     public sealed class VibracaoDoAcerto : MonoBehaviour
     {
         [SerializeField] private EstacaoDasDiagonaisNaCena _estacao;
         [SerializeField] private EstacaoDosElementosNaCena _estacaoDosElementos;
+        [SerializeField] private EstacaoDasAreasNaCena _estacaoDasAreas;
 
         private float _fim = -1f;
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
-        public void Configurar(EstacaoDasDiagonaisNaCena estacao, EstacaoDosElementosNaCena estacaoDosElementos = null)
+        public void Configurar(EstacaoDasDiagonaisNaCena estacao, EstacaoDosElementosNaCena estacaoDosElementos = null,
+            EstacaoDasAreasNaCena estacaoDasAreas = null)
         {
+            _estacaoDasAreas = estacaoDasAreas;
             _estacao = estacao;
             _estacaoDosElementos = estacaoDosElementos;
         }
@@ -22,12 +25,14 @@ namespace LaboratorioParalelepipedo.XR
         {
             if (_estacao != null) _estacao.Acertou += Vibrar;
             if (_estacaoDosElementos != null) _estacaoDosElementos.Acertou += Vibrar;
+            if (_estacaoDasAreas != null) _estacaoDasAreas.Acertou += Vibrar;
         }
 
         private void OnDisable()
         {
             if (_estacao != null) _estacao.Acertou -= Vibrar;
             if (_estacaoDosElementos != null) _estacaoDosElementos.Acertou -= Vibrar;
+            if (_estacaoDasAreas != null) _estacaoDasAreas.Acertou -= Vibrar;
             Parar();
         }
 
