@@ -50,15 +50,19 @@ namespace LaboratorioParalelepipedo.XR
             MostrarOpacidade();
         }
 
+#if UNITY_EDITOR
         private void Start()
         {
-            // Sem óculos (Modo Editor): nada a corrigir, a cena fica à vista.
+            // Só no Editor sem óculos (Modo Editor): nada a corrigir, a cena fica à vista. No Quest não há esta
+            // checagem: com o OpenXR, a sessão pode ainda não estar rodando no primeiro quadro, e o componente se
+            // desligaria para sempre (a mesa ficava às costas). Lá, a espera pela pose da cabeça resolve.
             if (!XRSettings.isDeviceActive)
             {
                 if (_telaEscura != null) _telaEscura.OpacidadeDaRecentralizacao = 0f;
                 enabled = false;
             }
         }
+#endif
 
         private void OnEnable()
         {
