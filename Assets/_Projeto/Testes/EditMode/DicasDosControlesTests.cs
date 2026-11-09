@@ -31,5 +31,12 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(DicasDosControles.Chave(true, valido, false, false), Is.EqualTo(esperada));
             Assert.That(DicasDosControles.Chave(true, valido, true, false), Is.EqualTo(esperada), "o teleporte vem antes");
         }
+
+        [Test]
+        public void RaioNumVertice_DicaDoGatilho_AntesDaDeDePegar()
+        {
+            Assert.That(DicasDosControles.Chave(false, false, true, false, true), Is.EqualTo(ChavesDeTexto.DicaEscolher));
+            Assert.That(DicasDosControles.Chave(true, true, false, false, true), Is.EqualTo(ChavesDeTexto.DicaTeleporteValido));
+        }
     }
 }
