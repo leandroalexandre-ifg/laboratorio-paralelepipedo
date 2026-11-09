@@ -132,6 +132,7 @@ namespace LaboratorioParalelepipedo.XR
         {
             if (_dica == null) return;
             _dica.ApontandoParaPegar = _pegavel != null;
+            _dica.ApontandoParaEscolher = _alvo != null;
             _dica.Segurando = _naMao != null;
         }
 
