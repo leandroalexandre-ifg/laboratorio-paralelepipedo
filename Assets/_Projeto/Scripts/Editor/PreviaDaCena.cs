@@ -11,8 +11,8 @@ namespace LaboratorioParalelepipedo.Editor
 {
     /// <summary>
     /// Renderiza a cena do laboratório e salva em Logs/previa-*.png: a vista inicial do aluno (origem, olhos a 1,4 m,
-    /// como o modo Editor), uma vista da sala de fora e um momento por etapa das Estações 1 (e1-*: abertura, erro, ajuda, face
-    /// montada, outra face, pergunta com dica, acerto, fechamento) e 2 (e2-*: passo 1, passo 1 concluído, passo 2 concluído,
+    /// como o modo Editor), uma vista da sala de fora e um momento por etapa das Estações 1 (e1-*: abertura, face da frente em
+    /// montagem e pronta, erro, ajuda, face ABFE montada, outra face, pergunta com dica, acerto, fechamento) e 2 (e2-*: passo 1, passo 1 concluído, passo 2 concluído,
     /// pergunta, erro, acerto, fechamento), com as estações conduzidas pelos mesmos métodos que o gatilho chama.
     /// Serve para conferir o visual sem o óculos. Nada é salvo na cena. Batchmode (sem -nographics):
     /// -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar -quit
@@ -119,28 +119,31 @@ namespace LaboratorioParalelepipedo.Editor
 
             Salvar(camera, alvo, "e1-1-abertura");
             estacao.Comecar();
+            Tocar("ADH");
+            Salvar(camera, alvo, "e1-2-montando-a-frente");
+            estacao.TocarVertice("E");
+            Salvar(camera, alvo, "e1-3-frente-montada");
+            estacao.ContinuarAgora();
             Tocar("AB");
             estacao.TocarVertice("C");
-            Salvar(camera, alvo, "e1-2-erro");
+            Salvar(camera, alvo, "e1-4-erro");
             estacao.TocarVertice("H");
-            Salvar(camera, alvo, "e1-3-ajuda");
+            Salvar(camera, alvo, "e1-5-ajuda");
             TerminarAsPiscadas();   // no óculos, o vértice errado pisca por 0,9 s e volta ao normal
             Tocar("FE");
-            Salvar(camera, alvo, "e1-4-face-montada");
+            Salvar(camera, alvo, "e1-6-face-montada");
             estacao.ContinuarAgora();
-            Tocar("ADHE");
-            Salvar(camera, alvo, "e1-5-outra-face");
-            estacao.ContinuarAgora();
-            Tocar("ABCD");
+            Tocar("ABCD");   // qualquer face: a de cima, outra cor de par
+            Salvar(camera, alvo, "e1-7-outra-face");
             estacao.ContinuarAgora();
             estacao.Responder(estacao.Estacao.Opcoes.ToList().FindIndex(o => o.Texto == "9"));
-            Salvar(camera, alvo, "e1-6-pergunta-dica");
+            Salvar(camera, alvo, "e1-8-pergunta-dica");
             estacao.Responder(Correta());
-            Salvar(camera, alvo, "e1-7-acerto");
+            Salvar(camera, alvo, "e1-9-acerto");
             estacao.ContinuarAgora();
             estacao.Responder(Correta());
             estacao.ContinuarAgora();
-            Salvar(camera, alvo, "e1-8-fechamento");
+            Salvar(camera, alvo, "e1-10-fechamento");
         }
 
         private static void TerminarAsPiscadas()
