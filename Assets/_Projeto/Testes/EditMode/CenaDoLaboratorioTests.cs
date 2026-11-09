@@ -326,6 +326,53 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void PainelDeControles_InteiroNaVistaInicial()
+        {
+            // Vista inicial: origem olhando para +z; o Quest 2 vê ~45° para cada lado.
+            Transform painel = _cena.GetRootGameObjects().Single(g => g.name == "PainelInstrucoes").transform;
+            float metade = painel.Find("Fundo").localScale.x / 2;
+            foreach (float lado in new[] { -1f, 1f })
+            {
+                Vector3 borda = painel.position + painel.right * metade * lado;
+                float angulo = Mathf.Atan2(Mathf.Abs(borda.x), borda.z) * Mathf.Rad2Deg;
+                Assert.That(angulo, Is.LessThan(45f), $"borda a {angulo:0}°");
+            }
+        }
+
+        [Test]
+        public void Caixa_GiradaNaMesa_LongeDoPontoDePartida()
+        {
+            var caixa = Todos<CaixaPegavel>().Single();
+            Bounds limites = caixa.GetComponent<BoxCollider>().bounds;
+            var olhos = new Vector3(0f, 1.4f, 0f);
+
+            Assert.That(caixa.transform.eulerAngles.y, Is.EqualTo(Editor.GeradorDaCena.GiroDaCaixaNaMesa).Within(1e-3f));
+            Assert.That(caixa.transform.eulerAngles.x, Is.EqualTo(0f).Within(1e-3f), "só em torno do eixo vertical");
+            Assert.That(Vector3.Distance(limites.ClosestPoint(olhos), olhos), Is.GreaterThan(0.7f),
+                "o aluno nunca começa dentro ou perto demais da caixa");
+            Assert.That(Vector3.Distance(limites.ClosestPoint(Vector3.zero), Vector3.zero), Is.GreaterThan(0.6f), "nem os pés");
+        }
+
+        [Test]
+        public void Titulo_AcimaDosRotulosDoTopoDaCaixa()
+        {
+            Transform titulo = _cena.GetRootGameObjects().Single(g => g.name == "PainelTitulo").transform;
+            float baseDoTitulo = titulo.position.y - titulo.Find("Fundo").localScale.y / 2;
+            var rotulos = Todos<VisualDaCaixa>().Single().transform.Find(VisualDaCaixa.GrupoRotulos);
+
+            foreach (float olhos in new[] { 1.3f, 1.5f, 1.7f })
+                foreach (Transform rotulo in rotulos)
+                {
+                    // Topo do texto (meia letra acima do centro), visto dos olhos na origem, e a base do título.
+                    Vector3 topo = rotulo.position + Vector3.up * 0.03f;
+                    float anguloDoRotulo = Mathf.Atan2(topo.y - olhos, new Vector2(topo.x, topo.z).magnitude);
+                    float anguloDoTitulo = Mathf.Atan2(baseDoTitulo - olhos, titulo.position.z);
+                    Assert.That(anguloDoTitulo - anguloDoRotulo, Is.GreaterThan(1f * Mathf.Deg2Rad),
+                        $"{rotulo.name} encosta no título com olhos a {olhos} m");
+                }
+        }
+
+        [Test]
         public void TituloTemBotaoComecar_EEstacaoEscondidaAteComecar()
         {
             var estacao = Todos<EstacaoDasDiagonaisNaCena>().Single();
