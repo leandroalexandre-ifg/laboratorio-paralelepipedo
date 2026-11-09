@@ -94,14 +94,16 @@ terceiros.
     (A → B → F → E → A).
   - Tolerância padrão das respostas reais: **±0,01** (aceita 3,60 e 3,61 para √13), ajustável por desafio no JSON.
   - Cubinhos: limite técnico de **1000** por caixa; desafios da estação de volume recusam dimensões **acima de 10**.
-  - Interação (`Nucleo/Interacao`, Fase 5): raio nas duas mãos; gatilho confirma, botão lateral segurado pega a
-    caixa, que ao ser solta volta à mesa em **0,4 s** na orientação original. Vibração leve ao acender um alvo e ao
-    confirmar. Giro por passos de **45°** em torno da cabeça, com escurecimento de **~100 ms** só no instante do giro
-    (sem vinheta no teleporte nem parado). Teleporte sem mudar a direção do olhar; destino inválido na mesa, na caixa
-    e a menos de **0,3 m** das paredes. Só o rig se move, nunca a câmera. O painel "Como usar os controles" fica
-    à frente, logo atrás da mesa, uma linha por botão, e mostra só as ações que existem na cena (o "apontar e
-    escolher" volta quando houver alvos do gatilho, nas estações). Dicas curtas acima do controle: raio na caixa e
-    mira do teleporte (vale / não dá).
+  - Interação (`Nucleo/Interacao`, Fase 5): **experiência estacionária** (decisão de 08/11/2026). Raio nas duas
+    mãos; gatilho confirma; botão lateral segurado pega a caixa, que gira com a mão e, ao ser solta, volta à mesa em
+    **0,4 s** na orientação original. Pegar a caixa nunca move o aluno nem a mesa. Vibração leve ao acender um alvo
+    e ao confirmar. **Sem teleporte nem giro por passos na cena:** o analógico não faz nada. O código deles
+    (`ComandoDoAnalogico`, `RegrasDoTeleporte`, `MovimentoDoRig`, `LocomocaoDoAluno`) continua no projeto, testado,
+    fora da cena. Só o rig se move (na recentralização), nunca a câmera. O painel "Como usar os controles" fica à
+    frente, logo atrás da mesa, uma linha por botão, e mostra só as ações que existem na cena (o gatilho volta
+    quando houver alvos, nas estações). Dica curta acima do controle com o raio na caixa.
+  - Diagnóstico para o professor num painel próprio, à direita da mesa: versão, eventos da recentralização,
+    controles e erros. A versão aparece sempre também nos créditos.
   - Recentralização (`SequenciaDeRecentralizacao`, `RecentralizacaoDoAluno`): o aluno é posto na origem, olhando para
     a mesa (+z), ao abrir o app, ao recentralizar com o botão Meta, quando a origem do rastreamento muda e ao voltar
     do menu ou da pausa. Move o rig com a tela escura (0,15 s para escurecer e clarear), depois de a cabeça ficar
