@@ -123,6 +123,24 @@ terceiros.
     para o aluno: instrução em destaque no alto, medidas, contas de d e D em duas colunas grandes; o fundo cresce
     conforme o conteúdo. No acerto, só o botão certo fica verde. Os rótulos da caixa usam o shader Overlay do
     TextMeshPro (aparecem através das faces; a tela escura continua por cima).
+  - Estação 3 · Áreas (`Nucleo/Estacoes/EstacaoDasAreas`, `Nucleo/Planificacao`, 0.5.0): chega-se a ela pelo botão
+    "Ir para a Estação 3" no fechamento da Estação 2, no mesmo lugar do painel. Caixa 4 × 3 × 2 fechada na mesa;
+    "Abrir a caixa" desdobra as faces em **1 s** numa planificação em cruz (base EFGH no meio, ABCD presa em BC), em
+    escala menor (cabe em 1,0 × 0,75 m) e **inclinada 35°** para o aluno, como um tampo de prancheta; a caixa some e
+    não pode ser pega enquanto aberta. "Fechar a caixa" faz a animação inversa e a caixa volta ao fim dela. Nas faces,
+    só o nome e os lados ("4 × 3"); o rótulo encolhe para caber na face. O aluno acha os **3 pares** tocando uma face:
+    as duas faces paralelas ganham a cor do par e a área ("4 · 3 = 12"), com a frase do par no destaque. Faces começam
+    neutras. Depois do 3º par (2 s), as perguntas na ordem base → lateral → total (`bncc` EF08MA19, retomada), com as
+    opções embaralhadas e uma dica por distrator (`DicaDaArea`: somou, perímetro, com as bases, sem dobrar, só a
+    lateral, faltou um par, volume, geral). No acerto, a conta com os valores da caixa e avanço em 2 s. Fechamento:
+    "Estação concluída!", as três fórmulas e "Refazer" (caixa fechada, nenhum par). A planificação fica aberta
+    durante as perguntas; "Abrir/Fechar" desce para a 3ª linha de botões.
+  - **[REVISAR-PROFESSOR] textos novos da 0.5.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
+    `estacao.diagonais.proximaEstacao`, `estacao.areas.titulo` (mudou para "Estação 3 · Áreas"), `.instrucao` (mudou),
+    `.objetivo`, `.paresInstrucao`, `.parEncontrado`, `.paresContagem`, `.pergunta`, `.ladosDaFace`, `.areaDaFace`,
+    `.acerto`, `.contaDaBase`, `.contaLateral`, `.contaTotal`, `.dica.volume`, `.dica.somou`, `.dica.perimetro`,
+    `.dica.comAsBases`, `.dica.semDobrar`, `.dica.soLateral`, `.dica.faltouPar`, `.dica.geral`, `.concluida`,
+    `.refazer`.
   - **[REVISAR-PROFESSOR] textos novos da 0.4.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
     `estacao.elementos.titulo` (mudou para "Estação 1 · Elementos"), `.objetivo`, `.desafio`, `.tocados`,
     `.naoEhFace` (mudou: "Esse vértice não continua a face. Tente outro."), `.foraDaFace`, `.ajuda`, `.acerto`,
