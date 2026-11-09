@@ -3,7 +3,10 @@
 Aplicação educacional em realidade virtual para o **9º ano do Ensino Fundamental** sobre o **paralelepípedo
 reto-retângulo**: elementos, diagonais (teorema de Pitágoras), áreas e volume. Proposta pelo núcleo de pesquisa
 **NumbERS** (IFG – Câmpus Inhumas), em particular pelo professor Kariton Lula.
-Créditos no app: "Desenvolvido por NumbERS · IFG – Câmpus Inhumas".
+Créditos no app, no painel do título (visível o tempo todo): "Desenvolvido por" + logo `Imagens/Logo_NumbERS.png`; abaixo,
+"Núcleo de pesquisa do Instituto Federal de Goiás – Câmpus Inhumas" e a versão. Ao abrir o app, o Quest mostra
+`Imagens/Logo_Intro.png` na tela de carregamento do sistema (`systemSplashScreen` do Meta SDK, gravado por
+`ConfigurarMetaQuest`), sem o logo do Unity.
 
 - **BNCC:** EF09MA14 (problemas com o teorema de Pitágoras) e EF09MA19 (volume de prismas com expressões de cálculo);
   retomadas: EF06MA17 (estação Elementos) e EF08MA19 (estação Áreas)
@@ -62,6 +65,7 @@ Assets/_Projeto/
     Editor/        # configuração do projeto, atlas da fonte, gerador da cena e prévia (menu "Laboratório")
       Release/     # build assinado, lista de verificação do APK e envio ao ALPHA (menu "Laboratório › Release")
   Dados/           # JSON (TextAsset) de textos e desafios
+  Imagens/         # logos do NumbERS (PNG via LFS): Logo_Intro (abertura do sistema) e Logo_NumbERS (créditos)
   Fontes/          # Nunito SemiBold (.ttf via LFS, licença OFL) e a fonte TextMeshPro dinâmica "Nunito SDF"
   Cenas/  Prefabs/  Materiais/
   Testes/EditMode/
