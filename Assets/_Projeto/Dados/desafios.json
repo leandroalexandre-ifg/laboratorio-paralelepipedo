@@ -86,10 +86,10 @@
       "id": "area-01",
       "estacao": "areas",
       "bncc": "EF08MA19",
-      "enunciado": "Qual é a área total da caixa?",
+      "enunciado": "Qual é a área da base da caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
-      "grandeza": "areaTotal",
-      "distratores": ["24", "26", "40"]
+      "grandeza": "areaDaBase",
+      "distratores": ["7", "14", "24"]
     },
     {
       "id": "area-02",
@@ -104,10 +104,10 @@
       "id": "area-03",
       "estacao": "areas",
       "bncc": "EF08MA19",
-      "enunciado": "Qual é a área da base da caixa?",
+      "enunciado": "Qual é a área total da caixa?",
       "dimensoes": { "a": "4", "b": "3", "c": "2" },
-      "grandeza": "areaDaBase",
-      "distratores": ["7", "14", "24"]
+      "grandeza": "areaTotal",
+      "distratores": ["24", "26", "40"]
     },
     {
       "id": "vol-01",

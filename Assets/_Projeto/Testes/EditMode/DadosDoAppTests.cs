@@ -67,7 +67,7 @@ namespace LaboratorioParalelepipedo.Testes
             foreach (string chave in catalogo.Chaves)
             {
                 string texto = catalogo.Obter(chave);
-                Assert.DoesNotThrow(() => string.Format(texto, "x", "y", "z"), chave);
+                Assert.DoesNotThrow(() => string.Format(texto, "x", "y", "z", "w"), chave);   // até 4 marcadores (conta da área total)
             }
         }
 
@@ -110,7 +110,7 @@ namespace LaboratorioParalelepipedo.Testes
         {
             Assert.That(Buscar<DesafioDeResposta>("diag-01").RespostaCorreta, Is.EqualTo(Math.Sqrt(13)).Within(1e-9));
             Assert.That(Buscar<DesafioDeResposta>("diag-02").RespostaCorreta, Is.EqualTo(7).Within(1e-9));
-            Assert.That(Buscar<DesafioDeResposta>("area-01").RespostaCorreta, Is.EqualTo(52).Within(1e-9));
+            Assert.That(Buscar<DesafioDeResposta>("area-03").RespostaCorreta, Is.EqualTo(52).Within(1e-9));
             Assert.That(Buscar<DesafioDeResposta>("vol-01").RespostaCorreta, Is.EqualTo(36).Within(1e-9));
             Assert.That(Buscar<DesafioDeMontarFace>("elem-01").FaceAlvo.Nome, Is.EqualTo("ADHE"));
             Assert.That(Buscar<DesafioDeMontarFace>("elem-02").FaceAlvo.Nome, Is.EqualTo("ABFE"));

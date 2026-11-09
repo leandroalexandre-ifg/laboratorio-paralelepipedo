@@ -78,14 +78,36 @@ Observações gerais:
 | `estacao.diagonais.proximoDesafio` | Próximo desafio | | |
 | `estacao.diagonais.refazer` | Refazer | | |
 | `estacao.diagonais.rotulo` | {0} = {1} | | |
-| `estacao.areas.titulo` | 3. Áreas | | |
-| `estacao.areas.instrucao` | Abra a caixa e compare as faces da mesma cor. | | |
+| `estacao.diagonais.proximaEstacao` | Ir para a Estação 3 | | |
+| `estacao.areas.titulo` | Estação 3 · Áreas | | |
+| `estacao.areas.instrucao` | Aperte “Abrir a caixa” para ver as 6 faces abertas. | | |
 | `estacao.areas.abrir` | Abrir a caixa | | |
 | `estacao.areas.fechar` | Fechar a caixa | | |
 | `estacao.areas.pares` | Faces da mesma cor são paralelas e têm a mesma área. | | |
 | `estacao.areas.formulaDaBase` | A<sub>b</sub> = a · b | | |
 | `estacao.areas.formulaLateral` | A<sub>L</sub> = 2(ac + bc) | | |
 | `estacao.areas.formulaTotal` | A<sub>T</sub> = 2(ab + ac + bc) | | |
+| `estacao.areas.objetivo` | Descubra a área da base, a área lateral e a área total da caixa. | | |
+| `estacao.areas.paresInstrucao` | Toque uma face. A face paralela a ela acende junto. | | |
+| `estacao.areas.parEncontrado` | {0} e {1} são paralelas e têm a mesma área: {2}. | | |
+| `estacao.areas.paresContagem` | Pares encontrados: {0} de {1} | | |
+| `estacao.areas.pergunta` | Pergunta {0} de {1} | | |
+| `estacao.areas.ladosDaFace` | {0} × {1} | | |
+| `estacao.areas.areaDaFace` | {0} · {1} = {2} | | |
+| `estacao.areas.acerto` | Isso! | | |
+| `estacao.areas.contaDaBase` | A<sub>b</sub> = a · b = {0} · {1} = {2} | | |
+| `estacao.areas.contaLateral` | A<sub>L</sub> = 2(ac + bc) = 2({0} + {1}) = {2} | | |
+| `estacao.areas.contaTotal` | A<sub>T</sub> = 2(ab + ac + bc) = 2({0} + {1} + {2}) = {3} | | |
+| `estacao.areas.dica.volume` | {0} é o volume (a · b · c), não uma área. | | |
+| `estacao.areas.dica.somou` | {0} é a + b. A área do retângulo multiplica: a · b. | | |
+| `estacao.areas.dica.perimetro` | {0} é o perímetro da base, a volta dela. A área é a · b. | | |
+| `estacao.areas.dica.comAsBases` | {0} inclui as duas bases. A área lateral é só a das 4 faces dos lados. | | |
+| `estacao.areas.dica.semDobrar` | {0} conta uma face de cada par. Cada par tem 2 faces iguais: falta dobrar. | | |
+| `estacao.areas.dica.soLateral` | {0} é só a área lateral. Faltaram as duas bases. | | |
+| `estacao.areas.dica.faltouPar` | {0} deixa um par de faces de fora. São 3 pares. | | |
+| `estacao.areas.dica.geral` | Ainda não. Use as áreas dos pares que você encontrou. | | |
+| `estacao.areas.concluida` | Estação concluída! | | |
+| `estacao.areas.refazer` | Refazer | | |
 | `estacao.volume.titulo` | 4. Volume | | |
 | `estacao.volume.instrucao` | Encha a caixa com cubinhos, camada por camada. | | |
 | `estacao.volume.encher` | Encher a caixa | | |
@@ -121,9 +143,9 @@ Observações gerais:
 
 | Id | Enunciado | Caixa (a × b × c) | Pergunta | Resposta esperada | Distratores e o erro que cada um imita | Ok? | Sugestão |
 |---|---|---|---|---|---|---|---|
-| `area-01` | Qual é a área total da caixa? | 4 × 3 × 2 | área total A<sub>T</sub> | 52 | **24**: calculou o volume (4 · 3 · 2) em vez da área total<br>**26**: somou uma face de cada par sem dobrar: ab + ac + bc<br>**40**: esqueceu o par de faces b·c (esquerda e direita): 2(ab + ac) | | |
+| `area-01` | Qual é a área da base da caixa? | 4 × 3 × 2 | área da base A<sub>b</sub> | 12 | **7**: somou a + b em vez de multiplicar<br>**14**: calculou o perímetro da base: 2(a + b)<br>**24**: calculou o volume (4 · 3 · 2) | | |
 | `area-02` | Qual é a área lateral da caixa? | 4 × 3 × 2 | área lateral A<sub>L</sub> | 28 | **52**: calculou a área total, incluindo as duas bases<br>**14**: não dobrou: ac + bc<br>**24**: calculou o volume (4 · 3 · 2) | | |
-| `area-03` | Qual é a área da base da caixa? | 4 × 3 × 2 | área da base A<sub>b</sub> | 12 | **7**: somou a + b em vez de multiplicar<br>**14**: calculou o perímetro da base: 2(a + b)<br>**24**: calculou o volume (4 · 3 · 2) | | |
+| `area-03` | Qual é a área total da caixa? | 4 × 3 × 2 | área total A<sub>T</sub> | 52 | **24**: calculou o volume (4 · 3 · 2) em vez da área total<br>**26**: somou uma face de cada par sem dobrar: ab + ac + bc<br>**40**: esqueceu o par de faces b·c (esquerda e direita): 2(ab + ac) | | |
 
 ### 4. Volume (BNCC EF09MA19)
 

@@ -74,6 +74,7 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string DiagonaisProximoDesafio = "estacao.diagonais.proximoDesafio";
         public const string DiagonaisRefazer = "estacao.diagonais.refazer";
         public const string DiagonaisRotulo = "estacao.diagonais.rotulo";
+        public const string DiagonaisProximaEstacao = "estacao.diagonais.proximaEstacao";
 
         public const string AreasTitulo = "estacao.areas.titulo";
         public const string AreasInstrucao = "estacao.areas.instrucao";
@@ -83,6 +84,27 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string AreasFormulaDaBase = "estacao.areas.formulaDaBase";
         public const string AreasFormulaLateral = "estacao.areas.formulaLateral";
         public const string AreasFormulaTotal = "estacao.areas.formulaTotal";
+        public const string AreasObjetivo = "estacao.areas.objetivo";
+        public const string AreasParesInstrucao = "estacao.areas.paresInstrucao";
+        public const string AreasParEncontrado = "estacao.areas.parEncontrado";
+        public const string AreasParesContagem = "estacao.areas.paresContagem";
+        public const string AreasPergunta = "estacao.areas.pergunta";
+        public const string AreasLadosDaFace = "estacao.areas.ladosDaFace";
+        public const string AreasAreaDaFace = "estacao.areas.areaDaFace";
+        public const string AreasAcerto = "estacao.areas.acerto";
+        public const string AreasContaDaBase = "estacao.areas.contaDaBase";
+        public const string AreasContaLateral = "estacao.areas.contaLateral";
+        public const string AreasContaTotal = "estacao.areas.contaTotal";
+        public const string AreasDicaVolume = "estacao.areas.dica.volume";
+        public const string AreasDicaSomou = "estacao.areas.dica.somou";
+        public const string AreasDicaPerimetro = "estacao.areas.dica.perimetro";
+        public const string AreasDicaComAsBases = "estacao.areas.dica.comAsBases";
+        public const string AreasDicaSemDobrar = "estacao.areas.dica.semDobrar";
+        public const string AreasDicaSoLateral = "estacao.areas.dica.soLateral";
+        public const string AreasDicaFaltouPar = "estacao.areas.dica.faltouPar";
+        public const string AreasDicaGeral = "estacao.areas.dica.geral";
+        public const string AreasConcluida = "estacao.areas.concluida";
+        public const string AreasRefazer = "estacao.areas.refazer";
 
         public const string VolumeTitulo = "estacao.volume.titulo";
         public const string VolumeInstrucao = "estacao.volume.instrucao";
@@ -110,9 +132,13 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
             DiagonaisProximoVertice, DiagonaisVerticeErrado, DiagonaisContaDaBase, DiagonaisResultadoDaBase,
             DiagonaisContaDaDiagonal, DiagonaisIncognita, DiagonaisAcerto, DiagonaisDicaSemRaiz, DiagonaisDicaSomou,
             DiagonaisDicaDiagonalDaBase, DiagonaisDicaGeral, DiagonaisConcluida, DiagonaisFormulaGeral,
-            DiagonaisProximoDesafio, DiagonaisRefazer, DiagonaisRotulo,
+            DiagonaisProximoDesafio, DiagonaisRefazer, DiagonaisRotulo, DiagonaisProximaEstacao,
             AreasTitulo, AreasInstrucao, AreasAbrir, AreasFechar, AreasPares,
-            AreasFormulaDaBase, AreasFormulaLateral, AreasFormulaTotal,
+            AreasFormulaDaBase, AreasFormulaLateral, AreasFormulaTotal, AreasObjetivo, AreasParesInstrucao,
+            AreasParEncontrado, AreasParesContagem, AreasPergunta, AreasLadosDaFace, AreasAreaDaFace, AreasAcerto,
+            AreasContaDaBase, AreasContaLateral, AreasContaTotal, AreasDicaVolume, AreasDicaSomou, AreasDicaPerimetro,
+            AreasDicaComAsBases, AreasDicaSemDobrar, AreasDicaSoLateral, AreasDicaFaltouPar, AreasDicaGeral,
+            AreasConcluida, AreasRefazer,
             VolumeTitulo, VolumeInstrucao, VolumeEncher, VolumeEsvaziar, VolumeCamadas, VolumePorCamada,
             VolumeTotal, VolumeFormula, VolumeRessalva,
         };
