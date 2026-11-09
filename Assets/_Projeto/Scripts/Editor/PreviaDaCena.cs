@@ -1,4 +1,8 @@
+using System;
 using System.IO;
+using System.Linq;
+using LaboratorioParalelepipedo.Apresentacao;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -6,8 +10,10 @@ using UnityEngine;
 namespace LaboratorioParalelepipedo.Editor
 {
     /// <summary>
-    /// Renderiza a cena do laboratório vista da altura dos olhos de um aluno de pé e salva em Logs/previa-*.png.
-    /// Serve para conferir o visual sem o óculos. Batchmode (sem -nographics):
+    /// Renderiza a cena do laboratório vista da altura dos olhos de um aluno de pé e salva em Logs/previa-*.png:
+    /// quatro vistas gerais e um momento por etapa da Estação 2 (abertura, passo 1 concluído, passo 2 concluído,
+    /// pergunta, erro, acerto, fechamento), com a estação conduzida pelos mesmos métodos que o gatilho chama.
+    /// Serve para conferir o visual sem o óculos. Nada é salvo na cena. Batchmode (sem -nographics):
     /// -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar -quit
     /// </summary>
     public static class PreviaDaCena
@@ -41,24 +47,75 @@ namespace LaboratorioParalelepipedo.Editor
                 {
                     objeto.transform.position = posicao;
                     objeto.transform.LookAt(ponto);
-                    camera.Render();
-                    RenderTexture.active = alvo;
-                    var imagem = new Texture2D(alvo.width, alvo.height, TextureFormat.RGB24, false);
-                    imagem.ReadPixels(new Rect(0, 0, alvo.width, alvo.height), 0, 0);
-                    imagem.Apply();
-                    File.WriteAllBytes($"Logs/previa-{nome}.png", imagem.EncodeToPNG());
-                    Object.DestroyImmediate(imagem);
+                    Salvar(camera, alvo, nome);
                 }
+
+                RenderizarAEstacao(camera, alvo);
             }
             finally
             {
                 RenderTexture.active = null;
                 camera.targetTexture = null;
-                Object.DestroyImmediate(alvo);
-                Object.DestroyImmediate(objeto);
+                UnityEngine.Object.DestroyImmediate(alvo);
+                UnityEngine.Object.DestroyImmediate(objeto);
+                // Volta a cena ao estado salvo: a prévia mexe na caixa e nos painéis.
+                EditorSceneManager.OpenScene(GeradorDaCena.CaminhoDaCena);
             }
 
             Debug.Log("[Prévia] Imagens salvas em Logs/previa-*.png.");
+        }
+
+        // Aluno no ponto de partida, olhando entre a caixa e o painel da estação.
+        private static void RenderizarAEstacao(Camera camera, RenderTexture alvo)
+        {
+            var estacao = UnityEngine.Object.FindFirstObjectByType<EstacaoDasDiagonaisNaCena>();
+            if (estacao == null)
+            {
+                Debug.LogError("[Prévia] A cena não tem a Estação 2.");
+                return;
+            }
+
+            camera.transform.position = new Vector3(0.05f, 1.4f, 0.05f);
+            camera.transform.LookAt(new Vector3(0.42f, 1.15f, 1.25f));
+            estacao.Inicializar();
+            var opcoes = estacao.Estacao.Opcoes;
+            int Indice(Func<Nucleo.Estacoes.OpcaoDeResposta, bool> condicao) => opcoes.ToList().FindIndex(o => condicao(o));
+
+            Salvar(camera, alvo, "1-abertura");
+            estacao.Comecar();
+            estacao.TocarVertice("E");
+            estacao.TocarVertice("G");
+            Salvar(camera, alvo, "2-passo1-concluido");
+            estacao.TocarVertice("E");
+            estacao.TocarVertice("C");
+            UnityEngine.Object.FindFirstObjectByType<DesenhoDasDiagonais>().TerminarSubida();
+            Salvar(camera, alvo, "3-passo2-concluido");
+            estacao.MostrarOpcoesAgora();
+            Salvar(camera, alvo, "4-pergunta");
+            int errada = Indice(o => !o.Correta && o.ChaveDaDica == Nucleo.Dados.ChavesDeTexto.DiagonaisDicaSemRaiz);
+            estacao.Responder(errada >= 0 ? errada : Indice(o => !o.Correta));
+            Salvar(camera, alvo, "5-erro");
+            estacao.Responder(Indice(o => o.Correta));
+            Salvar(camera, alvo, "6-acerto");
+            estacao.ConcluirAgora();
+            Salvar(camera, alvo, "7-fechamento");
+        }
+
+        private static void Salvar(Camera camera, RenderTexture alvo, string nome)
+        {
+            // No Editor parado não há LateUpdate: vira os rótulos e refaz as malhas de texto à mão.
+            foreach (var rotulo in UnityEngine.Object.FindObjectsByType<RotuloVoltadoParaOAluno>(FindObjectsSortMode.None))
+                rotulo.VirarPara(camera.transform.position);
+            foreach (var texto in UnityEngine.Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None))
+                texto.ForceMeshUpdate();
+
+            camera.Render();
+            RenderTexture.active = alvo;
+            var imagem = new Texture2D(alvo.width, alvo.height, TextureFormat.RGB24, false);
+            imagem.ReadPixels(new Rect(0, 0, alvo.width, alvo.height), 0, 0);
+            imagem.Apply();
+            File.WriteAllBytes($"Logs/previa-{nome}.png", imagem.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(imagem);
         }
     }
 }
