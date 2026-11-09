@@ -135,27 +135,15 @@ terceiros.
     lateral, faltou um par, volume, geral). No acerto, a conta com os valores da caixa e avanço em 2 s. Fechamento:
     "Estação concluída!", as três fórmulas e "Refazer" (caixa fechada, nenhum par). A planificação fica aberta
     durante as perguntas; "Abrir/Fechar" desce para a 3ª linha de botões.
-  - **[REVISAR-PROFESSOR] textos novos da 0.5.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
-    `estacao.diagonais.proximaEstacao`, `estacao.areas.titulo` (mudou para "Estação 3 · Áreas"), `.instrucao` (mudou),
-    `.objetivo`, `.paresInstrucao`, `.parEncontrado`, `.paresContagem`, `.pergunta`, `.ladosDaFace`, `.areaDaFace`,
-    `.acerto`, `.contaDaBase`, `.contaLateral`, `.contaTotal`, `.dica.volume`, `.dica.somou`, `.dica.perimetro`,
-    `.dica.comAsBases`, `.dica.semDobrar`, `.dica.soLateral`, `.dica.faltouPar`, `.dica.geral`, `.concluida`,
-    `.refazer`.
-  - **[REVISAR-PROFESSOR] textos novos da 0.4.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
-    `estacao.elementos.titulo` (mudou para "Estação 1 · Elementos"), `.objetivo`, `.desafio`, `.tocados`,
-    `.naoEhFace` (mudou: "Esse vértice não continua a face. Tente outro."), `.foraDaFace`, `.ajuda`, `.acerto`,
-    `.dica.vertices`, `.dica.arestas`, `.dica.faces`, `.dica.arestasEscondidas`, `.dica.semAsBases`, `.dica.geral`,
-    `.concluida`, `.resumo`, `.proximaEstacao`, `.refazer`.
+  - **[REVISAR-PROFESSOR]:** rascunhos de texto pedagógico meus, sem o aval do professor. A lista única fica em
+    `PENDENTES` no `Tools/gerar_revisao_pedagogica.py`, por versão (0.3.0, 0.4.0, 0.5.0). O script põe esses textos no
+    topo do `Docs/revisao-pedagogica.md`, com a marca, e falha se uma chave não existir no `textos.json`. Ao criar
+    ou mudar um texto pedagógico, inclua a chave em `PENDENTES`; quando o professor aprovar, retire.
   - **Pendências futuras:** (1) desafio de faces paralelas congruentes na Estação 1 ("Qual face é paralela a
     ABFE?"); (2) botão "Escolher estação" no título quando houver 3 ou mais estações.
   - Caixa girada **20°** na mesa (`GeradorDaCena.GiroDaCaixaNaMesa`), para os 8 vértices ficarem separados da
     posição inicial em todas as caixas da estação (com 30°, A cobriria C na 2×3×6). Título acima dos rótulos B e C
     (olhos de 1,3 m a 1,7 m); painel de controles inteiro na vista inicial (bordas a menos de 45°).
-  - **[REVISAR-PROFESSOR] textos novos da 0.3.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
-    `abertura.comecar`, `dica.escolher`, `estacao.diagonais.titulo`, `.objetivo`, `.dimensoes`, `.passo1`,
-    `.passo2`, `.proximoVertice`, `.verticeErrado`, `.contaDaBase`, `.resultadoDaBase`, `.contaDaDiagonal`,
-    `.incognita`, `.acerto`, `.dica.semRaiz`, `.dica.somou`, `.dica.diagonalDaBase`, `.dica.geral`, `.concluida`,
-    `.formulaGeral`, `.proximoDesafio`, `.refazer`, `.rotulo`.
   - Recentralização (`SequenciaDeRecentralizacao`, `RecentralizacaoDoAluno`): o aluno é posto na origem, olhando para
     a mesa (+z), ao abrir o app, ao recentralizar com o botão Meta, quando a origem do rastreamento muda e ao voltar
     do menu ou da pausa. Move o rig com a tela escura (0,15 s para escurecer e clarear), depois de a cabeça ficar

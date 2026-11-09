@@ -6,6 +6,11 @@ Uso (na raiz do repositório):
 
 Cada distrator precisa de uma explicação em ERROS_DOS_DISTRATORES (o erro de raciocínio que ele imita).
 O script falha se faltar alguma, para o documento nunca sair incompleto.
+
+PENDENTES é a lista única dos textos [REVISAR-PROFESSOR]: rascunhos escritos sem o aval do professor, agrupados
+pela versão em que entraram. Eles vão para o topo do documento; os outros textos ficam na seção "Demais textos".
+Ao criar ou mudar um texto pedagógico, inclua a chave aqui; quando o professor aprovar, retire. O script falha se
+uma chave pendente não existir no textos.json.
 """
 import json
 import math
@@ -17,6 +22,81 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 DADOS = RAIZ / "Assets/_Projeto/Dados"
 SAIDA = RAIZ / "Docs/revisao-pedagogica.md"
+
+# Textos [REVISAR-PROFESSOR], por versão: (chave, observação para o revisor ou "").
+PENDENTES = {
+    "0.5.0 · Estação 3 · Áreas": [
+        ("estacao.diagonais.proximaEstacao", ""),
+        ("estacao.areas.titulo", "mudou para \"Estação 3 · Áreas\""),
+        ("estacao.areas.instrucao", "mudou"),
+        ("estacao.areas.objetivo", ""),
+        ("estacao.areas.paresInstrucao", ""),
+        ("estacao.areas.parEncontrado", ""),
+        ("estacao.areas.paresContagem", ""),
+        ("estacao.areas.pergunta", ""),
+        ("estacao.areas.ladosDaFace", ""),
+        ("estacao.areas.areaDaFace", ""),
+        ("estacao.areas.acerto", ""),
+        ("estacao.areas.contaDaBase", ""),
+        ("estacao.areas.contaLateral", ""),
+        ("estacao.areas.contaTotal", ""),
+        ("estacao.areas.dica.volume", ""),
+        ("estacao.areas.dica.somou", ""),
+        ("estacao.areas.dica.perimetro", ""),
+        ("estacao.areas.dica.comAsBases", ""),
+        ("estacao.areas.dica.semDobrar", ""),
+        ("estacao.areas.dica.soLateral", ""),
+        ("estacao.areas.dica.faltouPar", ""),
+        ("estacao.areas.dica.geral", ""),
+        ("estacao.areas.concluida", ""),
+        ("estacao.areas.refazer", ""),
+    ],
+    "0.4.0 · Estação 1 · Elementos": [
+        ("estacao.elementos.titulo", "mudou para \"Estação 1 · Elementos\""),
+        ("estacao.elementos.objetivo", ""),
+        ("estacao.elementos.desafio", ""),
+        ("estacao.elementos.tocados", ""),
+        ("estacao.elementos.naoEhFace", "mudou: só o toque errado é descartado"),
+        ("estacao.elementos.foraDaFace", ""),
+        ("estacao.elementos.ajuda", ""),
+        ("estacao.elementos.acerto", ""),
+        ("estacao.elementos.dica.vertices", ""),
+        ("estacao.elementos.dica.arestas", ""),
+        ("estacao.elementos.dica.faces", ""),
+        ("estacao.elementos.dica.arestasEscondidas", ""),
+        ("estacao.elementos.dica.semAsBases", ""),
+        ("estacao.elementos.dica.geral", ""),
+        ("estacao.elementos.concluida", ""),
+        ("estacao.elementos.resumo", ""),
+        ("estacao.elementos.proximaEstacao", ""),
+        ("estacao.elementos.refazer", ""),
+    ],
+    "0.3.0 · Estação 2 · Diagonais": [
+        ("abertura.comecar", ""),
+        ("dica.escolher", ""),
+        ("estacao.diagonais.titulo", ""),
+        ("estacao.diagonais.objetivo", ""),
+        ("estacao.diagonais.dimensoes", ""),
+        ("estacao.diagonais.passo1", ""),
+        ("estacao.diagonais.passo2", ""),
+        ("estacao.diagonais.proximoVertice", ""),
+        ("estacao.diagonais.verticeErrado", ""),
+        ("estacao.diagonais.contaDaBase", ""),
+        ("estacao.diagonais.resultadoDaBase", ""),
+        ("estacao.diagonais.contaDaDiagonal", ""),
+        ("estacao.diagonais.incognita", ""),
+        ("estacao.diagonais.acerto", ""),
+        ("estacao.diagonais.dica.semRaiz", ""),
+        ("estacao.diagonais.dica.somou", ""),
+        ("estacao.diagonais.dica.diagonalDaBase", ""),
+        ("estacao.diagonais.dica.geral", ""),
+        ("estacao.diagonais.concluida", ""),
+        ("estacao.diagonais.formulaGeral", ""),
+        ("estacao.diagonais.proximoDesafio", ""),
+        ("estacao.diagonais.refazer", ""),
+        ("estacao.diagonais.rotulo", ""),
+    ],
+}
 
 ESTACOES = [
     ("elementos", "1. Elementos"),
@@ -155,6 +235,14 @@ def main() -> int:
         print("Faltam explicações para os distratores:", faltando, file=sys.stderr)
         return 1
 
+    porChave = {t["chave"]: t["texto"] for t in textos}
+    pendentes = [c for grupo in PENDENTES.values() for c, _ in grupo]
+    inexistentes = [c for c in pendentes if c not in porChave]
+    repetidas = sorted({c for c in pendentes if pendentes.count(c) > 1})
+    if inexistentes or repetidas:
+        print("PENDENTES com chave inexistente:", inexistentes, "ou repetida:", repetidas, file=sys.stderr)
+        return 1
+
     l = []
     l.append("# Laboratório do Paralelepípedo — revisão pedagógica")
     l.append("")
@@ -176,15 +264,33 @@ def main() -> int:
              "D frente-direita) e EFGH embaixo (E sob A, F sob B, G sob C, H sob D); a = EH, b = HG, c = AE.")
     l.append("")
 
-    l.append("## 1. Textos do app")
+    l.append(f"## 1. Textos a revisar primeiro [REVISAR-PROFESSOR] ({len(pendentes)})")
+    l.append("")
+    l.append("Rascunhos escritos durante o desenvolvimento, ainda sem o aval do professor. O app já os mostra ao "
+             "aluno; confira a clareza para o 9º ano, o vocabulário e a correção matemática (principalmente das "
+             "dicas, que explicam o erro de cada resposta errada).")
+    l.append("")
+    for versao, grupo in PENDENTES.items():
+        l.append(f"### Versão {versao} ({len(grupo)})")
+        l.append("")
+        l.append("| Chave | Texto | Observação | Ok? | Sugestão |")
+        l.append("|---|---|---|---|---|")
+        for chave, obs in grupo:
+            l.append(f"| `{chave}` **[REVISAR-PROFESSOR]** | {celula(porChave[chave])} | {celula(obs)} | | |")
+        l.append("")
+
+    l.append(f"## 2. Demais textos ({len(textos) - len(pendentes)})")
+    l.append("")
+    l.append("Textos mais antigos ou de interface (títulos, botões, painel de diagnóstico). Vale uma conferência geral.")
     l.append("")
     l.append("| Chave | Texto | Ok? | Sugestão |")
     l.append("|---|---|---|---|")
     for t in textos:
-        l.append(f"| `{t['chave']}` | {celula(t['texto'])} | | |")
+        if t["chave"] not in pendentes:
+            l.append(f"| `{t['chave']}` | {celula(t['texto'])} | | |")
     l.append("")
 
-    l.append("## 2. Desafios")
+    l.append("## 3. Desafios")
     l.append("")
     for chave, titulo in ESTACOES:
         doEstacao = [d for d in desafios if d["estacao"] == chave]

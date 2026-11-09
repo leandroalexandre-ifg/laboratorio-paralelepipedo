@@ -11,14 +11,99 @@ Observações gerais:
 - Nos desafios de montar face, vale começar por qualquer vértice da face e seguir nos dois sentidos, voltando ou não ao vértice inicial (A → B → F → E, E → F → B → A…).
 - Convenção dos vértices: ABCD no topo (A frente-esquerda, B fundo-esquerda, C fundo-direita, D frente-direita) e EFGH embaixo (E sob A, F sob B, G sob C, H sob D); a = EH, b = HG, c = AE.
 
-## 1. Textos do app
+## 1. Textos a revisar primeiro [REVISAR-PROFESSOR] (65)
+
+Rascunhos escritos durante o desenvolvimento, ainda sem o aval do professor. O app já os mostra ao aluno; confira a clareza para o 9º ano, o vocabulário e a correção matemática (principalmente das dicas, que explicam o erro de cada resposta errada).
+
+### Versão 0.5.0 · Estação 3 · Áreas (24)
+
+| Chave | Texto | Observação | Ok? | Sugestão |
+|---|---|---|---|---|
+| `estacao.diagonais.proximaEstacao` **[REVISAR-PROFESSOR]** | Ir para a Estação 3 |  | | |
+| `estacao.areas.titulo` **[REVISAR-PROFESSOR]** | Estação 3 · Áreas | mudou para "Estação 3 · Áreas" | | |
+| `estacao.areas.instrucao` **[REVISAR-PROFESSOR]** | Aperte “Abrir a caixa” para ver as 6 faces abertas. | mudou | | |
+| `estacao.areas.objetivo` **[REVISAR-PROFESSOR]** | Descubra a área da base, a área lateral e a área total da caixa. |  | | |
+| `estacao.areas.paresInstrucao` **[REVISAR-PROFESSOR]** | Toque uma face. A face paralela a ela acende junto. |  | | |
+| `estacao.areas.parEncontrado` **[REVISAR-PROFESSOR]** | {0} e {1} são paralelas e têm a mesma área: {2}. |  | | |
+| `estacao.areas.paresContagem` **[REVISAR-PROFESSOR]** | Pares encontrados: {0} de {1} |  | | |
+| `estacao.areas.pergunta` **[REVISAR-PROFESSOR]** | Pergunta {0} de {1} |  | | |
+| `estacao.areas.ladosDaFace` **[REVISAR-PROFESSOR]** | {0} × {1} |  | | |
+| `estacao.areas.areaDaFace` **[REVISAR-PROFESSOR]** | {0} · {1} = {2} |  | | |
+| `estacao.areas.acerto` **[REVISAR-PROFESSOR]** | Isso! |  | | |
+| `estacao.areas.contaDaBase` **[REVISAR-PROFESSOR]** | A<sub>b</sub> = a · b = {0} · {1} = {2} |  | | |
+| `estacao.areas.contaLateral` **[REVISAR-PROFESSOR]** | A<sub>L</sub> = 2(ac + bc) = 2({0} + {1}) = {2} |  | | |
+| `estacao.areas.contaTotal` **[REVISAR-PROFESSOR]** | A<sub>T</sub> = 2(ab + ac + bc) = 2({0} + {1} + {2}) = {3} |  | | |
+| `estacao.areas.dica.volume` **[REVISAR-PROFESSOR]** | {0} é o volume (a · b · c), não uma área. |  | | |
+| `estacao.areas.dica.somou` **[REVISAR-PROFESSOR]** | {0} é a + b. A área do retângulo multiplica: a · b. |  | | |
+| `estacao.areas.dica.perimetro` **[REVISAR-PROFESSOR]** | {0} é o perímetro da base, a volta dela. A área é a · b. |  | | |
+| `estacao.areas.dica.comAsBases` **[REVISAR-PROFESSOR]** | {0} inclui as duas bases. A área lateral é só a das 4 faces dos lados. |  | | |
+| `estacao.areas.dica.semDobrar` **[REVISAR-PROFESSOR]** | {0} conta uma face de cada par. Cada par tem 2 faces iguais: falta dobrar. |  | | |
+| `estacao.areas.dica.soLateral` **[REVISAR-PROFESSOR]** | {0} é só a área lateral. Faltaram as duas bases. |  | | |
+| `estacao.areas.dica.faltouPar` **[REVISAR-PROFESSOR]** | {0} deixa um par de faces de fora. São 3 pares. |  | | |
+| `estacao.areas.dica.geral` **[REVISAR-PROFESSOR]** | Ainda não. Use as áreas dos pares que você encontrou. |  | | |
+| `estacao.areas.concluida` **[REVISAR-PROFESSOR]** | Estação concluída! |  | | |
+| `estacao.areas.refazer` **[REVISAR-PROFESSOR]** | Refazer |  | | |
+
+### Versão 0.4.0 · Estação 1 · Elementos (18)
+
+| Chave | Texto | Observação | Ok? | Sugestão |
+|---|---|---|---|---|
+| `estacao.elementos.titulo` **[REVISAR-PROFESSOR]** | Estação 1 · Elementos | mudou para "Estação 1 · Elementos" | | |
+| `estacao.elementos.objetivo` **[REVISAR-PROFESSOR]** | Conheça os elementos da caixa: vértices, arestas e faces. |  | | |
+| `estacao.elementos.desafio` **[REVISAR-PROFESSOR]** | Desafio {0} de {1} |  | | |
+| `estacao.elementos.tocados` **[REVISAR-PROFESSOR]** | Vértices: {0} |  | | |
+| `estacao.elementos.naoEhFace` **[REVISAR-PROFESSOR]** | Esse vértice não continua a face. Tente outro. | mudou: só o toque errado é descartado | | |
+| `estacao.elementos.foraDaFace` **[REVISAR-PROFESSOR]** | O vértice {0} não é da face {1}. Tente outro. |  | | |
+| `estacao.elementos.ajuda` **[REVISAR-PROFESSOR]** | Os vértices que pulsam formam a face. |  | | |
+| `estacao.elementos.acerto` **[REVISAR-PROFESSOR]** | Isso! São {0}. |  | | |
+| `estacao.elementos.dica.vertices` **[REVISAR-PROFESSOR]** | {0} é o número de vértices, os cantos da caixa. |  | | |
+| `estacao.elementos.dica.arestas` **[REVISAR-PROFESSOR]** | {0} é o número de arestas, os segmentos que ligam os vértices. |  | | |
+| `estacao.elementos.dica.faces` **[REVISAR-PROFESSOR]** | {0} é o número de faces, as partes planas da caixa. |  | | |
+| `estacao.elementos.dica.arestasEscondidas` **[REVISAR-PROFESSOR]** | {0} são só as arestas que dá para ver daqui. Pegue a caixa e gire: há arestas escondidas atrás. |  | | |
+| `estacao.elementos.dica.semAsBases` **[REVISAR-PROFESSOR]** | {0} são só as faces dos lados. Faltaram a face de cima e a de baixo. |  | | |
+| `estacao.elementos.dica.geral` **[REVISAR-PROFESSOR]** | Ainda não. Conte de novo, com calma. Pegue a caixa e gire para ver todos os lados. |  | | |
+| `estacao.elementos.concluida` **[REVISAR-PROFESSOR]** | Estação concluída! |  | | |
+| `estacao.elementos.resumo` **[REVISAR-PROFESSOR]** | A caixa tem {0} vértices, {1} arestas e {2} faces. |  | | |
+| `estacao.elementos.proximaEstacao` **[REVISAR-PROFESSOR]** | Ir para a Estação 2 |  | | |
+| `estacao.elementos.refazer` **[REVISAR-PROFESSOR]** | Refazer |  | | |
+
+### Versão 0.3.0 · Estação 2 · Diagonais (23)
+
+| Chave | Texto | Observação | Ok? | Sugestão |
+|---|---|---|---|---|
+| `abertura.comecar` **[REVISAR-PROFESSOR]** | Começar |  | | |
+| `dica.escolher` **[REVISAR-PROFESSOR]** | Aperte o gatilho para escolher |  | | |
+| `estacao.diagonais.titulo` **[REVISAR-PROFESSOR]** | Estação 2 · Diagonais |  | | |
+| `estacao.diagonais.objetivo` **[REVISAR-PROFESSOR]** | Descubra quanto mede a diagonal D da caixa, de um canto ao canto oposto. |  | | |
+| `estacao.diagonais.dimensoes` **[REVISAR-PROFESSOR]** | a = {0}    b = {1}    c = {2} |  | | |
+| `estacao.diagonais.passo1` **[REVISAR-PROFESSOR]** | Aponte para o vértice E e aperte o gatilho. Depois, para o G. |  | | |
+| `estacao.diagonais.passo2` **[REVISAR-PROFESSOR]** | Agora ligue E até C. |  | | |
+| `estacao.diagonais.proximoVertice` **[REVISAR-PROFESSOR]** | Agora aponte para o vértice {0}. |  | | |
+| `estacao.diagonais.verticeErrado` **[REVISAR-PROFESSOR]** | Esse é o vértice {0}. Procure o {1}. |  | | |
+| `estacao.diagonais.contaDaBase` **[REVISAR-PROFESSOR]** | d² = {0} + {1} |  | | |
+| `estacao.diagonais.resultadoDaBase` **[REVISAR-PROFESSOR]** | d = {0} |  | | |
+| `estacao.diagonais.contaDaDiagonal` **[REVISAR-PROFESSOR]** | D² = {0} + {1} = {2} |  | | |
+| `estacao.diagonais.incognita` **[REVISAR-PROFESSOR]** | D = ? |  | | |
+| `estacao.diagonais.acerto` **[REVISAR-PROFESSOR]** | Isso! D = {0}. |  | | |
+| `estacao.diagonais.dica.semRaiz` **[REVISAR-PROFESSOR]** | {0} é D². Falta tirar a raiz. |  | | |
+| `estacao.diagonais.dica.somou` **[REVISAR-PROFESSOR]** | {0} é a + b + c. Some os quadrados, não as medidas. |  | | |
+| `estacao.diagonais.dica.diagonalDaBase` **[REVISAR-PROFESSOR]** | {0} é a diagonal d da base. Falta usar a altura c. |  | | |
+| `estacao.diagonais.dica.geral` **[REVISAR-PROFESSOR]** | Ainda não. Use D² = d² + c² e tire a raiz. |  | | |
+| `estacao.diagonais.concluida` **[REVISAR-PROFESSOR]** | Estação concluída! |  | | |
+| `estacao.diagonais.formulaGeral` **[REVISAR-PROFESSOR]** | D = √(a² + b² + c²) |  | | |
+| `estacao.diagonais.proximoDesafio` **[REVISAR-PROFESSOR]** | Próximo desafio |  | | |
+| `estacao.diagonais.refazer` **[REVISAR-PROFESSOR]** | Refazer |  | | |
+| `estacao.diagonais.rotulo` **[REVISAR-PROFESSOR]** | {0} = {1} |  | | |
+
+## 2. Demais textos (37)
+
+Textos mais antigos ou de interface (títulos, botões, painel de diagnóstico). Vale uma conferência geral.
 
 | Chave | Texto | Ok? | Sugestão |
 |---|---|---|---|
 | `app.titulo` | Laboratório do Paralelepípedo | | |
 | `app.creditos` | Desenvolvido por NumbERS · IFG – Câmpus Inhumas | | |
 | `app.versao` | Versão {0} | | |
-| `abertura.comecar` | Começar | | |
 | `diagnostico.titulo` | Diagnóstico dos controles (para o professor) | | |
 | `geral.acerto` | Muito bem! | | |
 | `geral.erro` | Ainda não. Tente de novo! | | |
@@ -31,83 +116,19 @@ Observações gerais:
 | `controles.teleporte` | <b>Analógico para a frente</b>: mire no chão e solte para ir até lá. | | |
 | `controles.giro` | <b>Analógico para o lado</b>: virar. | | |
 | `dica.pegar` | Segure o botão lateral para pegar | | |
-| `dica.escolher` | Aperte o gatilho para escolher | | |
 | `dica.teleporteValido` | Solte para ir até lá | | |
 | `dica.teleporteInvalido` | Aqui não dá | | |
-| `estacao.elementos.titulo` | Estação 1 · Elementos | | |
-| `estacao.elementos.objetivo` | Conheça os elementos da caixa: vértices, arestas e faces. | | |
-| `estacao.elementos.desafio` | Desafio {0} de {1} | | |
-| `estacao.elementos.tocados` | Vértices: {0} | | |
 | `estacao.elementos.faceMontada` | Você montou a face {0}! | | |
-| `estacao.elementos.naoEhFace` | Esse vértice não continua a face. Tente outro. | | |
-| `estacao.elementos.foraDaFace` | O vértice {0} não é da face {1}. Tente outro. | | |
-| `estacao.elementos.ajuda` | Os vértices que pulsam formam a face. | | |
-| `estacao.elementos.acerto` | Isso! São {0}. | | |
-| `estacao.elementos.dica.vertices` | {0} é o número de vértices, os cantos da caixa. | | |
-| `estacao.elementos.dica.arestas` | {0} é o número de arestas, os segmentos que ligam os vértices. | | |
-| `estacao.elementos.dica.faces` | {0} é o número de faces, as partes planas da caixa. | | |
-| `estacao.elementos.dica.arestasEscondidas` | {0} são só as arestas que dá para ver daqui. Pegue a caixa e gire: há arestas escondidas atrás. | | |
-| `estacao.elementos.dica.semAsBases` | {0} são só as faces dos lados. Faltaram a face de cima e a de baixo. | | |
-| `estacao.elementos.dica.geral` | Ainda não. Conte de novo, com calma. Pegue a caixa e gire para ver todos os lados. | | |
-| `estacao.elementos.concluida` | Estação concluída! | | |
-| `estacao.elementos.resumo` | A caixa tem {0} vértices, {1} arestas e {2} faces. | | |
-| `estacao.elementos.proximaEstacao` | Ir para a Estação 2 | | |
-| `estacao.elementos.refazer` | Refazer | | |
-| `estacao.diagonais.titulo` | Estação 2 · Diagonais | | |
 | `estacao.diagonais.instrucao` | Trace a diagonal da base e veja o triângulo se levantar. | | |
 | `estacao.diagonais.formulaDaBase` | d² = a² + b² | | |
 | `estacao.diagonais.formulaDaDiagonal` | D² = d² + c² | | |
 | `estacao.diagonais.triangulo` | O triângulo de lados d, c e D é retângulo. Use Pitágoras! | | |
-| `estacao.diagonais.objetivo` | Descubra quanto mede a diagonal D da caixa, de um canto ao canto oposto. | | |
-| `estacao.diagonais.dimensoes` | a = {0}    b = {1}    c = {2} | | |
-| `estacao.diagonais.passo1` | Aponte para o vértice E e aperte o gatilho. Depois, para o G. | | |
-| `estacao.diagonais.passo2` | Agora ligue E até C. | | |
-| `estacao.diagonais.proximoVertice` | Agora aponte para o vértice {0}. | | |
-| `estacao.diagonais.verticeErrado` | Esse é o vértice {0}. Procure o {1}. | | |
-| `estacao.diagonais.contaDaBase` | d² = {0} + {1} | | |
-| `estacao.diagonais.resultadoDaBase` | d = {0} | | |
-| `estacao.diagonais.contaDaDiagonal` | D² = {0} + {1} = {2} | | |
-| `estacao.diagonais.incognita` | D = ? | | |
-| `estacao.diagonais.acerto` | Isso! D = {0}. | | |
-| `estacao.diagonais.dica.semRaiz` | {0} é D². Falta tirar a raiz. | | |
-| `estacao.diagonais.dica.somou` | {0} é a + b + c. Some os quadrados, não as medidas. | | |
-| `estacao.diagonais.dica.diagonalDaBase` | {0} é a diagonal d da base. Falta usar a altura c. | | |
-| `estacao.diagonais.dica.geral` | Ainda não. Use D² = d² + c² e tire a raiz. | | |
-| `estacao.diagonais.concluida` | Estação concluída! | | |
-| `estacao.diagonais.formulaGeral` | D = √(a² + b² + c²) | | |
-| `estacao.diagonais.proximoDesafio` | Próximo desafio | | |
-| `estacao.diagonais.refazer` | Refazer | | |
-| `estacao.diagonais.rotulo` | {0} = {1} | | |
-| `estacao.diagonais.proximaEstacao` | Ir para a Estação 3 | | |
-| `estacao.areas.titulo` | Estação 3 · Áreas | | |
-| `estacao.areas.instrucao` | Aperte “Abrir a caixa” para ver as 6 faces abertas. | | |
 | `estacao.areas.abrir` | Abrir a caixa | | |
 | `estacao.areas.fechar` | Fechar a caixa | | |
 | `estacao.areas.pares` | Faces da mesma cor são paralelas e têm a mesma área. | | |
 | `estacao.areas.formulaDaBase` | A<sub>b</sub> = a · b | | |
 | `estacao.areas.formulaLateral` | A<sub>L</sub> = 2(ac + bc) | | |
 | `estacao.areas.formulaTotal` | A<sub>T</sub> = 2(ab + ac + bc) | | |
-| `estacao.areas.objetivo` | Descubra a área da base, a área lateral e a área total da caixa. | | |
-| `estacao.areas.paresInstrucao` | Toque uma face. A face paralela a ela acende junto. | | |
-| `estacao.areas.parEncontrado` | {0} e {1} são paralelas e têm a mesma área: {2}. | | |
-| `estacao.areas.paresContagem` | Pares encontrados: {0} de {1} | | |
-| `estacao.areas.pergunta` | Pergunta {0} de {1} | | |
-| `estacao.areas.ladosDaFace` | {0} × {1} | | |
-| `estacao.areas.areaDaFace` | {0} · {1} = {2} | | |
-| `estacao.areas.acerto` | Isso! | | |
-| `estacao.areas.contaDaBase` | A<sub>b</sub> = a · b = {0} · {1} = {2} | | |
-| `estacao.areas.contaLateral` | A<sub>L</sub> = 2(ac + bc) = 2({0} + {1}) = {2} | | |
-| `estacao.areas.contaTotal` | A<sub>T</sub> = 2(ab + ac + bc) = 2({0} + {1} + {2}) = {3} | | |
-| `estacao.areas.dica.volume` | {0} é o volume (a · b · c), não uma área. | | |
-| `estacao.areas.dica.somou` | {0} é a + b. A área do retângulo multiplica: a · b. | | |
-| `estacao.areas.dica.perimetro` | {0} é o perímetro da base, a volta dela. A área é a · b. | | |
-| `estacao.areas.dica.comAsBases` | {0} inclui as duas bases. A área lateral é só a das 4 faces dos lados. | | |
-| `estacao.areas.dica.semDobrar` | {0} conta uma face de cada par. Cada par tem 2 faces iguais: falta dobrar. | | |
-| `estacao.areas.dica.soLateral` | {0} é só a área lateral. Faltaram as duas bases. | | |
-| `estacao.areas.dica.faltouPar` | {0} deixa um par de faces de fora. São 3 pares. | | |
-| `estacao.areas.dica.geral` | Ainda não. Use as áreas dos pares que você encontrou. | | |
-| `estacao.areas.concluida` | Estação concluída! | | |
-| `estacao.areas.refazer` | Refazer | | |
 | `estacao.volume.titulo` | 4. Volume | | |
 | `estacao.volume.instrucao` | Encha a caixa com cubinhos, camada por camada. | | |
 | `estacao.volume.encher` | Encher a caixa | | |
@@ -118,7 +139,7 @@ Observações gerais:
 | `estacao.volume.formula` | V = A<sub>b</sub> · c = a · b · c | | |
 | `estacao.volume.ressalva` | Atenção: as medidas desta caixa não são todas inteiras, e os cubinhos de aresta 1 não a preenchem exatamente. Eles são só um exemplo. A fórmula V = a · b · c vale para quaisquer medidas. | | |
 
-## 2. Desafios
+## 3. Desafios
 
 ### 1. Elementos (BNCC EF06MA17)
 
