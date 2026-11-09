@@ -28,7 +28,7 @@ namespace LaboratorioParalelepipedo.Editor
         public const string PackageName = "br.edu.ifg.laboratorioparalelepipedo";
         public const string NomeDoProduto = "Laboratório do Paralelepípedo";
         public const string NomeDaEmpresa = "NumbERS IFG";
-        public const string Versao = "0.3.0";
+        public const string Versao = "0.3.1";
 
         public const string CaminhoDoPerfil = "Assets/Settings/Build Profiles/Meta Quest.asset";
         public const string CaminhoDosTextos = "Assets/_Projeto/Dados/textos.json";
