@@ -105,14 +105,31 @@ terceiros.
   - Diagnóstico para o professor num painel próprio, à direita, **escondido**: abre e fecha com os **dois
     analógicos afundados por 3 s** (`AtalhoDoDiagnostico`). Mostra versão, eventos da recentralização, controles
     e erros. A versão aparece sempre também nos créditos.
-  - Estação 2 · Diagonais (`Nucleo/Estacoes/EstacaoDasDiagonais`, 0.3.0): "Começar" no painel do título leva
-    direto a ela. Usa só os desafios de diagonais cuja grandeza é a diagonal D, na ordem do JSON, e volta ao
+  - Estação 1 · Elementos (`Nucleo/Estacoes/EstacaoDosElementos`, 0.4.0): "Começar" no painel do título leva a
+    ela; o fechamento ("Ir para a Estação 2") leva à Estação 2, no mesmo lugar do painel. Usa os desafios de
+    montar face e de contagem da estação de elementos, na ordem do JSON, todos com a caixa 4 × 3 × 2. Montar face:
+    vale qualquer vértice inicial e os dois sentidos, a face fica pronta no 4º vértice; vértice que não continua a
+    face pisca laranja com uma dica e **só esse toque é descartado** (os certos ficam). Nada pulsa no começo; depois
+    de **2 erros seguidos**, pulsam os 4 vértices da face pedida (ou de uma face que continua o que já foi tocado,
+    quando vale qualquer face), sem indicar a ordem. A face pronta fica com a cor do par e o nome no meio. Contagens:
+    opções embaralhadas, cada distrator com a dica do erro que imita (`DicaDaContagem`: outro elemento, só as 9
+    arestas visíveis, só as 4 faces laterais). Na caixa, só as letras dos vértices (sem medidas). "Refazer" refaz a
+    estação inteira. Sem exploração livre de vértices, arestas e faces.
+  - Estação 2 · Diagonais (`Nucleo/Estacoes/EstacaoDasDiagonais`, 0.3.0): chega-se a ela pelo fechamento da
+    Estação 1. Usa só os desafios de diagonais cuja grandeza é a diagonal D, na ordem do JSON, e volta ao
     primeiro depois do último. Ligar E–G e depois E–C, nos dois sentidos; vértice errado pisca laranja com uma
     dica, sem penalidade. Pergunta com as opções embaralhadas; cada distrator tem uma dica própria (D², a + b + c,
     diagonal da base ou geral). O vértice pedido pulsa. Painel da estação à direita da caixa, a 1,25 m e virado
     para o aluno: instrução em destaque no alto, medidas, contas de d e D em duas colunas grandes; o fundo cresce
     conforme o conteúdo. No acerto, só o botão certo fica verde. Os rótulos da caixa usam o shader Overlay do
     TextMeshPro (aparecem através das faces; a tela escura continua por cima).
+  - **[REVISAR-PROFESSOR] textos novos da 0.4.0** (rascunhos meus, em `Docs/revisao-pedagogica.md`):
+    `estacao.elementos.titulo` (mudou para "Estação 1 · Elementos"), `.objetivo`, `.desafio`, `.tocados`,
+    `.naoEhFace` (mudou: "Esse vértice não continua a face. Tente outro."), `.foraDaFace`, `.ajuda`, `.acerto`,
+    `.dica.vertices`, `.dica.arestas`, `.dica.faces`, `.dica.arestasEscondidas`, `.dica.semAsBases`, `.dica.geral`,
+    `.concluida`, `.resumo`, `.proximaEstacao`, `.refazer`.
+  - **Pendências futuras:** (1) desafio de faces paralelas congruentes na Estação 1 ("Qual face é paralela a
+    ABFE?"); (2) botão "Escolher estação" no título quando houver 3 ou mais estações.
   - Caixa girada **20°** na mesa (`GeradorDaCena.GiroDaCaixaNaMesa`), para os 8 vértices ficarem separados da
     posição inicial em todas as caixas da estação (com 30°, A cobriria C na 2×3×6). Título acima dos rótulos B e C
     (olhos de 1,3 m a 1,7 m); painel de controles inteiro na vista inicial (bordas a menos de 45°).
