@@ -33,6 +33,18 @@ namespace LaboratorioParalelepipedo.Editor
         private const float AlturaDaParede = 3f;
         private const float EspessuraDaParede = 0.1f;
         private static readonly Vector3 CentroDaMesa = new Vector3(0f, 0f, 1.0f);
+
+        /// <summary>
+        /// Giro da caixa na mesa, em graus, em torno do eixo vertical (o fundo vai para a direita): da origem, o aluno
+        /// vê a frente e a face da esquerda e os 8 vértices separados. 20° separa por ao menos 6,8 cm os vértices de
+        /// todas as caixas da estação de diagonais (2×3×6, 3×4×12, 2×2×2); com 30°, A cobriria C na 2×3×6 (a diagonal
+        /// AC da base, de 33,7°, ficaria quase na linha do olhar). A convenção dos vértices não muda.
+        /// </summary>
+        public const float GiroDaCaixaNaMesa = 20f;
+
+        /// <summary>Distância e direção (graus, + à direita) dos painéis laterais, a partir da origem do aluno.</summary>
+        private const float DistanciaDaEstacao = 1.25f, DirecaoDaEstacao = 38f;
+        private const float DistanciaDosControles = 1.45f, DirecaoDosControles = -31f;
         private static readonly Vector3 TamanhoDoTampo = new Vector3(1.2f, 0.04f, 0.8f);
         private const float AlturaDoTampo = 0.76f;
         private const float LadoDoPe = 0.05f;
@@ -80,9 +92,10 @@ namespace LaboratorioParalelepipedo.Editor
             RecentralizacaoDoAluno recentralizacao = CriarInteracao(instanciaDoRig, dados, fonte);
 
             // Título com "Começar" ao fundo, acima da caixa; estação à direita da mesa; controles à esquerda.
-            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.85f, 2.3f), new Vector2(1.6f, 0.72f), dados, fonte,
+            // Alto o bastante para não encostar nos rótulos B e C (topo da caixa) com olhos de 1,3 m a 1,7 m.
+            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 2.1f, 2.3f), new Vector2(1.4f, 0.72f), dados, fonte,
                 (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.2f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, 0.05f));
-            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.48f);
+            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.28f);
             BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
                 dados, fonte, ChavesDeTexto.AberturaComecar, principal: true);
             EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, comecar);
@@ -201,7 +214,9 @@ namespace LaboratorioParalelepipedo.Editor
             Material destacada = MaterialOpaco("ArestaDestacada", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul);
 
             var objeto = new GameObject("Caixa");
-            objeto.transform.position = CentroDaMesa + Vector3.up * AlturaDoTampo;
+            // 2 mm acima do tampo: a face de baixo, translúcida, brigava com o tampo pela profundidade (z-fighting).
+            objeto.transform.SetPositionAndRotation(CentroDaMesa + Vector3.up * (AlturaDoTampo + 0.002f),
+                Quaternion.Euler(0f, GiroDaCaixaNaMesa, 0f));   // a CaixaPegavel guarda esta orientação para a volta
             var visual = objeto.AddComponent<VisualDaCaixa>();
             visual.Configurar(aresta, face, vertice, fonte, MaterialDoRotuloSobreposto(fonte));
             visual.Construir(caixa);
@@ -246,57 +261,100 @@ namespace LaboratorioParalelepipedo.Editor
         private static Color ComOpacidade(Color cor, float opacidade) => new Color(cor.r, cor.g, cor.b, opacidade);
 
         /// <summary>
-        /// Estação 2: painel à direita da mesa, virado para o aluno, com o texto da estação no alto e os botões da
-        /// pergunta (2 × 2) e do fechamento embaixo. Escondido até "Começar".
+        /// Estação 2: painel à direita da caixa, perto e virado para o aluno. De cima para baixo: título pequeno,
+        /// instrução em destaque, objetivo e medidas, contas de d e de D em duas colunas grandes e os botões da
+        /// pergunta (2 × 2) ou do fechamento. Escondido até "Começar".
         /// </summary>
         private static EstacaoDasDiagonaisNaCena CriarEstacaoDasDiagonais(DadosDoLaboratorio dados, TMP_FontAsset fonte,
             CaixaPegavel caixa, BotaoDoPainel comecar)
         {
-            var tamanho = new Vector2(1.2f, 1.25f);
+            // Perto (1,25 m), virado para o aluno, à direita da caixa; compacto: instrução, medidas, contas, botões.
+            var tamanho = new Vector2(0.9f, 0.86f);
             var painel = new GameObject("PainelEstacao").transform;
-            painel.position = new Vector3(1.15f, 1.45f, 1.45f);   // a borda de dentro não cobre o título
-            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
-            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
+            painel.SetPositionAndRotation(NaFrenteDoAluno(DistanciaDaEstacao, DirecaoDaEstacao, 1.3f),
+                Quaternion.Euler(0f, DirecaoDaEstacao, 0f));
             Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
                 MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+            Transform fundo = painel.Find("Fundo");
 
-            var objeto = new GameObject("TextoDaEstacao", typeof(RectTransform));
-            objeto.transform.SetParent(painel, false);
-            objeto.transform.localPosition = new Vector3(0f, 0.17f, 0f);
-            var texto = objeto.AddComponent<TextMeshPro>();
-            texto.font = fonte;
-            texto.fontSize = 0.38f;
-            texto.color = PaletaDoLaboratorio.Texto;
-            texto.alignment = TextAlignmentOptions.TopLeft;
-            texto.textWrappingMode = TextWrappingModes.Normal;
-            texto.richText = true;
-            texto.rectTransform.sizeDelta = new Vector2(tamanho.x - 0.12f, 0.8f);
-            texto.text = string.Empty;
+            const float margem = 0.04f;
+            float largura = tamanho.x - 2 * margem;
+            float topo = tamanho.y / 2 - margem;
+            TextMeshPro TextoDaEstacao(string nome, float y, float altura, float x, float larguraDoTexto, float letra,
+                Color cor, TextAlignmentOptions alinhamento, float letraMinima)
+            {
+                var objeto = new GameObject(nome, typeof(RectTransform));
+                objeto.transform.SetParent(painel, false);
+                objeto.transform.localPosition = new Vector3(x, y - altura / 2, 0f);
+                var texto = objeto.AddComponent<TextMeshPro>();
+                texto.font = fonte;
+                texto.fontSize = letra;
+                texto.color = cor;
+                texto.alignment = alinhamento;
+                texto.textWrappingMode = TextWrappingModes.Normal;
+                texto.richText = true;
+                texto.enableAutoSizing = true;   // reduz a letra só se o texto não couber (nunca corta)
+                texto.fontSizeMin = letraMinima;
+                texto.fontSizeMax = letra;
+                texto.rectTransform.sizeDelta = new Vector2(larguraDoTexto, altura);
+                texto.text = string.Empty;
+                return texto;
+            }
+
+            // Título pequeno no canto; logo abaixo, a instrução em destaque (grande, negrito, azul).
+            TextMeshPro tituloDaEstacao = TextoDaEstacao("TituloDaEstacao", topo, 0.05f, 0f, largura, 0.28f,
+                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.2f);
+            var doCatalogo = tituloDaEstacao.gameObject.AddComponent<TextoDoCatalogo>();
+            doCatalogo.Configurar(dados, tituloDaEstacao, ChavesDeTexto.DiagonaisTitulo);
+            doCatalogo.Atualizar();
+            TextMeshPro instrucao = TextoDaEstacao("Instrucao", topo - 0.055f, 0.15f, 0f, largura, 0.6f,
+                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.3f);
+            instrucao.fontStyle = FontStyles.Bold;
+            TextMeshPro texto = TextoDaEstacao("TextoDaEstacao", topo - 0.21f, 0.13f, 0f, largura, 0.3f,
+                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.22f);
+            // As contas, o conteúdo principal: d à esquerda (azul), D à direita (laranja), letra grande.
+            float coluna = largura / 2 - 0.01f;
+            TextMeshPro contasDaBase = TextoDaEstacao("ContasDaBase", topo - 0.345f, 0.19f, -largura / 4, coluna, 0.46f,
+                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.32f);
+            TextMeshPro contasDaDiagonal = TextoDaEstacao("ContasDaDiagonal", topo - 0.345f, 0.19f, largura / 4, coluna, 0.46f,
+                PaletaDoLaboratorio.DestaqueLaranja, TextAlignmentOptions.TopLeft, 0.32f);
+            // As duas colunas com a mesma letra (sem auto-ajuste): a conta mais longa só passa um pouco da coluna.
+            foreach (TextMeshPro conta in new[] { contasDaBase, contasDaDiagonal })
+            {
+                conta.enableAutoSizing = false;
+                conta.fontSize = 0.46f;
+                conta.textWrappingMode = TextWrappingModes.NoWrap;
+                conta.overflowMode = TextOverflowModes.Overflow;
+            }
 
             var opcoes = new BotaoDoPainel[4];
+            var tamanhoDaOpcao = new Vector2(largura / 2 - 0.02f, 0.11f);
             for (int i = 0; i < opcoes.Length; i++)
             {
-                float x = i % 2 == 0 ? -0.29f : 0.29f;
-                float y = i < 2 ? -0.35f : -0.51f;
-                opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), new Vector2(0.52f, 0.13f), dados, fonte,
+                float x = (i % 2 == 0 ? -1 : 1) * largura / 4;
+                float y = i < 2 ? -0.21f : -0.335f;
+                opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), tamanhoDaOpcao, dados, fonte,
                     null, principal: false);
                 opcoes[i].gameObject.SetActive(false);
             }
 
-            BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-0.29f, -0.43f, 0f),
-                new Vector2(0.52f, 0.14f), dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
-            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(0.29f, -0.43f, 0f),
-                new Vector2(0.52f, 0.14f), dados, fonte, ChavesDeTexto.DiagonaisRefazer, principal: false);
+            BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-largura / 4, -0.27f, 0f),
+                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.27f, 0f),
+                tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisRefazer, principal: false);
             proximo.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
             painel.gameObject.SetActive(false);
+            float topoDoFundo = tamanho.y / 2;
 
             var estacao = new GameObject("EstacaoDasDiagonais").AddComponent<EstacaoDasDiagonaisNaCena>();
             estacao.Configurar(dados, caixa.GetComponent<VisualDaCaixa>(), caixa, caixa.GetComponent<DesenhoDasDiagonais>(),
-                comecar, painel.gameObject, texto, opcoes, proximo, refazer,
+                comecar, painel.gameObject, instrucao, texto, contasDaBase, contasDaDiagonal, opcoes, proximo, refazer,
                 AssetDatabase.LoadAssetAtPath<Material>($"{PastaDosMateriais}/Vertice.mat"),
                 MaterialOpaco("VerticeApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
                 MaterialOpaco("VerticeErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja));
+            estacao.ConfigurarFundo(fundo, topoDoFundo, baseSoTexto: topo - 0.34f - margem,
+                baseComContas: topo - 0.535f - margem, baseComBotoes: -tamanho.y / 2);
             return estacao;
         }
 
@@ -335,6 +393,9 @@ namespace LaboratorioParalelepipedo.Editor
             texto.fontStyle = FontStyles.Bold;
             texto.alignment = TextAlignmentOptions.Center;
             texto.textWrappingMode = TextWrappingModes.NoWrap;
+            texto.enableAutoSizing = true;   // reduz só se não couber no botão
+            texto.fontSizeMin = 0.3f;
+            texto.fontSizeMax = 0.5f;
             texto.rectTransform.sizeDelta = tamanho - new Vector2(0.04f, 0.02f);
             texto.text = chave ?? string.Empty;
             if (chave != null)
@@ -460,11 +521,11 @@ namespace LaboratorioParalelepipedo.Editor
         /// </summary>
         private static void CriarPainelDeInstrucoes(DadosDoLaboratorio dados, TMP_FontAsset fonte)
         {
-            var tamanho = new Vector2(1.0f, 0.62f);
+            // Estreito e perto do centro: inteiro na vista inicial, sem cobrir o título nem a caixa.
+            var tamanho = new Vector2(0.7f, 0.6f);
             var painel = new GameObject("PainelInstrucoes").transform;
-            painel.position = new Vector3(-1.05f, 1.45f, 1.45f);   // a borda de dentro não cobre o título
-            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
-            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);   // virado para o aluno
+            painel.SetPositionAndRotation(NaFrenteDoAluno(DistanciaDosControles, DirecaoDosControles, 1.35f),
+                Quaternion.Euler(0f, DirecaoDosControles, 0f));   // virado para o aluno
             Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
                 MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
 
@@ -477,13 +538,23 @@ namespace LaboratorioParalelepipedo.Editor
             titulo.GetComponent<TextoDoCatalogo>().Atualizar();
 
             float alturaDoCorpo = tamanho.y - 2 * margem - 0.12f;
-            TextMeshPro corpo = TextoDoPainel(painel, "Controles", fonte, TamanhoDoCorpo * 0.8f,
+            TextMeshPro corpo = TextoDoPainel(painel, "Controles", fonte, TamanhoDoCorpo * 0.7f,
                 new Vector3(0f, -tamanho.y / 2 + margem + alturaDoCorpo / 2, 0f),
                 new Vector2(tamanho.x - 2 * margem, alturaDoCorpo), TextAlignmentOptions.TopLeft);
             corpo.paragraphSpacing = 12f;
+            corpo.enableAutoSizing = true;   // nunca corta: reduz a letra se o texto do JSON crescer
+            corpo.fontSizeMin = TamanhoDoCorpo * 0.5f;
+            corpo.fontSizeMax = TamanhoDoCorpo * 0.7f;
             var controles = corpo.GetComponent<TextoDoCatalogo>();
             controles.Configurar(dados, corpo, TextosDosControles.Chaves(AcoesDisponiveis()));
             controles.Atualizar();
+        }
+
+        /// <summary>Ponto a <paramref name="distancia"/> m da origem, na direção dada (graus, + à direita), na altura y.</summary>
+        private static Vector3 NaFrenteDoAluno(float distancia, float direcao, float y)
+        {
+            float rad = direcao * Mathf.Deg2Rad;
+            return new Vector3(Mathf.Sin(rad) * distancia, y, Mathf.Cos(rad) * distancia);
         }
 
         private static TextMeshPro TextoDoPainel(Transform painel, string nome, TMP_FontAsset fonte, float tamanhoDaLetra,
