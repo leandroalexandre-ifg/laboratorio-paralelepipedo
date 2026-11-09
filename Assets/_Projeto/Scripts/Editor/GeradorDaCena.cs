@@ -98,12 +98,14 @@ namespace LaboratorioParalelepipedo.Editor
             CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.28f);
             BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
                 dados, fonte, ChavesDeTexto.AberturaComecar, principal: true);
-            EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, comecar);
-            instanciaDoRig.AddComponent<VibracaoDoAcerto>().Configurar(estacao);
+            // "Começar" leva à Estação 1; o fechamento dela leva à Estação 2 (mesmo lugar do painel).
+            EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, null);
+            EstacaoDosElementosNaCena elementos = CriarEstacaoDosElementos(dados, fonte, caixa, comecar, estacao);
+            instanciaDoRig.AddComponent<VibracaoDoAcerto>().Configurar(estacao, elementos);
 
             CriarPainelDeInstrucoes(dados, fonte);
             Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
-            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig, estacao);
+            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig, estacao, elementos);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -199,10 +201,10 @@ namespace LaboratorioParalelepipedo.Editor
             }
         }
 
-        /// <summary>Caixa do primeiro desafio da Estação 2 (2 × 3 × 6 no desafios.json atual).</summary>
+        /// <summary>Caixa do primeiro desafio da Estação 1 (4 × 3 × 2 no desafios.json atual), a que o aluno vê ao entrar.</summary>
         private static Paralelepipedo PrimeiraCaixaDaEstacao(TextAsset desafios)
         {
-            var daEstacao = Nucleo.Estacoes.EstacaoDasDiagonais.DesafiosDaEstacao(CarregadorDeDados.CarregarDesafios(desafios));
+            var daEstacao = Nucleo.Estacoes.EstacaoDosElementos.DesafiosDaEstacao(CarregadorDeDados.CarregarDesafios(desafios));
             return daEstacao.Count > 0 ? daEstacao[0].Caixa : new Paralelepipedo(4, 3, 2);
         }
 
@@ -237,6 +239,14 @@ namespace LaboratorioParalelepipedo.Editor
                 MaterialTranslucido("TrianguloLevantado", ComOpacidade(PaletaDoLaboratorio.DestaqueLaranja, 0.3f)),
                 MaterialTranslucido("BaseDestacada", ComOpacidade(PaletaDoLaboratorio.BasesEscuro, 0.3f)),
                 MaterialOpaco("MarcaDeAnguloReto", ShaderUnlit, PaletaDoLaboratorio.Texto), fonte);
+
+            // Estação 1: arestas da face em montagem e a face pronta com a cor do par dela.
+            objeto.AddComponent<DesenhoDaFace>().Configurar(visual,
+                MaterialOpaco("ArestaDaFace", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
+                MaterialTranslucido("FaceMontadaBases", ComOpacidade(PaletaDoLaboratorio.BasesClaro, OpacidadeDaFaceMontada)),
+                MaterialTranslucido("FaceMontadaFrenteEFundo", ComOpacidade(PaletaDoLaboratorio.FrenteEFundoClaro, OpacidadeDaFaceMontada)),
+                MaterialTranslucido("FaceMontadaEsquerdaEDireita",
+                    ComOpacidade(PaletaDoLaboratorio.EsquerdaEDireitaClaro, OpacidadeDaFaceMontada)), fonte);
             return pegavel;
         }
 
@@ -258,7 +268,119 @@ namespace LaboratorioParalelepipedo.Editor
             return material;
         }
 
+        private const float OpacidadeDaFaceMontada = 0.85f;
+
         private static Color ComOpacidade(Color cor, float opacidade) => new Color(cor.r, cor.g, cor.b, opacidade);
+
+        private static readonly Vector2 TamanhoDoPainelDaEstacao = new Vector2(0.9f, 0.86f);
+        private const float MargemDaEstacao = 0.04f;
+        private static float LarguraUtilDaEstacao => TamanhoDoPainelDaEstacao.x - 2 * MargemDaEstacao;
+        private static float TopoDaEstacao => TamanhoDoPainelDaEstacao.y / 2 - MargemDaEstacao;
+
+        /// <summary>
+        /// Painel de uma estação, perto (1,25 m), à direita da caixa e virado para o aluno, escondido até a estação
+        /// começar: fundo, título pequeno no canto e, logo abaixo, a instrução em destaque (grande, negrito, azul).
+        /// As Estações 1 e 2 usam o mesmo lugar (só uma fica à vista).
+        /// </summary>
+        private static Transform PainelDaEstacao(string nome, DadosDoLaboratorio dados, TMP_FontAsset fonte, string chaveDoTitulo,
+            out Transform fundo, out TextMeshPro instrucao, float alturaDaInstrucao)
+        {
+            Vector2 tamanho = TamanhoDoPainelDaEstacao;
+            var painel = new GameObject(nome).transform;
+            painel.SetPositionAndRotation(NaFrenteDoAluno(DistanciaDaEstacao, DirecaoDaEstacao, 1.3f),
+                Quaternion.Euler(0f, DirecaoDaEstacao, 0f));
+            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+            fundo = painel.Find("Fundo");
+
+            float largura = LarguraUtilDaEstacao, topo = TopoDaEstacao;
+            TextMeshPro tituloDaEstacao = TextoDaEstacao(painel, fonte, "TituloDaEstacao", topo, 0.05f, 0f, largura, 0.28f,
+                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.2f);
+            var doCatalogo = tituloDaEstacao.gameObject.AddComponent<TextoDoCatalogo>();
+            doCatalogo.Configurar(dados, tituloDaEstacao, chaveDoTitulo);
+            doCatalogo.Atualizar();
+            instrucao = TextoDaEstacao(painel, fonte, "Instrucao", topo - 0.055f, alturaDaInstrucao, 0f, largura, 0.6f,
+                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.3f);
+            instrucao.fontStyle = FontStyles.Bold;
+            return painel;
+        }
+
+        private static TextMeshPro TextoDaEstacao(Transform painel, TMP_FontAsset fonte, string nome, float y, float altura,
+            float x, float larguraDoTexto, float letra, Color cor, TextAlignmentOptions alinhamento, float letraMinima)
+        {
+            var objeto = new GameObject(nome, typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            objeto.transform.localPosition = new Vector3(x, y - altura / 2, 0f);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = letra;
+            texto.color = cor;
+            texto.alignment = alinhamento;
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.richText = true;
+            texto.enableAutoSizing = true;   // reduz a letra só se o texto não couber (nunca corta)
+            texto.fontSizeMin = letraMinima;
+            texto.fontSizeMax = letra;
+            texto.rectTransform.sizeDelta = new Vector2(larguraDoTexto, altura);
+            texto.text = string.Empty;
+            return texto;
+        }
+
+        /// <summary>Botões da pergunta, 2 × 2, escondidos.</summary>
+        private static BotaoDoPainel[] OpcoesDaEstacao(Transform painel, DadosDoLaboratorio dados, TMP_FontAsset fonte)
+        {
+            float largura = LarguraUtilDaEstacao;
+            var opcoes = new BotaoDoPainel[4];
+            for (int i = 0; i < opcoes.Length; i++)
+            {
+                float x = (i % 2 == 0 ? -1 : 1) * largura / 4;
+                float y = i < 2 ? -0.21f : -0.335f;
+                opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), TamanhoDoBotaoDaEstacao, dados, fonte,
+                    null, principal: false);
+                opcoes[i].gameObject.SetActive(false);
+            }
+            return opcoes;
+        }
+
+        private static Vector2 TamanhoDoBotaoDaEstacao => new Vector2(LarguraUtilDaEstacao / 2 - 0.02f, 0.11f);
+
+        /// <summary>
+        /// Estação 1: no painel da estação (o mesmo lugar da Estação 2), de cima para baixo: título pequeno, instrução
+        /// em destaque (o enunciado, a dica ou o acerto), objetivo e número do desafio, vértices tocados em letra
+        /// grande e os botões da pergunta (2 × 2) ou do fechamento. Escondido até "Começar".
+        /// </summary>
+        private static EstacaoDosElementosNaCena CriarEstacaoDosElementos(DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            CaixaPegavel caixa, BotaoDoPainel comecar, EstacaoDasDiagonaisNaCena proxima)
+        {
+            Transform painel = PainelDaEstacao("PainelEstacaoDosElementos", dados, fonte, ChavesDeTexto.ElementosTitulo,
+                out Transform fundo, out TextMeshPro instrucao, 0.17f);
+            float largura = LarguraUtilDaEstacao, topo = TopoDaEstacao;
+            TextMeshPro texto = TextoDaEstacao(painel, fonte, "TextoDaEstacao", topo - 0.235f, 0.1f, 0f, largura, 0.3f,
+                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.22f);
+            TextMeshPro tocados = TextoDaEstacao(painel, fonte, "Tocados", topo - 0.345f, 0.11f, 0f, largura, 0.6f,
+                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.4f);
+            tocados.fontStyle = FontStyles.Bold;
+            tocados.textWrappingMode = TextWrappingModes.NoWrap;
+
+            BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte);
+            BotaoDoPainel irParaAProxima = CriarBotao(painel, "BotaoIrParaAEstacao2", new Vector3(-largura / 4, -0.27f, 0f),
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosProximaEstacao, principal: true);
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.27f, 0f),
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.ElementosRefazer, principal: false);
+            irParaAProxima.gameObject.SetActive(false);
+            refazer.gameObject.SetActive(false);
+            painel.gameObject.SetActive(false);
+
+            var estacao = new GameObject("EstacaoDosElementos").AddComponent<EstacaoDosElementosNaCena>();
+            estacao.Configurar(dados, caixa.GetComponent<VisualDaCaixa>(), caixa, caixa.GetComponent<DesenhoDaFace>(), proxima,
+                comecar, painel.gameObject, instrucao, texto, tocados, opcoes, irParaAProxima, refazer,
+                AssetDatabase.LoadAssetAtPath<Material>($"{PastaDosMateriais}/Vertice.mat"),
+                MaterialOpaco("VerticeApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
+                MaterialOpaco("VerticeErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja));
+            estacao.ConfigurarFundo(fundo, TamanhoDoPainelDaEstacao.y / 2, baseSoTexto: topo - 0.465f - MargemDaEstacao,
+                baseComBotoes: -TamanhoDoPainelDaEstacao.y / 2);
+            return estacao;
+        }
 
         /// <summary>
         /// Estação 2: painel à direita da caixa, perto e virado para o aluno. De cima para baixo: título pequeno,
@@ -268,48 +390,15 @@ namespace LaboratorioParalelepipedo.Editor
         private static EstacaoDasDiagonaisNaCena CriarEstacaoDasDiagonais(DadosDoLaboratorio dados, TMP_FontAsset fonte,
             CaixaPegavel caixa, BotaoDoPainel comecar)
         {
-            // Perto (1,25 m), virado para o aluno, à direita da caixa; compacto: instrução, medidas, contas, botões.
-            var tamanho = new Vector2(0.9f, 0.86f);
-            var painel = new GameObject("PainelEstacao").transform;
-            painel.SetPositionAndRotation(NaFrenteDoAluno(DistanciaDaEstacao, DirecaoDaEstacao, 1.3f),
-                Quaternion.Euler(0f, DirecaoDaEstacao, 0f));
-            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
-                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
-            Transform fundo = painel.Find("Fundo");
-
-            const float margem = 0.04f;
-            float largura = tamanho.x - 2 * margem;
-            float topo = tamanho.y / 2 - margem;
+            Transform painel = PainelDaEstacao("PainelEstacao", dados, fonte, ChavesDeTexto.DiagonaisTitulo, out Transform fundo,
+                out TextMeshPro instrucao, 0.15f);
+            Vector2 tamanho = TamanhoDoPainelDaEstacao;
+            float largura = LarguraUtilDaEstacao, topo = TopoDaEstacao;
+            const float margem = MargemDaEstacao;
             TextMeshPro TextoDaEstacao(string nome, float y, float altura, float x, float larguraDoTexto, float letra,
-                Color cor, TextAlignmentOptions alinhamento, float letraMinima)
-            {
-                var objeto = new GameObject(nome, typeof(RectTransform));
-                objeto.transform.SetParent(painel, false);
-                objeto.transform.localPosition = new Vector3(x, y - altura / 2, 0f);
-                var texto = objeto.AddComponent<TextMeshPro>();
-                texto.font = fonte;
-                texto.fontSize = letra;
-                texto.color = cor;
-                texto.alignment = alinhamento;
-                texto.textWrappingMode = TextWrappingModes.Normal;
-                texto.richText = true;
-                texto.enableAutoSizing = true;   // reduz a letra só se o texto não couber (nunca corta)
-                texto.fontSizeMin = letraMinima;
-                texto.fontSizeMax = letra;
-                texto.rectTransform.sizeDelta = new Vector2(larguraDoTexto, altura);
-                texto.text = string.Empty;
-                return texto;
-            }
+                Color cor, TextAlignmentOptions alinhamento, float letraMinima) =>
+                GeradorDaCena.TextoDaEstacao(painel, fonte, nome, y, altura, x, larguraDoTexto, letra, cor, alinhamento, letraMinima);
 
-            // Título pequeno no canto; logo abaixo, a instrução em destaque (grande, negrito, azul).
-            TextMeshPro tituloDaEstacao = TextoDaEstacao("TituloDaEstacao", topo, 0.05f, 0f, largura, 0.28f,
-                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.2f);
-            var doCatalogo = tituloDaEstacao.gameObject.AddComponent<TextoDoCatalogo>();
-            doCatalogo.Configurar(dados, tituloDaEstacao, ChavesDeTexto.DiagonaisTitulo);
-            doCatalogo.Atualizar();
-            TextMeshPro instrucao = TextoDaEstacao("Instrucao", topo - 0.055f, 0.15f, 0f, largura, 0.6f,
-                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.3f);
-            instrucao.fontStyle = FontStyles.Bold;
             TextMeshPro texto = TextoDaEstacao("TextoDaEstacao", topo - 0.21f, 0.13f, 0f, largura, 0.3f,
                 PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.22f);
             // As contas, o conteúdo principal: d à esquerda (azul), D à direita (laranja), letra grande.
@@ -327,16 +416,8 @@ namespace LaboratorioParalelepipedo.Editor
                 conta.overflowMode = TextOverflowModes.Overflow;
             }
 
-            var opcoes = new BotaoDoPainel[4];
-            var tamanhoDaOpcao = new Vector2(largura / 2 - 0.02f, 0.11f);
-            for (int i = 0; i < opcoes.Length; i++)
-            {
-                float x = (i % 2 == 0 ? -1 : 1) * largura / 4;
-                float y = i < 2 ? -0.21f : -0.335f;
-                opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), tamanhoDaOpcao, dados, fonte,
-                    null, principal: false);
-                opcoes[i].gameObject.SetActive(false);
-            }
+            BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte);
+            Vector2 tamanhoDaOpcao = TamanhoDoBotaoDaEstacao;
 
             BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-largura / 4, -0.27f, 0f),
                 tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
@@ -452,9 +533,10 @@ namespace LaboratorioParalelepipedo.Editor
         /// recentralização (quando rodou), controles e erros. Escondido; os dois analógicos afundados por 3 s mostram.
         /// </summary>
         private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
-            RecentralizacaoDoAluno recentralizacao, GameObject rig, EstacaoDasDiagonaisNaCena estacao)
+            RecentralizacaoDoAluno recentralizacao, GameObject rig, EstacaoDasDiagonaisNaCena estacao,
+            EstacaoDosElementosNaCena elementos)
         {
-            var tamanho = new Vector2(1.3f, 0.95f);
+            var tamanho = new Vector2(1.3f, 1.05f);
             var painel = new GameObject("PainelDiagnostico").transform;
             painel.position = new Vector3(1.75f, 1.4f, 0.5f);
             Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
@@ -478,7 +560,7 @@ namespace LaboratorioParalelepipedo.Editor
             texto.text = "Diagnóstico";
             var diagnostico = painel.gameObject.AddComponent<PainelDeDiagnostico>();
             diagnostico.Configurar(texto, dados, recentralizacao, conteudo.gameObject,
-                rig.transform.Find("TrackingSpace/CenterEyeAnchor"), estacao);
+                rig.transform.Find("TrackingSpace/CenterEyeAnchor"), estacao, elementos);
             conteudo.gameObject.SetActive(false);   // só o atalho do professor mostra
             rig.AddComponent<AtalhoDoDiagnostico>().Configurar(diagnostico);
         }
