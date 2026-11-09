@@ -6,7 +6,8 @@ using UnityEngine;
 namespace LaboratorioParalelepipedo.XR
 {
     /// <summary>
-    /// Painel curto, preso ao mundo e separado dos créditos, para conferir no óculos sem acesso aos logs: a versão,
+    /// Painel curto, preso ao mundo, separado dos créditos e escondido até o atalho do professor (os dois analógicos
+    /// afundados por 3 s, <see cref="AtalhoDoDiagnostico"/>), para conferir no óculos sem acesso aos logs: a versão,
     /// a recentralização (fase, se a cabeça está pronta e os últimos eventos, com o tempo desde a abertura), os
     /// controles conectados e os erros do log. Os rótulos são técnicos (não é texto para o aluno); só o título vem
     /// do textos.json. Atualiza 2 vezes por segundo, nunca a cada quadro.
@@ -19,6 +20,8 @@ namespace LaboratorioParalelepipedo.XR
         [SerializeField] private DadosDoLaboratorio _dados;
         [SerializeField] private string _chaveDoTitulo = Nucleo.Dados.ChavesDeTexto.DiagnosticoTitulo;
         [SerializeField] private RecentralizacaoDoAluno _recentralizacao;
+        [SerializeField, Tooltip("Fundo e texto: escondidos até o atalho do professor.")]
+        private GameObject _conteudo;
 
         private readonly StringBuilder _linhas = new StringBuilder(1024);
         private int _totalDeErros;
@@ -26,12 +29,24 @@ namespace LaboratorioParalelepipedo.XR
         private float _proximaAtualizacao;
         private string _titulo = "Diagnóstico";
 
+        /// <summary>Se o painel está à vista (o atalho dos dois analógicos alterna).</summary>
+        public bool Visivel => _conteudo != null && _conteudo.activeSelf;
+
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
-        public void Configurar(TMP_Text texto, DadosDoLaboratorio dados, RecentralizacaoDoAluno recentralizacao)
+        public void Configurar(TMP_Text texto, DadosDoLaboratorio dados, RecentralizacaoDoAluno recentralizacao, GameObject conteudo)
         {
             _texto = texto;
             _dados = dados;
             _recentralizacao = recentralizacao;
+            _conteudo = conteudo;
+        }
+
+        /// <summary>Mostra ou esconde o painel. Os erros do log continuam sendo contados escondido.</summary>
+        public void Alternar()
+        {
+            if (_conteudo == null) return;
+            _conteudo.SetActive(!_conteudo.activeSelf);
+            if (_conteudo.activeSelf) Atualizar();
         }
 
         private void OnEnable() => Application.logMessageReceived += AoRegistrar;
@@ -53,7 +68,7 @@ namespace LaboratorioParalelepipedo.XR
 
         private void Update()
         {
-            if (Time.unscaledTime < _proximaAtualizacao) return;
+            if (!Visivel || Time.unscaledTime < _proximaAtualizacao) return;
             _proximaAtualizacao = Time.unscaledTime + Intervalo;
             Atualizar();
         }
