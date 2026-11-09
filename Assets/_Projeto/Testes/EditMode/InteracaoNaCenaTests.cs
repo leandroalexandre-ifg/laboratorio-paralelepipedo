@@ -266,6 +266,10 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(recentralizacao.Ativa, Is.False);
             Assert.That(tela.OpacidadeDaRecentralizacao, Is.EqualTo(0f));
             Assert.That(recentralizacao.Reposicoes, Is.EqualTo(1), "uma vez só por pedido");
+            string eventos = "";
+            for (int i = 0; i < recentralizacao.EventosGuardadosAgora; i++) eventos += recentralizacao.Evento(i) + "\n";
+            Assert.That(eventos, Does.Contain("pedido").And.Contain("cabeça pronta").And.Contain("reposto"),
+                "o diagnóstico mostra quando rodou");
         }
 
         [Test]
