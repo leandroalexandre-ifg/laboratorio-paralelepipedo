@@ -33,9 +33,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField, Tooltip("Material da fonte que aparece através da caixa (opcional).")]
         private Material _materialDoRotulo;
         [SerializeField] private float _espessuraDaAresta = 0.008f;
-        [SerializeField] private float _diametroDoVertice = 0.03f;
+        [SerializeField] private float _diametroDoVertice = 0.02f;
         [SerializeField] private float _tamanhoDoRotulo = 0.4f;
-        [SerializeField] private float _afastamentoDoRotulo = 0.04f;
+        [SerializeField] private float _afastamentoDoRotulo = 0.05f;
 
         private readonly List<Mesh> _malhasCriadas = new List<Mesh>();
         private IPrisma _prisma;
@@ -166,13 +166,13 @@ namespace LaboratorioParalelepipedo.Apresentacao
             Vector3 posicao = PosicaoNaCena(vertice.Posicao);
             var objeto = new GameObject($"Rotulo {vertice.Nome}", typeof(RectTransform));
             objeto.transform.SetParent(grupo, false);
-            // Para fora na horizontal; os de cima sobem um pouco e os de baixo ficam rente à mesa (sem entrar nela).
-            // Os de cima do fundo (B, C) sobem mais, para não ficarem sobre os da frente (A, D) vistos do aluno.
-            Vector3 paraFora = posicao - centro;
-            paraFora.y = 0f;
+            // Para o lado (esquerda para A, B, E, F; direita para C, D, G, H), não para a frente: com a caixa girada na
+            // mesa, "para fora na diagonal" punha o rótulo da frente na linha do olhar, sobre a esfera. Os de cima sobem
+            // um pouco e os de baixo ficam rente à mesa; os de cima do fundo (B, C) sobem mais que os da frente (A, D).
+            var paraFora = new Vector3(posicao.x >= centro.x ? 1f : -1f, 0f, 0f);
             bool emCima = posicao.y > centro.y;
             bool noFundo = posicao.z > centro.z;
-            float subida = emCima ? _afastamentoDoRotulo * (noFundo ? 1.6f : 0.5f) : _tamanhoDoRotulo * 0.05f;
+            float subida = emCima ? _afastamentoDoRotulo * (noFundo ? 1.6f : 0.9f) : _tamanhoDoRotulo * 0.05f;
             objeto.transform.localPosition = posicao + paraFora.normalized * _afastamentoDoRotulo + Vector3.up * subida;
 
             var texto = objeto.AddComponent<TextMeshPro>();
