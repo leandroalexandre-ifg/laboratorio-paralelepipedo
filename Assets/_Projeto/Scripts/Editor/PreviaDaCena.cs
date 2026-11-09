@@ -11,8 +11,9 @@ namespace LaboratorioParalelepipedo.Editor
 {
     /// <summary>
     /// Renderiza a cena do laboratório e salva em Logs/previa-*.png: a vista inicial do aluno (origem, olhos a 1,4 m,
-    /// como o modo Editor), uma vista da sala de fora e um momento por etapa da Estação 2 (abertura, passo 1 concluído, passo 2 concluído,
-    /// pergunta, erro, acerto, fechamento), com a estação conduzida pelos mesmos métodos que o gatilho chama.
+    /// como o modo Editor), uma vista da sala de fora e um momento por etapa das Estações 1 (e1-*: abertura, erro, ajuda, face
+    /// montada, outra face, pergunta com dica, acerto, fechamento) e 2 (e2-*: passo 1, passo 1 concluído, passo 2 concluído,
+    /// pergunta, erro, acerto, fechamento), com as estações conduzidas pelos mesmos métodos que o gatilho chama.
     /// Serve para conferir o visual sem o óculos. Nada é salvo na cena. Batchmode (sem -nographics):
     /// -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar -quit
     /// </summary>
@@ -70,37 +71,82 @@ namespace LaboratorioParalelepipedo.Editor
         // Aluno no ponto de partida, com a cabeça virada ~20° à direita, entre a caixa e o painel da estação.
         private static void RenderizarAEstacao(Camera camera, RenderTexture alvo)
         {
+            var elementos = UnityEngine.Object.FindFirstObjectByType<EstacaoDosElementosNaCena>();
             var estacao = UnityEngine.Object.FindFirstObjectByType<EstacaoDasDiagonaisNaCena>();
-            if (estacao == null)
+            if (elementos == null || estacao == null)
             {
-                Debug.LogError("[Prévia] A cena não tem a Estação 2.");
+                Debug.LogError("[Prévia] A cena não tem as Estações 1 e 2.");
                 return;
             }
 
             camera.transform.position = OlhosDoAluno;
             camera.transform.LookAt(new Vector3(0.45f, 1.1f, 1.2f));
+            elementos.Inicializar();
             estacao.Inicializar();
+            RenderizarAEstacao1(camera, alvo, elementos);
+
             var opcoes = estacao.Estacao.Opcoes;
             int Indice(Func<Nucleo.Estacoes.OpcaoDeResposta, bool> condicao) => opcoes.ToList().FindIndex(o => condicao(o));
 
-            Salvar(camera, alvo, "1-abertura");
-            estacao.Comecar();
+            elementos.IrParaAProximaEstacao();   // o botão "Ir para a Estação 2"
+            Salvar(camera, alvo, "e2-1-abertura");
             estacao.TocarVertice("E");
             estacao.TocarVertice("G");
-            Salvar(camera, alvo, "2-passo1-concluido");
+            Salvar(camera, alvo, "e2-2-passo1-concluido");
             estacao.TocarVertice("E");
             estacao.TocarVertice("C");
             UnityEngine.Object.FindFirstObjectByType<DesenhoDasDiagonais>().TerminarSubida();
-            Salvar(camera, alvo, "3-passo2-concluido");
+            Salvar(camera, alvo, "e2-3-passo2-concluido");
             estacao.MostrarOpcoesAgora();
-            Salvar(camera, alvo, "4-pergunta");
+            Salvar(camera, alvo, "e2-4-pergunta");
             int errada = Indice(o => !o.Correta && o.ChaveDaDica == Nucleo.Dados.ChavesDeTexto.DiagonaisDicaSemRaiz);
             estacao.Responder(errada >= 0 ? errada : Indice(o => !o.Correta));
-            Salvar(camera, alvo, "5-erro");
+            Salvar(camera, alvo, "e2-5-erro");
             estacao.Responder(Indice(o => o.Correta));
-            Salvar(camera, alvo, "6-acerto");
+            Salvar(camera, alvo, "e2-6-acerto");
             estacao.ConcluirAgora();
-            Salvar(camera, alvo, "7-fechamento");
+            Salvar(camera, alvo, "e2-7-fechamento");
+        }
+
+        // Estação 1: abertura, erro, ajuda, face montada, outra face, pergunta com dica, acerto e fechamento.
+        private static void RenderizarAEstacao1(Camera camera, RenderTexture alvo, EstacaoDosElementosNaCena estacao)
+        {
+            int Correta() => estacao.Estacao.Opcoes.ToList().FindIndex(o => o.Correta);
+            void Tocar(string letras)
+            {
+                foreach (char letra in letras) estacao.TocarVertice(letra.ToString());
+            }
+
+            Salvar(camera, alvo, "e1-1-abertura");
+            estacao.Comecar();
+            Tocar("AB");
+            estacao.TocarVertice("C");
+            Salvar(camera, alvo, "e1-2-erro");
+            estacao.TocarVertice("H");
+            Salvar(camera, alvo, "e1-3-ajuda");
+            TerminarAsPiscadas();   // no óculos, o vértice errado pisca por 0,9 s e volta ao normal
+            Tocar("FE");
+            Salvar(camera, alvo, "e1-4-face-montada");
+            estacao.ContinuarAgora();
+            Tocar("ADHE");
+            Salvar(camera, alvo, "e1-5-outra-face");
+            estacao.ContinuarAgora();
+            Tocar("ABCD");
+            estacao.ContinuarAgora();
+            estacao.Responder(estacao.Estacao.Opcoes.ToList().FindIndex(o => o.Texto == "9"));
+            Salvar(camera, alvo, "e1-6-pergunta-dica");
+            estacao.Responder(Correta());
+            Salvar(camera, alvo, "e1-7-acerto");
+            estacao.ContinuarAgora();
+            estacao.Responder(Correta());
+            estacao.ContinuarAgora();
+            Salvar(camera, alvo, "e1-8-fechamento");
+        }
+
+        private static void TerminarAsPiscadas()
+        {
+            foreach (var vertice in UnityEngine.Object.FindObjectsByType<AlvoDeVertice>(FindObjectsSortMode.None))
+                if (vertice.Piscando) vertice.Avancar(AlvoDeVertice.DuracaoDaPiscada);
         }
 
         private static void Salvar(Camera camera, RenderTexture alvo, string nome)
