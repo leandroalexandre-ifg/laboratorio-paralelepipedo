@@ -49,7 +49,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private Material _verticeApontado;
         [SerializeField] private Material _verticeErrado;
         [SerializeField, Tooltip("Raio do colisor de cada vértice, em metros (maior que a esfera: fácil de mirar).")]
-        private float _raioDoAlvo = 0.03f;
+        private float _raioDoAlvo = 0.035f;
 
         [SerializeField] private int _semente = 1;
 
@@ -69,6 +69,19 @@ namespace LaboratorioParalelepipedo.Apresentacao
         /// <summary>Texto atual do painel da estação.</summary>
         public string TextoDoPainel =>
             $"{Lido(_instrucao)}\n{Lido(_texto)}\n{Lido(_contasDaBase)}\n{Lido(_contasDaDiagonal)}";
+
+        /// <summary>Vértices da caixa atual que o gatilho consegue escolher (para o diagnóstico: o normal é 8).</summary>
+        public int VerticesEscolhiveis
+        {
+            get
+            {
+                int total = 0;
+                for (int i = 0; i < _alvos.Length; i++)
+                    if (_alvos[i] != null && _alvos[i].isActiveAndEnabled && _alvos[i].transform.IsChildOf(_visual.transform))
+                        total++;
+                return total;
+            }
+        }
 
         /// <summary>Só a instrução em destaque (para os testes).</summary>
         public string Instrucao => Lido(_instrucao);

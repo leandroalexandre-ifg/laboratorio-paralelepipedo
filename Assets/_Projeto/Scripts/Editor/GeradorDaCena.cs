@@ -103,7 +103,7 @@ namespace LaboratorioParalelepipedo.Editor
 
             CriarPainelDeInstrucoes(dados, fonte);
             Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
-            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig);
+            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig, estacao);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -452,7 +452,7 @@ namespace LaboratorioParalelepipedo.Editor
         /// recentralização (quando rodou), controles e erros. Escondido; os dois analógicos afundados por 3 s mostram.
         /// </summary>
         private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
-            RecentralizacaoDoAluno recentralizacao, GameObject rig)
+            RecentralizacaoDoAluno recentralizacao, GameObject rig, EstacaoDasDiagonaisNaCena estacao)
         {
             var tamanho = new Vector2(1.3f, 0.95f);
             var painel = new GameObject("PainelDiagnostico").transform;
@@ -477,7 +477,8 @@ namespace LaboratorioParalelepipedo.Editor
             texto.rectTransform.sizeDelta = tamanho - new Vector2(0.1f, 0.1f);
             texto.text = "Diagnóstico";
             var diagnostico = painel.gameObject.AddComponent<PainelDeDiagnostico>();
-            diagnostico.Configurar(texto, dados, recentralizacao, conteudo.gameObject);
+            diagnostico.Configurar(texto, dados, recentralizacao, conteudo.gameObject,
+                rig.transform.Find("TrackingSpace/CenterEyeAnchor"), estacao);
             conteudo.gameObject.SetActive(false);   // só o atalho do professor mostra
             rig.AddComponent<AtalhoDoDiagnostico>().Configurar(diagnostico);
         }
