@@ -1,6 +1,7 @@
 using System.Linq;
 using LaboratorioParalelepipedo.Apresentacao;
 using LaboratorioParalelepipedo.Nucleo.Estacoes;
+using LaboratorioParalelepipedo.XR;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -55,6 +56,28 @@ namespace LaboratorioParalelepipedo.Testes
             return -1;
         }
 
+        // Mão direita de um aluno na posição inicial, segurando o controle à frente do corpo.
+        private RaioDoControle RaioNaMao()
+        {
+            var objeto = new GameObject("RaioDeTeste");
+            SceneManager.MoveGameObjectToScene(objeto, _cena);
+            objeto.transform.position = new Vector3(0.2f, 1.1f, 0.25f);
+            var raio = objeto.AddComponent<RaioDoControle>();
+            raio.Configurar(OVRInput.Controller.RTouch, objeto.GetComponent<LineRenderer>(), null, null, null);
+            return raio;
+        }
+
+        // Mira no centro do objeto e aperta o gatilho, como no óculos.
+        private static void Gatilho(RaioDoControle raio, Transform alvo)
+        {
+            Physics.SyncTransforms();
+            Vector3 origem = raio.transform.position;
+            raio.Mirar(new Ray(origem, (alvo.position - origem).normalized));
+            raio.Confirmar();
+        }
+
+        private Transform FundoDe(BotaoDoPainel botao) => botao.transform.Find("Fundo");
+
         private void AteAPergunta()
         {
             _estacao.Comecar();
@@ -77,6 +100,107 @@ namespace LaboratorioParalelepipedo.Testes
             }
             Assert.That(_desenho.transform.Find(DesenhoDasDiagonais.NomeDoGrupo).parent, Is.EqualTo(_visual.transform),
                 "o desenho gira com a caixa na mão");
+        }
+
+        [Test]
+        public void PeloRaio_TodosOsVerticesSaoEscolhiveis_MesmoAtrasDaCaixa()
+        {
+            RaioDoControle raio = RaioNaMao();
+            Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_comecar")));
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.DiagonalDaBase), "o gatilho no Começar");
+
+            // B, C, F e G ficam dentro do colisor da caixa, vistos da mão: o raio passa por ela até o vértice.
+            foreach (string nome in new[] { "A", "B", "C", "D", "F", "H" })
+            {
+                Gatilho(raio, _visual.Vertice(nome));
+                Assert.That(Alvo(nome).Piscando, Is.True, $"o raio escolheu o {nome}");
+            }
+        }
+
+        [Test]
+        public void Vertice_EhODaCaixaNova_MesmoComOsDaAntigaAindaNaHierarquia()
+        {
+            // No óculos, o Destroy só apaga no fim do quadro: por um instante, as esferas antigas continuam ali com o
+            // mesmo nome. Na 0.3.0, a busca pelo nome achava a antiga e o alvo do gatilho sumia com ela.
+            var antigo = new GameObject(VisualDaCaixa.GrupoVertices).transform;
+            antigo.SetParent(_visual.transform, false);
+            antigo.SetSiblingIndex(0);
+            new GameObject("Vertice E").transform.SetParent(antigo, false);
+
+            Transform e = _visual.Vertice("E");
+
+            Assert.That(e.parent, Is.Not.EqualTo(antigo));
+            Assert.That(e.GetComponent<AlvoDeVertice>(), Is.Not.Null, "o alvo do gatilho está na esfera da caixa atual");
+            Assert.That(e.GetComponent<SphereCollider>(), Is.Not.Null);
+        }
+
+        [Test]
+        public void Diagnostico_ContaOsOitoVerticesEscolhiveis()
+        {
+            Assert.That(_estacao.VerticesEscolhiveis, Is.EqualTo(8));
+            var painel = Todos<PainelDeDiagnostico>().Single();
+            Assert.That(new SerializedObject(painel).FindProperty("_estacao").objectReferenceValue, Is.EqualTo(_estacao));
+
+            _estacao.Comecar();
+            _estacao.TocarVertice("E");
+            _estacao.TocarVertice("G");
+            _estacao.TocarVertice("E");
+            _estacao.TocarVertice("C");
+            _estacao.MostrarOpcoesAgora();
+            _estacao.Responder(Indice(o => o.Correta));
+            _estacao.ConcluirAgora();
+            _estacao.ProximoDesafio();
+            Assert.That(_estacao.VerticesEscolhiveis, Is.EqualTo(8), "a caixa nova também");
+        }
+
+        [Test]
+        public void PeloRaio_AEstacaoInteira_DoComecarAoProximoDesafio()
+        {
+            RaioDoControle raio = RaioNaMao();
+            Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_comecar")));
+            foreach (string nome in new[] { "E", "G", "E", "C" })
+                Gatilho(raio, _visual.Vertice(nome));
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.Pergunta));
+
+            _estacao.MostrarOpcoesAgora();
+            Gatilho(raio, FundoDe(Opcao(Indice(o => o.Texto == "49"))));
+            Assert.That(_estacao.Instrucao, Does.Contain("Falta tirar a raiz"));
+            Gatilho(raio, FundoDe(Opcao(Indice(o => o.Correta))));
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.Acertou));
+
+            _estacao.ConcluirAgora();
+            Gatilho(raio, FundoDe(Campo<BotaoDoPainel>("_proximoDesafio")));
+            Assert.That(_estacao.Estacao.IndiceDoDesafio, Is.EqualTo(1));
+            Assert.That(_estacao.Estacao.Etapa, Is.EqualTo(EtapaDasDiagonais.DiagonalDaBase));
+        }
+
+        [Test]
+        public void PeloRaio_ApontarParaUmVerticeAindaPegaACaixa()
+        {
+            RaioDoControle raio = RaioNaMao();
+            Physics.SyncTransforms();
+            Vector3 origem = raio.transform.position;
+            raio.Mirar(new Ray(origem, (_visual.Vertice("E").position - origem).normalized));
+
+            Assert.That(raio.NoAlvo, Is.True);
+            Assert.That(raio.Dica == null || raio.Dica.ApontandoParaPegar, Is.True);
+        }
+
+        [Test]
+        public void Diagnostico_AbreAFrenteDeOndeOProfessorOlha()
+        {
+            var painel = Todos<PainelDeDiagnostico>().Single();
+            var cabeca = (Transform)new SerializedObject(painel).FindProperty("_cabeca").objectReferenceValue;
+            Assert.That(cabeca, Is.Not.Null);
+            cabeca.SetPositionAndRotation(new Vector3(0f, 1.4f, 0f), Quaternion.Euler(10f, -90f, 0f));   // olhando à esquerda
+
+            painel.Alternar();
+
+            Assert.That(painel.Visivel, Is.True);
+            Vector3 paraOPainel = painel.transform.position - cabeca.position;
+            Assert.That(Vector3.Angle(new Vector3(paraOPainel.x, 0f, paraOPainel.z), Vector3.left), Is.LessThan(1f));
+            Assert.That(painel.transform.position.y, Is.EqualTo(1.4f).Within(1e-4f), "na altura dos olhos");
+            Assert.That(Vector3.Dot(painel.transform.forward, Vector3.left), Is.GreaterThan(0.999f), "virado para quem olha");
         }
 
         [Test]
