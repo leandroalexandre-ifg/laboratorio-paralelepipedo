@@ -242,7 +242,8 @@ namespace LaboratorioParalelepipedo.Testes
             Assert.That(Todos<BotaoDoPainel>().Select(b => b.name), Is.EquivalentTo(new[]
             {
                 "BotaoComecar", "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoProximoDesafio", "BotaoRefazer",
-                "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoIrParaAEstacao2", "BotaoRefazer",
+                "BotaoIrParaAEstacao3", "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoIrParaAEstacao2", "BotaoRefazer",
+                "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoAbrirOuFechar", "BotaoRefazer",
             }));
         }
 
@@ -399,12 +400,15 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void PaineisDasDuasEstacoes_NoMesmoLugar()
+        public void PaineisDasTresEstacoes_NoMesmoLugar()
         {
             Transform um = Todos<Transform>().Single(t => t.name == "PainelEstacaoDosElementos");
-            Transform dois = Todos<Transform>().Single(t => t.name == "PainelEstacao");
-            Assert.That(Vector3.Distance(um.position, dois.position), Is.LessThan(1e-4f));
-            Assert.That(Quaternion.Angle(um.rotation, dois.rotation), Is.LessThan(0.01f));
+            foreach (string nome in new[] { "PainelEstacao", "PainelEstacaoDasAreas" })
+            {
+                Transform outro = Todos<Transform>().Single(t => t.name == nome);
+                Assert.That(Vector3.Distance(um.position, outro.position), Is.LessThan(1e-4f), nome);
+                Assert.That(Quaternion.Angle(um.rotation, outro.rotation), Is.LessThan(0.01f), nome);
+            }
         }
 
         [Test]

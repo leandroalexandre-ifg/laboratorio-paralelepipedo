@@ -98,14 +98,15 @@ namespace LaboratorioParalelepipedo.Editor
             CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.28f);
             BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
                 dados, fonte, ChavesDeTexto.AberturaComecar, principal: true);
-            // "Começar" leva à Estação 1; o fechamento dela leva à Estação 2 (mesmo lugar do painel).
-            EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, null);
+            // "Começar" leva à Estação 1; o fechamento dela, à Estação 2; o da 2, à Estação 3 (mesmo lugar do painel).
+            EstacaoDasAreasNaCena areas = CriarEstacaoDasAreas(dados, fonte, caixa);
+            EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, null, areas);
             EstacaoDosElementosNaCena elementos = CriarEstacaoDosElementos(dados, fonte, caixa, comecar, estacao);
-            instanciaDoRig.AddComponent<VibracaoDoAcerto>().Configurar(estacao, elementos);
+            instanciaDoRig.AddComponent<VibracaoDoAcerto>().Configurar(estacao, elementos, areas);
 
             CriarPainelDeInstrucoes(dados, fonte);
             Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
-            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig, estacao, elementos);
+            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig, estacao, elementos, areas);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -386,12 +387,63 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
+        /// Estação 3: no painel da estação (o mesmo lugar das outras), de cima para baixo: título pequeno, instrução em
+        /// destaque, objetivo e pares ou pergunta, a conta do acerto (ou as fórmulas, no fechamento) e os botões:
+        /// "Abrir/Fechar a caixa" (na 1ª linha, ou na 3ª durante a pergunta), as opções 2 × 2 e "Refazer". Cria também a
+        /// planificação, que abre no meio da mesa, inclinada para o aluno.
+        /// </summary>
+        private static EstacaoDasAreasNaCena CriarEstacaoDasAreas(DadosDoLaboratorio dados, TMP_FontAsset fonte, CaixaPegavel caixa)
+        {
+            Transform painel = PainelDaEstacao("PainelEstacaoDasAreas", dados, fonte, ChavesDeTexto.AreasTitulo,
+                out Transform fundo, out TextMeshPro instrucao, 0.17f);
+            float largura = LarguraUtilDaEstacao, topo = TopoDaEstacao;
+            TextMeshPro texto = TextoDaEstacao(painel, fonte, "TextoDaEstacao", topo - 0.235f, 0.1f, 0f, largura, 0.3f,
+                PaletaDoLaboratorio.Texto, TextAlignmentOptions.TopLeft, 0.22f);
+            // A conta do acerto (uma ou duas linhas) ou, no fechamento, as três fórmulas, com os botões uma linha abaixo.
+            TextMeshPro contas = TextoDaEstacao(painel, fonte, "Contas", topo - 0.345f, 0.23f, 0f, largura, 0.45f,
+                PaletaDoLaboratorio.DestaqueAzul, TextAlignmentOptions.TopLeft, 0.24f);
+            contas.fontStyle = FontStyles.Bold;
+
+            const float primeiraLinha = -0.12f, segundaLinha = -0.245f, terceiraLinha = -0.37f, meiaAltura = 0.055f;
+            BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte, primeiraLinha, segundaLinha);
+            BotaoDoPainel abrirOuFechar = CriarBotao(painel, "BotaoAbrirOuFechar", new Vector3(-largura / 4, primeiraLinha, 0f),
+                TamanhoDoBotaoDaEstacao, dados, fonte, null, principal: true);
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, primeiraLinha, 0f),
+                TamanhoDoBotaoDaEstacao, dados, fonte, ChavesDeTexto.AreasRefazer, principal: false);
+            abrirOuFechar.gameObject.SetActive(false);
+            refazer.gameObject.SetActive(false);
+            painel.gameObject.SetActive(false);
+
+            // A planificação: no meio da mesa, alta o bastante para a borda de perto não entrar no tampo ao inclinar.
+            var tamanhoMaximo = new Vector2(1.0f, 0.75f);
+            const float inclinacao = 35f;
+            float subida = tamanhoMaximo.y / 2 * Mathf.Sin(inclinacao * Mathf.Deg2Rad) + 0.03f;
+            var planificacao = new GameObject("Planificacao").AddComponent<PlanificacaoNaCena>();
+            planificacao.Configurar(
+                MaterialTranslucido("FaceDaPlanificacao", ComOpacidade(PaletaDoLaboratorio.Face, 0.7f)),
+                MaterialTranslucido("FaceMontadaBases", ComOpacidade(PaletaDoLaboratorio.BasesClaro, OpacidadeDaFaceMontada)),
+                MaterialTranslucido("FaceMontadaFrenteEFundo", ComOpacidade(PaletaDoLaboratorio.FrenteEFundoClaro, OpacidadeDaFaceMontada)),
+                MaterialTranslucido("FaceMontadaEsquerdaEDireita",
+                    ComOpacidade(PaletaDoLaboratorio.EsquerdaEDireitaClaro, OpacidadeDaFaceMontada)),
+                MaterialTranslucido("FaceDaPlanificacaoApontada", ComOpacidade(PaletaDoLaboratorio.DestaqueAzul, 0.55f)),
+                AssetDatabase.LoadAssetAtPath<Material>($"{PastaDosMateriais}/Aresta.mat"), fonte, MaterialDoRotuloSobreposto(fonte),
+                CentroDaMesa + Vector3.up * (AlturaDoTampo + subida), tamanhoMaximo, inclinacao);
+
+            var estacao = new GameObject("EstacaoDasAreas").AddComponent<EstacaoDasAreasNaCena>();
+            estacao.Configurar(dados, caixa.GetComponent<VisualDaCaixa>(), caixa, planificacao, painel.gameObject, instrucao,
+                texto, contas, opcoes, abrirOuFechar, refazer);
+            estacao.ConfigurarFundo(fundo, TamanhoDoPainelDaEstacao.y / 2,
+                baseComUmaLinha: primeiraLinha - meiaAltura - MargemDaEstacao, primeiraLinha, terceiraLinha);
+            return estacao;
+        }
+
+        /// <summary>
         /// Estação 2: painel à direita da caixa, perto e virado para o aluno. De cima para baixo: título pequeno,
         /// instrução em destaque, objetivo e medidas, contas de d e de D em duas colunas grandes e os botões da
         /// pergunta (2 × 2) ou do fechamento. Escondido até "Começar".
         /// </summary>
         private static EstacaoDasDiagonaisNaCena CriarEstacaoDasDiagonais(DadosDoLaboratorio dados, TMP_FontAsset fonte,
-            CaixaPegavel caixa, BotaoDoPainel comecar)
+            CaixaPegavel caixa, BotaoDoPainel comecar, EstacaoDasAreasNaCena proxima)
         {
             Transform painel = PainelDaEstacao("PainelEstacao", dados, fonte, ChavesDeTexto.DiagonaisTitulo, out Transform fundo,
                 out TextMeshPro instrucao, 0.15f);
@@ -422,12 +474,16 @@ namespace LaboratorioParalelepipedo.Editor
             BotaoDoPainel[] opcoes = OpcoesDaEstacao(painel, dados, fonte);
             Vector2 tamanhoDaOpcao = TamanhoDoBotaoDaEstacao;
 
-            BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-largura / 4, -0.27f, 0f),
+            // Fechamento: "Próximo desafio" e "Refazer" lado a lado; embaixo, "Ir para a Estação 3".
+            BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-largura / 4, -0.21f, 0f),
                 tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
-            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.27f, 0f),
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(largura / 4, -0.21f, 0f),
                 tamanhoDaOpcao, dados, fonte, ChavesDeTexto.DiagonaisRefazer, principal: false);
+            BotaoDoPainel irParaAEstacao3 = CriarBotao(painel, "BotaoIrParaAEstacao3", new Vector3(0f, -0.335f, 0f),
+                new Vector2(largura, tamanhoDaOpcao.y), dados, fonte, ChavesDeTexto.DiagonaisProximaEstacao, principal: true);
             proximo.gameObject.SetActive(false);
             refazer.gameObject.SetActive(false);
+            irParaAEstacao3.gameObject.SetActive(false);
             painel.gameObject.SetActive(false);
             float topoDoFundo = tamanho.y / 2;
 
@@ -437,6 +493,7 @@ namespace LaboratorioParalelepipedo.Editor
                 AssetDatabase.LoadAssetAtPath<Material>($"{PastaDosMateriais}/Vertice.mat"),
                 MaterialOpaco("VerticeApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
                 MaterialOpaco("VerticeErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja));
+            estacao.ConfigurarProximaEstacao(irParaAEstacao3, proxima);
             estacao.ConfigurarFundo(fundo, topoDoFundo, baseSoTexto: topo - 0.34f - margem,
                 baseComContas: topo - 0.535f - margem, baseComBotoes: -tamanho.y / 2);
             return estacao;
@@ -537,7 +594,7 @@ namespace LaboratorioParalelepipedo.Editor
         /// </summary>
         private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
             RecentralizacaoDoAluno recentralizacao, GameObject rig, EstacaoDasDiagonaisNaCena estacao,
-            EstacaoDosElementosNaCena elementos)
+            EstacaoDosElementosNaCena elementos, EstacaoDasAreasNaCena areas)
         {
             var tamanho = new Vector2(1.3f, 1.05f);
             var painel = new GameObject("PainelDiagnostico").transform;
@@ -563,7 +620,7 @@ namespace LaboratorioParalelepipedo.Editor
             texto.text = "Diagnóstico";
             var diagnostico = painel.gameObject.AddComponent<PainelDeDiagnostico>();
             diagnostico.Configurar(texto, dados, recentralizacao, conteudo.gameObject,
-                rig.transform.Find("TrackingSpace/CenterEyeAnchor"), estacao, elementos);
+                rig.transform.Find("TrackingSpace/CenterEyeAnchor"), estacao, elementos, areas);
             conteudo.gameObject.SetActive(false);   // só o atalho do professor mostra
             rig.AddComponent<AtalhoDoDiagnostico>().Configurar(diagnostico);
         }
