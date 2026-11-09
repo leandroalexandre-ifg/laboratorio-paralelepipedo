@@ -74,19 +74,23 @@ namespace LaboratorioParalelepipedo.Editor
             CriarModoEditor(instanciaDoRig);
             CriarSala();
             CriarMesa();
-            CriarCaixa(fonte);
-
             var dados = new GameObject("DadosDoLaboratorio").AddComponent<DadosDoLaboratorio>();
             dados.Configurar(textos, desafios);
+            CaixaPegavel caixa = CriarCaixa(fonte, PrimeiraCaixaDaEstacao(desafios));
             RecentralizacaoDoAluno recentralizacao = CriarInteracao(instanciaDoRig, dados, fonte);
 
-            // Título no alto, ao fundo; instruções logo atrás da mesa, abaixo do título, sem esconder um ao outro.
-            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.85f, 2.4f), new Vector2(1.5f, 0.46f), dados, fonte,
-                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.08f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, -0.09f));
-            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.17f, 0f), 1.38f);
+            // Título com "Começar" ao fundo, acima da caixa; estação à direita da mesa; controles à esquerda.
+            Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 1.85f, 2.3f), new Vector2(1.6f, 0.72f), dados, fonte,
+                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.2f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, 0.05f));
+            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.48f);
+            BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
+                dados, fonte, ChavesDeTexto.AberturaComecar, principal: true);
+            EstacaoDasDiagonaisNaCena estacao = CriarEstacaoDasDiagonais(dados, fonte, caixa, comecar);
+            instanciaDoRig.AddComponent<VibracaoDoAcerto>().Configurar(estacao);
+
             CriarPainelDeInstrucoes(dados, fonte);
-            Debug.Log($"[Cena] Painel de instruções com: {AcoesDisponiveis()}.");
-            CriarPainelDeDiagnostico(dados, fonte, recentralizacao);
+            Debug.Log($"[Cena] Painel de controles com: {AcoesDisponiveis()}.");
+            CriarPainelDeDiagnostico(dados, fonte, recentralizacao, instanciaDoRig);
 
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CaminhoDaCena, true) };
@@ -182,7 +186,14 @@ namespace LaboratorioParalelepipedo.Editor
             }
         }
 
-        private static CaixaPegavel CriarCaixa(TMP_FontAsset fonte)
+        /// <summary>Caixa do primeiro desafio da Estação 2 (2 × 3 × 6 no desafios.json atual).</summary>
+        private static Paralelepipedo PrimeiraCaixaDaEstacao(TextAsset desafios)
+        {
+            var daEstacao = Nucleo.Estacoes.EstacaoDasDiagonais.DesafiosDaEstacao(CarregadorDeDados.CarregarDesafios(desafios));
+            return daEstacao.Count > 0 ? daEstacao[0].Caixa : new Paralelepipedo(4, 3, 2);
+        }
+
+        private static CaixaPegavel CriarCaixa(TMP_FontAsset fonte, Paralelepipedo caixa)
         {
             Material aresta = MaterialOpaco("Aresta", ShaderUnlit, PaletaDoLaboratorio.Aresta);
             Material vertice = MaterialOpaco("Vertice", ShaderUnlit, PaletaDoLaboratorio.Aresta);
@@ -192,8 +203,8 @@ namespace LaboratorioParalelepipedo.Editor
             var objeto = new GameObject("Caixa");
             objeto.transform.position = CentroDaMesa + Vector3.up * AlturaDoTampo;
             var visual = objeto.AddComponent<VisualDaCaixa>();
-            visual.Configurar(aresta, face, vertice, fonte);
-            visual.Construir(new Paralelepipedo(4, 3, 2));
+            visual.Configurar(aresta, face, vertice, fonte, MaterialDoRotuloSobreposto(fonte));
+            visual.Construir(caixa);
 
             // Corpo cinemático: o colisor se move com a caixa na mão sem a física recalcular a cena estática.
             var corpo = objeto.AddComponent<Rigidbody>();
@@ -202,7 +213,144 @@ namespace LaboratorioParalelepipedo.Editor
             var pegavel = objeto.AddComponent<CaixaPegavel>();
             pegavel.Configurar(destacada);
             pegavel.AjustarColisor();
+
+            var desenho = objeto.AddComponent<DesenhoDasDiagonais>();
+            desenho.Configurar(visual,
+                MaterialOpaco("DiagonalDaBase", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
+                MaterialOpaco("DiagonalDaCaixa", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja),
+                MaterialTranslucido("TrianguloDaBase", ComOpacidade(PaletaDoLaboratorio.DestaqueAzul, 0.35f)),
+                MaterialTranslucido("TrianguloLevantado", ComOpacidade(PaletaDoLaboratorio.DestaqueLaranja, 0.3f)),
+                MaterialTranslucido("BaseDestacada", ComOpacidade(PaletaDoLaboratorio.BasesEscuro, 0.3f)),
+                MaterialOpaco("MarcaDeAnguloReto", ShaderUnlit, PaletaDoLaboratorio.Texto), fonte);
             return pegavel;
+        }
+
+        /// <summary>
+        /// Cópia do material da Nunito SDF com o shader Overlay do TextMeshPro: os rótulos da caixa (vértices, a, b, c,
+        /// d, D) aparecem mesmo atrás das arestas e faces. Fila 3010: depois das faces e triângulos translúcidos (3000),
+        /// que não os desbotam, e antes da tela escura (3050), que continua cobrindo os rótulos na recentralização.
+        /// </summary>
+        private const int FilaDosRotulos = (int)RenderQueue.Transparent + 10;
+        private const int DeslocamentoDaTelaEscura = 50;
+
+        private static Material MaterialDoRotuloSobreposto(TMP_FontAsset fonte)
+        {
+            Material material = CarregarOuCriarMaterial("RotuloSobreposto", "TextMeshPro/Mobile/Distance Field Overlay");
+            material.CopyPropertiesFromMaterial(fonte.material);
+            material.shader = Shader.Find("TextMeshPro/Mobile/Distance Field Overlay");
+            material.renderQueue = FilaDosRotulos;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Color ComOpacidade(Color cor, float opacidade) => new Color(cor.r, cor.g, cor.b, opacidade);
+
+        /// <summary>
+        /// Estação 2: painel à direita da mesa, virado para o aluno, com o texto da estação no alto e os botões da
+        /// pergunta (2 × 2) e do fechamento embaixo. Escondido até "Começar".
+        /// </summary>
+        private static EstacaoDasDiagonaisNaCena CriarEstacaoDasDiagonais(DadosDoLaboratorio dados, TMP_FontAsset fonte,
+            CaixaPegavel caixa, BotaoDoPainel comecar)
+        {
+            var tamanho = new Vector2(1.2f, 1.25f);
+            var painel = new GameObject("PainelEstacao").transform;
+            painel.position = new Vector3(1.15f, 1.45f, 1.45f);   // a borda de dentro não cobre o título
+            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
+            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
+            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+                MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
+
+            var objeto = new GameObject("TextoDaEstacao", typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            objeto.transform.localPosition = new Vector3(0f, 0.17f, 0f);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = 0.38f;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.TopLeft;
+            texto.textWrappingMode = TextWrappingModes.Normal;
+            texto.richText = true;
+            texto.rectTransform.sizeDelta = new Vector2(tamanho.x - 0.12f, 0.8f);
+            texto.text = string.Empty;
+
+            var opcoes = new BotaoDoPainel[4];
+            for (int i = 0; i < opcoes.Length; i++)
+            {
+                float x = i % 2 == 0 ? -0.29f : 0.29f;
+                float y = i < 2 ? -0.35f : -0.51f;
+                opcoes[i] = CriarBotao(painel, $"Opcao{i + 1}", new Vector3(x, y, 0f), new Vector2(0.52f, 0.13f), dados, fonte,
+                    null, principal: false);
+                opcoes[i].gameObject.SetActive(false);
+            }
+
+            BotaoDoPainel proximo = CriarBotao(painel, "BotaoProximoDesafio", new Vector3(-0.29f, -0.43f, 0f),
+                new Vector2(0.52f, 0.14f), dados, fonte, ChavesDeTexto.DiagonaisProximoDesafio, principal: true);
+            BotaoDoPainel refazer = CriarBotao(painel, "BotaoRefazer", new Vector3(0.29f, -0.43f, 0f),
+                new Vector2(0.52f, 0.14f), dados, fonte, ChavesDeTexto.DiagonaisRefazer, principal: false);
+            proximo.gameObject.SetActive(false);
+            refazer.gameObject.SetActive(false);
+            painel.gameObject.SetActive(false);
+
+            var estacao = new GameObject("EstacaoDasDiagonais").AddComponent<EstacaoDasDiagonaisNaCena>();
+            estacao.Configurar(dados, caixa.GetComponent<VisualDaCaixa>(), caixa, caixa.GetComponent<DesenhoDasDiagonais>(),
+                comecar, painel.gameObject, texto, opcoes, proximo, refazer,
+                AssetDatabase.LoadAssetAtPath<Material>($"{PastaDosMateriais}/Vertice.mat"),
+                MaterialOpaco("VerticeApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
+                MaterialOpaco("VerticeErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja));
+            return estacao;
+        }
+
+        /// <summary>
+        /// Botão de painel: fundo com colisor (o raio acerta) e texto na frente. Com <paramref name="chave"/>, o texto
+        /// vem do textos.json; sem ela, quem usa o botão escreve. O principal é laranja, com texto branco.
+        /// </summary>
+        private static BotaoDoPainel CriarBotao(Transform painel, string nome, Vector3 posicao, Vector2 tamanho,
+            DadosDoLaboratorio dados, TMP_FontAsset fonte, string chave, bool principal)
+        {
+            var botao = new GameObject(nome).transform;
+            botao.SetParent(painel, false);
+            botao.localPosition = posicao;
+
+            Material normal = principal
+                ? MaterialOpaco("BotaoPrincipal", ShaderUnlit, PaletaDoLaboratorio.BotaoPrincipal)
+                : MaterialOpaco("BotaoNormal", ShaderUnlit, PaletaDoLaboratorio.Parede);
+            var fundo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fundo.name = "Fundo";
+            fundo.transform.SetParent(botao, false);
+            fundo.transform.localPosition = new Vector3(0f, 0f, -0.004f);
+            fundo.transform.localScale = new Vector3(tamanho.x, tamanho.y, 0.012f);
+            var renderizador = fundo.GetComponent<MeshRenderer>();
+            renderizador.sharedMaterial = normal;
+            renderizador.shadowCastingMode = ShadowCastingMode.Off;
+            renderizador.receiveShadows = false;
+            renderizador.lightProbeUsage = LightProbeUsage.Off;
+            renderizador.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+            var objeto = new GameObject("Texto", typeof(RectTransform));
+            objeto.transform.SetParent(botao, false);
+            objeto.transform.localPosition = new Vector3(0f, 0f, -0.012f);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = 0.5f;
+            texto.fontStyle = FontStyles.Bold;
+            texto.alignment = TextAlignmentOptions.Center;
+            texto.textWrappingMode = TextWrappingModes.NoWrap;
+            texto.rectTransform.sizeDelta = tamanho - new Vector2(0.04f, 0.02f);
+            texto.text = chave ?? string.Empty;
+            if (chave != null)
+            {
+                var doCatalogo = objeto.AddComponent<TextoDoCatalogo>();
+                doCatalogo.Configurar(dados, texto, chave);
+                doCatalogo.Atualizar();
+            }
+
+            var componente = botao.gameObject.AddComponent<BotaoDoPainel>();
+            componente.Configurar(renderizador, texto, normal,
+                MaterialOpaco("BotaoApontado", ShaderUnlit, PaletaDoLaboratorio.DestaqueAzul),
+                MaterialOpaco("BotaoCerto", ShaderUnlit, PaletaDoLaboratorio.Teleporte),
+                MaterialOpaco("BotaoErrado", ShaderUnlit, PaletaDoLaboratorio.DestaqueLaranja),
+                principal ? Color.white : PaletaDoLaboratorio.Texto);
+            return componente;
         }
 
         /// <summary>
@@ -239,22 +387,24 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
-        /// Diagnóstico para o professor, num painel próprio à direita da mesa, virado para o aluno e longe dos
-        /// créditos: versão, recentralização (quando rodou), controles e erros. Letra grande, poucas linhas.
+        /// Diagnóstico para o professor, num painel próprio à direita do aluno, longe dos créditos: versão,
+        /// recentralização (quando rodou), controles e erros. Escondido; os dois analógicos afundados por 3 s mostram.
         /// </summary>
         private static void CriarPainelDeDiagnostico(DadosDoLaboratorio dados, TMP_FontAsset fonte,
-            RecentralizacaoDoAluno recentralizacao)
+            RecentralizacaoDoAluno recentralizacao, GameObject rig)
         {
             var tamanho = new Vector2(1.3f, 0.95f);
             var painel = new GameObject("PainelDiagnostico").transform;
-            painel.position = new Vector3(1.55f, 1.35f, 1.1f);
+            painel.position = new Vector3(1.75f, 1.4f, 0.5f);
             Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
             painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);
-            Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
+            var conteudo = new GameObject("Conteudo").transform;
+            conteudo.SetParent(painel, false);
+            Bloco(conteudo, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
                 MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
 
             var objeto = new GameObject("Diagnostico", typeof(RectTransform));
-            objeto.transform.SetParent(painel, false);
+            objeto.transform.SetParent(conteudo, false);
             var texto = objeto.AddComponent<TextMeshPro>();
             texto.font = fonte;
             texto.fontSize = 0.3f;
@@ -265,7 +415,10 @@ namespace LaboratorioParalelepipedo.Editor
             texto.overflowMode = TextOverflowModes.Truncate;
             texto.rectTransform.sizeDelta = tamanho - new Vector2(0.1f, 0.1f);
             texto.text = "Diagnóstico";
-            objeto.AddComponent<PainelDeDiagnostico>().Configurar(texto, dados, recentralizacao);
+            var diagnostico = painel.gameObject.AddComponent<PainelDeDiagnostico>();
+            diagnostico.Configurar(texto, dados, recentralizacao, conteudo.gameObject);
+            conteudo.gameObject.SetActive(false);   // só o atalho do professor mostra
+            rig.AddComponent<AtalhoDoDiagnostico>().Configurar(diagnostico);
         }
 
         /// <summary>
@@ -302,20 +455,21 @@ namespace LaboratorioParalelepipedo.Editor
         }
 
         /// <summary>
-        /// Painel "Como usar os controles", logo atrás da mesa e de frente para o aluno: um título e uma linha por
+        /// Painel "Como usar os controles", à esquerda da mesa e virado para o aluno: um título e uma linha por
         /// botão, só com as ações que funcionam nesta cena (<see cref="AcoesDisponiveis"/>).
         /// </summary>
         private static void CriarPainelDeInstrucoes(DadosDoLaboratorio dados, TMP_FontAsset fonte)
         {
-            var tamanho = new Vector2(1.5f, 0.62f);
+            var tamanho = new Vector2(1.0f, 0.62f);
             var painel = new GameObject("PainelInstrucoes").transform;
-            painel.position = new Vector3(0f, 1.18f, 1.85f);
-            painel.rotation = Quaternion.identity;   // de frente para quem está no ponto de partida
+            painel.position = new Vector3(-1.05f, 1.45f, 1.45f);   // a borda de dentro não cobre o título
+            Vector3 paraFrente = painel.position - new Vector3(0f, painel.position.y, 0f);
+            painel.rotation = Quaternion.LookRotation(paraFrente.normalized, Vector3.up);   // virado para o aluno
             Bloco(painel, "Fundo", new Vector3(0f, 0f, 0.01f), new Vector3(tamanho.x, tamanho.y, 0.01f),
                 MaterialOpaco("FundoDoPainel", ShaderUnlit, PaletaDoLaboratorio.FundoDoPainel));
 
             float margem = 0.06f;
-            TextMeshPro titulo = TextoDoPainel(painel, ChavesDeTexto.ControlesTitulo, fonte, TamanhoDoCorpo * 1.2f,
+            TextMeshPro titulo = TextoDoPainel(painel, ChavesDeTexto.ControlesTitulo, fonte, TamanhoDoCorpo,
                 new Vector3(0f, tamanho.y / 2 - margem - 0.04f, 0f), new Vector2(tamanho.x - 2 * margem, 0.09f),
                 TextAlignmentOptions.Center);
             titulo.fontStyle = FontStyles.Bold;
@@ -323,7 +477,7 @@ namespace LaboratorioParalelepipedo.Editor
             titulo.GetComponent<TextoDoCatalogo>().Atualizar();
 
             float alturaDoCorpo = tamanho.y - 2 * margem - 0.12f;
-            TextMeshPro corpo = TextoDoPainel(painel, "Controles", fonte, TamanhoDoCorpo,
+            TextMeshPro corpo = TextoDoPainel(painel, "Controles", fonte, TamanhoDoCorpo * 0.8f,
                 new Vector3(0f, -tamanho.y / 2 + margem + alturaDoCorpo / 2, 0f),
                 new Vector2(tamanho.x - 2 * margem, alturaDoCorpo), TextAlignmentOptions.TopLeft);
             corpo.paragraphSpacing = 12f;
@@ -508,6 +662,9 @@ namespace LaboratorioParalelepipedo.Editor
         {
             Material material = MaterialTranslucido("EscurecimentoDoGiro", new Color(0f, 0f, 0f, 0f));
             material.SetFloat("_Cull", (float)CullMode.Front);
+            // _QueueOffset é do URP: a fila fica em 3050 (o URP recalcula a fila a partir dele, então ela não volta a 3000).
+            material.SetFloat("_QueueOffset", DeslocamentoDaTelaEscura);
+            material.renderQueue = (int)RenderQueue.Transparent + DeslocamentoDaTelaEscura;
             EditorUtility.SetDirty(material);
             return material;
         }
