@@ -10,20 +10,22 @@ using UnityEngine;
 namespace LaboratorioParalelepipedo.Editor
 {
     /// <summary>
-    /// Renderiza a cena do laboratório vista da altura dos olhos de um aluno de pé e salva em Logs/previa-*.png:
-    /// quatro vistas gerais e um momento por etapa da Estação 2 (abertura, passo 1 concluído, passo 2 concluído,
+    /// Renderiza a cena do laboratório e salva em Logs/previa-*.png: a vista inicial do aluno (origem, olhos a 1,4 m,
+    /// como o modo Editor), uma vista da sala de fora e um momento por etapa da Estação 2 (abertura, passo 1 concluído, passo 2 concluído,
     /// pergunta, erro, acerto, fechamento), com a estação conduzida pelos mesmos métodos que o gatilho chama.
     /// Serve para conferir o visual sem o óculos. Nada é salvo na cena. Batchmode (sem -nographics):
     /// -executeMethod LaboratorioParalelepipedo.Editor.PreviaDaCena.Renderizar -quit
     /// </summary>
     public static class PreviaDaCena
     {
+        private static readonly Vector3 OlhosDoAluno = new Vector3(0f, 1.4f, 0f);
+
         private static readonly (string nome, Vector3 posicao, Vector3 alvo)[] Pontos =
         {
-            ("frente", new Vector3(0f, 1.35f, 0f), new Vector3(0f, 1.0f, 1.4f)),
-            ("caixa", new Vector3(0.25f, 1.15f, 0.45f), new Vector3(0f, 0.86f, 1.0f)),
+            // O aluno começa sempre na origem, olhando para +z (RecentralizacaoDoAluno), a ~0,9 m da caixa.
+            ("frente", OlhosDoAluno, new Vector3(0f, 1.3f, 1.4f)),
+            // Vista de fora, de trás e acima do aluno, para ver a sala toda (nenhum aluno fica aqui).
             ("sala", new Vector3(1.5f, 1.6f, -1.5f), new Vector3(-0.3f, 1.0f, 1.5f)),
-            ("dentro", new Vector3(0.12f, 0.84f, 0.93f), new Vector3(-0.2f, 0.9f, 1.15f)),
         };
 
         [MenuItem("Laboratório/Renderizar prévia da cena")]
@@ -65,7 +67,7 @@ namespace LaboratorioParalelepipedo.Editor
             Debug.Log("[Prévia] Imagens salvas em Logs/previa-*.png.");
         }
 
-        // Aluno no ponto de partida, olhando entre a caixa e o painel da estação.
+        // Aluno no ponto de partida, com a cabeça virada ~20° à direita, entre a caixa e o painel da estação.
         private static void RenderizarAEstacao(Camera camera, RenderTexture alvo)
         {
             var estacao = UnityEngine.Object.FindFirstObjectByType<EstacaoDasDiagonaisNaCena>();
@@ -75,8 +77,8 @@ namespace LaboratorioParalelepipedo.Editor
                 return;
             }
 
-            camera.transform.position = new Vector3(0.05f, 1.4f, 0.05f);
-            camera.transform.LookAt(new Vector3(0.42f, 1.15f, 1.25f));
+            camera.transform.position = OlhosDoAluno;
+            camera.transform.LookAt(new Vector3(0.45f, 1.1f, 1.2f));
             estacao.Inicializar();
             var opcoes = estacao.Estacao.Opcoes;
             int Indice(Func<Nucleo.Estacoes.OpcaoDeResposta, bool> condicao) => opcoes.ToList().FindIndex(o => condicao(o));
@@ -108,6 +110,14 @@ namespace LaboratorioParalelepipedo.Editor
                 rotulo.VirarPara(camera.transform.position);
             foreach (var texto in UnityEngine.Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None))
                 texto.ForceMeshUpdate();
+            // O vértice pedido aparece no auge do pulso (no óculos ele cresce e volta a cada segundo).
+            foreach (var vertice in UnityEngine.Object.FindObjectsByType<AlvoDeVertice>(FindObjectsSortMode.None))
+                if (vertice.Pulsando)
+                {
+                    vertice.DefinirPulsando(false);   // recomeça o pulso e vai ao meio do período (o auge)
+                    vertice.DefinirPulsando(true);
+                    vertice.Avancar(AlvoDeVertice.PeriodoDoPulso / 2);
+                }
 
             camera.Render();
             RenderTexture.active = alvo;
