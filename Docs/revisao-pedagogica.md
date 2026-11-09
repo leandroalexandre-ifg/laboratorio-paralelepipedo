@@ -1,6 +1,6 @@
 # Laboratório do Paralelepípedo — revisão pedagógica
 
-Gerado em 08/11/2026 a partir de `Assets/_Projeto/Dados/textos.json` e `Assets/_Projeto/Dados/desafios.json`, com `python3 -I Tools/gerar_revisao_pedagogica.py`.
+Gerado em 09/11/2026 a partir de `Assets/_Projeto/Dados/textos.json` e `Assets/_Projeto/Dados/desafios.json`, com `python3 -I Tools/gerar_revisao_pedagogica.py`.
 
 **Como revisar:** marque ✓ na coluna *Ok?* ou escreva a sugestão na coluna *Sugestão*. Pode mudar qualquer texto, enunciado ou distrator; as respostas são calculadas pelo app a partir das dimensões da caixa.
 
@@ -34,13 +34,25 @@ Observações gerais:
 | `dica.escolher` | Aperte o gatilho para escolher | | |
 | `dica.teleporteValido` | Solte para ir até lá | | |
 | `dica.teleporteInvalido` | Aqui não dá | | |
-| `estacao.elementos.titulo` | 1. Elementos | | |
-| `estacao.elementos.instrucao` | Toque os vértices, as arestas e as faces da caixa. | | |
-| `estacao.elementos.vertices` | Vértices: {0} de {1} | | |
-| `estacao.elementos.arestas` | Arestas: {0} de {1} | | |
-| `estacao.elementos.faces` | Faces: {0} de {1} | | |
+| `estacao.elementos.titulo` | Estação 1 · Elementos | | |
+| `estacao.elementos.objetivo` | Conheça os elementos da caixa: vértices, arestas e faces. | | |
+| `estacao.elementos.desafio` | Desafio {0} de {1} | | |
+| `estacao.elementos.tocados` | Vértices: {0} | | |
 | `estacao.elementos.faceMontada` | Você montou a face {0}! | | |
-| `estacao.elementos.naoEhFace` | Esses vértices não formam uma face. Comece de novo. | | |
+| `estacao.elementos.naoEhFace` | Esse vértice não continua a face. Tente outro. | | |
+| `estacao.elementos.foraDaFace` | O vértice {0} não é da face {1}. Tente outro. | | |
+| `estacao.elementos.ajuda` | Os vértices que pulsam formam a face. | | |
+| `estacao.elementos.acerto` | Isso! São {0}. | | |
+| `estacao.elementos.dica.vertices` | {0} é o número de vértices, os cantos da caixa. | | |
+| `estacao.elementos.dica.arestas` | {0} é o número de arestas, os segmentos que ligam os vértices. | | |
+| `estacao.elementos.dica.faces` | {0} é o número de faces, as partes planas da caixa. | | |
+| `estacao.elementos.dica.arestasEscondidas` | {0} são só as arestas que dá para ver daqui. Pegue a caixa e gire: há arestas escondidas atrás. | | |
+| `estacao.elementos.dica.semAsBases` | {0} são só as faces dos lados. Faltaram a face de cima e a de baixo. | | |
+| `estacao.elementos.dica.geral` | Ainda não. Conte de novo, com calma. Pegue a caixa e gire para ver todos os lados. | | |
+| `estacao.elementos.concluida` | Estação concluída! | | |
+| `estacao.elementos.resumo` | A caixa tem {0} vértices, {1} arestas e {2} faces. | | |
+| `estacao.elementos.proximaEstacao` | Ir para a Estação 2 | | |
+| `estacao.elementos.refazer` | Refazer | | |
 | `estacao.diagonais.titulo` | Estação 2 · Diagonais | | |
 | `estacao.diagonais.instrucao` | Trace a diagonal da base e veja o triângulo se levantar. | | |
 | `estacao.diagonais.formulaDaBase` | d² = a² + b² | | |

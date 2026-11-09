@@ -30,12 +30,24 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
         public const string DicaTeleporteInvalido = "dica.teleporteInvalido";
 
         public const string ElementosTitulo = "estacao.elementos.titulo";
-        public const string ElementosInstrucao = "estacao.elementos.instrucao";
-        public const string ElementosVertices = "estacao.elementos.vertices";
-        public const string ElementosArestas = "estacao.elementos.arestas";
-        public const string ElementosFaces = "estacao.elementos.faces";
+        public const string ElementosObjetivo = "estacao.elementos.objetivo";
+        public const string ElementosDesafio = "estacao.elementos.desafio";
+        public const string ElementosTocados = "estacao.elementos.tocados";
         public const string ElementosFaceMontada = "estacao.elementos.faceMontada";
         public const string ElementosNaoEhFace = "estacao.elementos.naoEhFace";
+        public const string ElementosForaDaFace = "estacao.elementos.foraDaFace";
+        public const string ElementosAjuda = "estacao.elementos.ajuda";
+        public const string ElementosAcerto = "estacao.elementos.acerto";
+        public const string ElementosDicaVertices = "estacao.elementos.dica.vertices";
+        public const string ElementosDicaArestas = "estacao.elementos.dica.arestas";
+        public const string ElementosDicaFaces = "estacao.elementos.dica.faces";
+        public const string ElementosDicaArestasEscondidas = "estacao.elementos.dica.arestasEscondidas";
+        public const string ElementosDicaSemAsBases = "estacao.elementos.dica.semAsBases";
+        public const string ElementosDicaGeral = "estacao.elementos.dica.geral";
+        public const string ElementosConcluida = "estacao.elementos.concluida";
+        public const string ElementosResumo = "estacao.elementos.resumo";
+        public const string ElementosProximaEstacao = "estacao.elementos.proximaEstacao";
+        public const string ElementosRefazer = "estacao.elementos.refazer";
 
         public const string DiagonaisTitulo = "estacao.diagonais.titulo";
         public const string DiagonaisInstrucao = "estacao.diagonais.instrucao";
@@ -89,8 +101,10 @@ namespace LaboratorioParalelepipedo.Nucleo.Dados
             GeralAcerto, GeralErro, GeralProximo, GeralTentarDeNovo, GeralRecomecar,
             ControlesTitulo, ControlesApontar, ControlesPegar, ControlesTeleporte, ControlesGiro,
             DicaPegar, DicaEscolher, DicaTeleporteValido, DicaTeleporteInvalido,
-            ElementosTitulo, ElementosInstrucao, ElementosVertices, ElementosArestas, ElementosFaces,
-            ElementosFaceMontada, ElementosNaoEhFace,
+            ElementosTitulo, ElementosObjetivo, ElementosDesafio, ElementosTocados, ElementosFaceMontada,
+            ElementosNaoEhFace, ElementosForaDaFace, ElementosAjuda, ElementosAcerto, ElementosDicaVertices,
+            ElementosDicaArestas, ElementosDicaFaces, ElementosDicaArestasEscondidas, ElementosDicaSemAsBases,
+            ElementosDicaGeral, ElementosConcluida, ElementosResumo, ElementosProximaEstacao, ElementosRefazer,
             DiagonaisTitulo, DiagonaisInstrucao, DiagonaisFormulaDaBase, DiagonaisFormulaDaDiagonal,
             DiagonaisTriangulo, DiagonaisObjetivo, DiagonaisDimensoes, DiagonaisPasso1, DiagonaisPasso2,
             DiagonaisProximoVertice, DiagonaisVerticeErrado, DiagonaisContaDaBase, DiagonaisResultadoDaBase,
