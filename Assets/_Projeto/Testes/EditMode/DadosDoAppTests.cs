@@ -55,8 +55,10 @@ namespace LaboratorioParalelepipedo.Testes
         {
             var catalogo = CarregadorDeDados.CarregarTextos(Carregar("textos.json"));
 
-            Assert.That(catalogo.Obter(ChavesDeTexto.AppCreditos),
-                Is.EqualTo("Desenvolvido por NumbERS · IFG – Câmpus Inhumas"));
+            // "NumbERS" vem do logo, ao lado de "Desenvolvido por".
+            Assert.That(catalogo.Obter(ChavesDeTexto.AppCreditos), Is.EqualTo("Desenvolvido por"));
+            Assert.That(catalogo.Obter(ChavesDeTexto.AppInstituicao),
+                Is.EqualTo("Núcleo de pesquisa do Instituto Federal de Goiás – Câmpus Inhumas"));
         }
 
         [Test]

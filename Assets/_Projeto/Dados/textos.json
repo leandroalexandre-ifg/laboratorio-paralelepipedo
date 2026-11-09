@@ -2,7 +2,8 @@
   "versao": 1,
   "textos": [
     { "chave": "app.titulo", "texto": "Laboratório do Paralelepípedo" },
-    { "chave": "app.creditos", "texto": "Desenvolvido por NumbERS · IFG – Câmpus Inhumas" },
+    { "chave": "app.creditos", "texto": "Desenvolvido por" },
+    { "chave": "app.instituicao", "texto": "Núcleo de pesquisa do Instituto Federal de Goiás – Câmpus Inhumas" },
     { "chave": "app.versao", "texto": "Versão {0}" },
     { "chave": "abertura.comecar", "texto": "Começar" },
     { "chave": "diagnostico.titulo", "texto": "Diagnóstico dos controles (para o professor)" },

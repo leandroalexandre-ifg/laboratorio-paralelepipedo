@@ -52,6 +52,11 @@ namespace LaboratorioParalelepipedo.Editor
         // Altura das letras (TextMeshPro 3D: tamanho 1 ≈ 10 cm).
         private const float TamanhoDoTitulo = 0.8f;
         private const float TamanhoDoCredito = 0.4f;
+        private const float TamanhoDaInstituicao = 0.36f;
+        /// <summary>Altura do logo do NumbERS no painel do título (m); a largura segue a proporção da imagem.</summary>
+        public const float AlturaDoLogo = 0.14f;
+        public const string CaminhoDoLogoDoNumbERS = "Assets/_Projeto/Imagens/Logo_NumbERS.png";
+        private const float EspacoAntesDoLogo = 0.025f;
         private const float TamanhoDoCorpo = 0.5f;
         private const float TamanhoDaDica = 0.2f;
 
@@ -93,10 +98,12 @@ namespace LaboratorioParalelepipedo.Editor
 
             // Título com "Começar" ao fundo, acima da caixa; estação à direita da mesa; controles à esquerda.
             // Alto o bastante para não encostar nos rótulos B e C (topo da caixa) com olhos de 1,3 m a 1,7 m.
+            // Créditos: "Desenvolvido por" + logo do NumbERS numa linha; abaixo, o núcleo e o IFG; depois a versão.
             Transform titulo = CriarPainel("PainelTitulo", new Vector3(0f, 2.1f, 2.3f), new Vector2(1.4f, 0.72f), dados, fonte,
-                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.2f), (ChavesDeTexto.AppCreditos, TamanhoDoCredito, 0.05f));
-            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.04f, 0f), 1.28f);
-            BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.2f, 0f), new Vector2(0.5f, 0.14f),
+                (ChavesDeTexto.AppTitulo, TamanhoDoTitulo, 0.225f), (ChavesDeTexto.AppInstituicao, TamanhoDaInstituicao, -0.045f));
+            CriarCreditos(titulo, dados, fonte, 0.075f);
+            CriarVersao(titulo, dados, fonte, new Vector3(0f, -0.095f, 0f), 1.28f);
+            BotaoDoPainel comecar = CriarBotao(titulo, "BotaoComecar", new Vector3(0f, -0.235f, 0f), new Vector2(0.5f, 0.14f),
                 dados, fonte, ChavesDeTexto.AberturaComecar, EstiloDoBotao.Principal);
             // "Começar" leva à Estação 1; o fechamento dela, à Estação 2; o da 2, à Estação 3 (mesmo lugar do painel).
             EstacaoDasAreasNaCena areas = CriarEstacaoDasAreas(dados, fonte, caixa);
@@ -741,6 +748,60 @@ namespace LaboratorioParalelepipedo.Editor
             texto.rectTransform.sizeDelta = tamanho;
             objeto.AddComponent<TextoDoCatalogo>();
             return texto;
+        }
+
+        /// <summary>
+        /// "Desenvolvido por" e, à direita, o logo do NumbERS (quad com a imagem, sem colisor), a dupla centrada no
+        /// painel. A largura do texto é medida com a fonte na hora de gerar.
+        /// </summary>
+        private static void CriarCreditos(Transform painel, DadosDoLaboratorio dados, TMP_FontAsset fonte, float y)
+        {
+            Texture2D imagem = ImportarLogo(CaminhoDoLogoDoNumbERS);
+            float larguraDoLogo = AlturaDoLogo * imagem.width / imagem.height;
+
+            var objeto = new GameObject(ChavesDeTexto.AppCreditos, typeof(RectTransform));
+            objeto.transform.SetParent(painel, false);
+            var texto = objeto.AddComponent<TextMeshPro>();
+            texto.font = fonte;
+            texto.fontSize = TamanhoDoCredito;
+            texto.color = PaletaDoLaboratorio.Texto;
+            texto.alignment = TextAlignmentOptions.MidlineRight;
+            texto.textWrappingMode = TextWrappingModes.NoWrap;
+            var textoDoCatalogo = objeto.AddComponent<TextoDoCatalogo>();
+            textoDoCatalogo.Configurar(dados, texto, ChavesDeTexto.AppCreditos);
+            textoDoCatalogo.Atualizar();
+            float larguraDoTexto = texto.GetPreferredValues(texto.text).x;
+            texto.rectTransform.sizeDelta = new Vector2(larguraDoTexto, AlturaDoLogo);
+
+            float inicio = -(larguraDoTexto + EspacoAntesDoLogo + larguraDoLogo) / 2;
+            objeto.transform.localPosition = new Vector3(inicio + larguraDoTexto / 2, y, 0f);
+
+            Material material = MaterialTranslucido("LogoDoNumbERS", Color.white);
+            material.SetTexture("_BaseMap", imagem);
+            material.SetTexture("_MainTex", imagem);
+            EditorUtility.SetDirty(material);
+            Primitiva(PrimitiveType.Quad, painel, "LogoDoNumbERS",
+                new Vector3(inicio + larguraDoTexto + EspacoAntesDoLogo + larguraDoLogo / 2, y, 0f),
+                new Vector3(larguraDoLogo, AlturaDoLogo, 1f), material);
+        }
+
+        /// <summary>Importa o PNG do logo com transparência, mipmaps (nítido de longe) e bordas presas.</summary>
+        private static Texture2D ImportarLogo(string caminho)
+        {
+            var importador = (TextureImporter)AssetImporter.GetAtPath(caminho) ??
+                             throw new System.InvalidOperationException($"Logo não encontrado em '{caminho}'.");
+            if (!importador.alphaIsTransparency || !importador.mipmapEnabled || importador.wrapMode != TextureWrapMode.Clamp ||
+                importador.textureType != TextureImporterType.Default || !importador.sRGBTexture)
+            {
+                importador.textureType = TextureImporterType.Default;
+                importador.sRGBTexture = true;
+                importador.alphaIsTransparency = true;
+                importador.mipmapEnabled = true;
+                importador.wrapMode = TextureWrapMode.Clamp;
+                importador.SaveAndReimport();
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(caminho);
         }
 
         /// <summary>Versão do app (Application.version) logo abaixo dos créditos: mostra qual build está no óculos.</summary>

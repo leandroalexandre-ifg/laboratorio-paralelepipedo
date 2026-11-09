@@ -95,14 +95,15 @@ Rascunhos escritos durante o desenvolvimento, ainda sem o aval do professor. O a
 | `estacao.diagonais.refazer` **[REVISAR-PROFESSOR]** | Refazer |  | | |
 | `estacao.diagonais.rotulo` **[REVISAR-PROFESSOR]** | {0} = {1} |  | | |
 
-## 2. Demais textos (37)
+## 2. Demais textos (38)
 
 Textos mais antigos ou de interface (títulos, botões, painel de diagnóstico). Vale uma conferência geral.
 
 | Chave | Texto | Ok? | Sugestão |
 |---|---|---|---|
 | `app.titulo` | Laboratório do Paralelepípedo | | |
-| `app.creditos` | Desenvolvido por NumbERS · IFG – Câmpus Inhumas | | |
+| `app.creditos` | Desenvolvido por | | |
+| `app.instituicao` | Núcleo de pesquisa do Instituto Federal de Goiás – Câmpus Inhumas | | |
 | `app.versao` | Versão {0} | | |
 | `diagnostico.titulo` | Diagnóstico dos controles (para o professor) | | |
 | `geral.acerto` | Muito bem! | | |

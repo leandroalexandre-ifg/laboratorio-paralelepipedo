@@ -374,6 +374,56 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
+        public void Creditos_DesenvolvidoPorEOLogoDoNumbERS_NumaLinha_DentroDoTitulo()
+        {
+            Transform titulo = _cena.GetRootGameObjects().Single(g => g.name == "PainelTitulo").transform;
+            Transform logo = titulo.Find("LogoDoNumbERS");
+            Assert.That(logo, Is.Not.Null, "logo do NumbERS no painel do título");
+            Assert.That(logo.GetComponent<Collider>(), Is.Null, "o raio não para no logo");
+            Material material = logo.GetComponent<MeshRenderer>().sharedMaterial;
+            var imagem = (Texture2D)material.GetTexture("_BaseMap");
+            Assert.That(AssetDatabase.GetAssetPath(imagem), Is.EqualTo("Assets/_Projeto/Imagens/Logo_NumbERS.png"));
+            Assert.That(logo.localScale.x / logo.localScale.y, Is.EqualTo((float)imagem.width / imagem.height).Within(0.001f),
+                "sem distorcer o logo");
+            Assert.That(material.renderQueue, Is.GreaterThanOrEqualTo(3000), "transparente: o fundo do painel aparece");
+
+            var creditos = titulo.Find(ChavesDeTexto.AppCreditos).GetComponent<TMPro.TextMeshPro>();
+            var instituicao = titulo.Find(ChavesDeTexto.AppInstituicao);
+            Assert.That(creditos.GetComponent<TextoDoCatalogo>().Chaves, Is.EqualTo(new[] { ChavesDeTexto.AppCreditos }));
+            Assert.That(instituicao.GetComponent<TextoDoCatalogo>().Chaves, Is.EqualTo(new[] { ChavesDeTexto.AppInstituicao }));
+
+            float fimDoTexto = creditos.transform.localPosition.x + creditos.rectTransform.sizeDelta.x / 2;
+            float inicioDoLogo = logo.localPosition.x - logo.localScale.x / 2;
+            float fimDoLogo = logo.localPosition.x + logo.localScale.x / 2;
+            float inicioDoTexto = creditos.transform.localPosition.x - creditos.rectTransform.sizeDelta.x / 2;
+            Assert.That(inicioDoLogo, Is.GreaterThan(fimDoTexto), "logo à direita de \"Desenvolvido por\", sem encostar");
+            Assert.That(creditos.transform.localPosition.y, Is.EqualTo(logo.localPosition.y).Within(0.001f), "mesma linha");
+            Assert.That((inicioDoTexto + fimDoLogo) / 2, Is.EqualTo(0f).Within(0.005f), "a dupla centrada no painel");
+            float metade = titulo.Find("Fundo").localScale.x / 2;
+            Assert.That(fimDoLogo, Is.LessThan(metade), "dentro do painel");
+
+            // Ordem de cima para baixo: título, créditos, núcleo/IFG, versão, "Começar".
+            float[] alturas =
+            {
+                titulo.Find(ChavesDeTexto.AppTitulo).localPosition.y, logo.localPosition.y, instituicao.localPosition.y,
+                Todos<TextoDaVersao>().Single().transform.localPosition.y, titulo.Find("BotaoComecar").localPosition.y,
+            };
+            Assert.That(alturas, Is.Ordered.Descending);
+            Assert.That(logo.localPosition.y - logo.localScale.y / 2, Is.GreaterThan(instituicao.localPosition.y + 0.02f),
+                "o logo não encosta na linha de baixo");
+        }
+
+        [Test]
+        public void AberturaDoQuest_MostraOLogoDoNumbERS()
+        {
+            var configuracao = new SerializedObject(AssetDatabase.LoadMainAssetAtPath("Assets/Oculus/OculusProjectConfig.asset"));
+            var logo = configuracao.FindProperty("systemSplashScreen").objectReferenceValue;
+
+            Assert.That(AssetDatabase.GetAssetPath(logo), Is.EqualTo("Assets/_Projeto/Imagens/Logo_Intro.png"));
+            Assert.That(configuracao.FindProperty("systemSplashScreenType").enumValueIndex, Is.EqualTo(0), "Mono");
+        }
+
+        [Test]
         public void TituloTemBotaoComecar_QueLevaAEstacao1_QueLevaAEstacao2()
         {
             var elementos = new SerializedObject(Todos<EstacaoDosElementosNaCena>().Single());
