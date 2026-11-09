@@ -3,24 +3,31 @@ using UnityEngine;
 
 namespace LaboratorioParalelepipedo.XR
 {
-    /// <summary>Vibração curta nos dois controles quando o aluno acerta a pergunta da estação.</summary>
+    /// <summary>Vibração curta nos dois controles quando o aluno acerta um desafio da Estação 1 ou a pergunta da Estação 2.</summary>
     public sealed class VibracaoDoAcerto : MonoBehaviour
     {
         [SerializeField] private EstacaoDasDiagonaisNaCena _estacao;
+        [SerializeField] private EstacaoDosElementosNaCena _estacaoDosElementos;
 
         private float _fim = -1f;
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
-        public void Configurar(EstacaoDasDiagonaisNaCena estacao) => _estacao = estacao;
+        public void Configurar(EstacaoDasDiagonaisNaCena estacao, EstacaoDosElementosNaCena estacaoDosElementos = null)
+        {
+            _estacao = estacao;
+            _estacaoDosElementos = estacaoDosElementos;
+        }
 
         private void OnEnable()
         {
             if (_estacao != null) _estacao.Acertou += Vibrar;
+            if (_estacaoDosElementos != null) _estacaoDosElementos.Acertou += Vibrar;
         }
 
         private void OnDisable()
         {
             if (_estacao != null) _estacao.Acertou -= Vibrar;
+            if (_estacaoDosElementos != null) _estacaoDosElementos.Acertou -= Vibrar;
             Parar();
         }
 

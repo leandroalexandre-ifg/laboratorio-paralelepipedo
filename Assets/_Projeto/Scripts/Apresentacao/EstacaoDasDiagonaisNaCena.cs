@@ -9,7 +9,7 @@ using UnityEngine;
 namespace LaboratorioParalelepipedo.Apresentacao
 {
     /// <summary>
-    /// Liga a <see cref="EstacaoDasDiagonais"/> (núcleo) à cena: o botão "Começar" do título, os vértices da caixa como
+    /// Liga a <see cref="EstacaoDasDiagonais"/> (núcleo) à cena: começa pela Estação 1 (ou por um botão "Começar"), os vértices da caixa como
     /// alvos do gatilho (o vértice pedido pulsa), o desenho das diagonais, o painel da estação (instrução em destaque
     /// no alto, objetivo e medidas, contas de d e de D em duas colunas grandes) e os botões da pergunta e do
     /// fechamento. Toda regra fica no núcleo; aqui só se mostra o estado. O texto do painel é montado
@@ -142,7 +142,8 @@ namespace LaboratorioParalelepipedo.Apresentacao
             if (_proximoDesafio != null) _proximoDesafio.Acionado += AoPedirProximo;
             if (_refazer != null) _refazer.Acionado += AoRefazer;
 
-            MontarCaixa();
+            // Sem "Começar" próprio, a estação espera a anterior chamar Comecar: até lá, a caixa é a dela.
+            if (_comecar != null) MontarCaixa();
             Mostrar();
         }
 
@@ -165,10 +166,13 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         private void AoComecar(BotaoDoPainel botao) => Comecar();
 
-        /// <summary>"Começar" (público para a prévia e os testes).</summary>
+        /// <summary>"Começar": pelo botão do título ou pela Estação 1 ao sair dela (público para a prévia e os testes).</summary>
         public void Comecar()
         {
+            if (_estacao == null) Inicializar();
+            if (_estacao == null || _estacao.Etapa != EtapaDasDiagonais.Abertura) return;
             _estacao.Comecar();
+            MontarCaixa();   // a caixa do primeiro desafio desta estação, com os alvos dela
             Mostrar();
         }
 

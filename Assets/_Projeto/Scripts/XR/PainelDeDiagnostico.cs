@@ -28,6 +28,8 @@ namespace LaboratorioParalelepipedo.XR
         [SerializeField] private float _distanciaAoAbrir = 1.3f;
         [SerializeField, Tooltip("Estação 2: etapa e vértices escolhíveis.")]
         private EstacaoDasDiagonaisNaCena _estacao;
+        [SerializeField, Tooltip("Estação 1: etapa e vértices escolhíveis.")]
+        private EstacaoDosElementosNaCena _estacaoDosElementos;
 
         private readonly StringBuilder _linhas = new StringBuilder(1024);
         private int _totalDeErros;
@@ -40,8 +42,9 @@ namespace LaboratorioParalelepipedo.XR
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
         public void Configurar(TMP_Text texto, DadosDoLaboratorio dados, RecentralizacaoDoAluno recentralizacao, GameObject conteudo,
-            Transform cabeca = null, EstacaoDasDiagonaisNaCena estacao = null)
+            Transform cabeca = null, EstacaoDasDiagonaisNaCena estacao = null, EstacaoDosElementosNaCena estacaoDosElementos = null)
         {
+            _estacaoDosElementos = estacaoDosElementos;
             _cabeca = cabeca;
             _estacao = estacao;
             _texto = texto;
@@ -121,6 +124,11 @@ namespace LaboratorioParalelepipedo.XR
                 .Append(" | lateral E/D: ").Append(OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.LTouch).ToString("0.00"))
                 .Append(" / ").Append(OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.RTouch).ToString("0.00"))
                 .Append('\n');
+            if (_estacaoDosElementos != null && _estacaoDosElementos.Estacao != null)
+                s.Append("Estação 1: ").Append(_estacaoDosElementos.Saiu ? "concluída" : _estacaoDosElementos.Estacao.Etapa.ToString())
+                    .Append(" | desafio ").Append(_estacaoDosElementos.Estacao.IndiceDoDesafio + 1)
+                    .Append(" | vértices escolhíveis: ").Append(_estacaoDosElementos.VerticesEscolhiveis).Append("/8\n");
+            else s.Append("Estação 1: não iniciada (sem desafios?)\n");
             if (_estacao != null && _estacao.Estacao != null)
                 s.Append("Estação 2: ").Append(_estacao.Estacao.Etapa.ToString())
                     .Append(" | desafio ").Append(_estacao.Estacao.IndiceDoDesafio + 1)
