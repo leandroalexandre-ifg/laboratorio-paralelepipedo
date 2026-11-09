@@ -10,8 +10,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
 {
     /// <summary>
     /// Liga a <see cref="EstacaoDasDiagonais"/> (núcleo) à cena: o botão "Começar" do título, os vértices da caixa como
-    /// alvos do gatilho, o desenho das diagonais, o painel da estação (instrução e contas linha por linha) e os botões
-    /// da pergunta e do fechamento. Toda regra fica no núcleo; aqui só se mostra o estado. O texto do painel é montado
+    /// alvos do gatilho (o vértice pedido pulsa), o desenho das diagonais, o painel da estação (instrução em destaque
+    /// no alto, objetivo e medidas, contas de d e de D em duas colunas grandes) e os botões da pergunta e do
+    /// fechamento. Toda regra fica no núcleo; aqui só se mostra o estado. O texto do painel é montado
     /// só quando algo muda, nunca a cada quadro.
     /// </summary>
     public sealed class EstacaoDasDiagonaisNaCena : MonoBehaviour
@@ -30,17 +31,25 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [Header("Painéis")]
         [SerializeField] private BotaoDoPainel _comecar;
         [SerializeField] private GameObject _painelDaEstacao;
-        [SerializeField] private TMP_Text _texto;
+        [SerializeField, Tooltip("Instrução do passo, pergunta, dica ou acerto: no alto, grande e em destaque.")]
+        private TMP_Text _instrucao;
+        [SerializeField, Tooltip("Objetivo e medidas da caixa.")]
+        private TMP_Text _texto;
+        [SerializeField] private TMP_Text _contasDaBase;
+        [SerializeField] private TMP_Text _contasDaDiagonal;
         [SerializeField] private BotaoDoPainel[] _opcoes = new BotaoDoPainel[0];
         [SerializeField] private BotaoDoPainel _proximoDesafio;
         [SerializeField] private BotaoDoPainel _refazer;
+        [SerializeField, Tooltip("Fundo do painel: cresce para baixo conforme aparecem as contas e os botões.")]
+        private Transform _fundo;
+        [SerializeField] private float _topoDoFundo, _baseSoTexto, _baseComContas, _baseComBotoes;
 
         [Header("Vértices")]
         [SerializeField] private Material _verticeNormal;
         [SerializeField] private Material _verticeApontado;
         [SerializeField] private Material _verticeErrado;
         [SerializeField, Tooltip("Raio do colisor de cada vértice, em metros (maior que a esfera: fácil de mirar).")]
-        private float _raioDoAlvo = 0.035f;
+        private float _raioDoAlvo = 0.03f;
 
         [SerializeField] private int _semente = 1;
 
@@ -49,7 +58,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
         private AlvoDeVertice[] _alvos = new AlvoDeVertice[0];
         private float _ateAsOpcoes = -1f;
         private float _ateOFechamento = -1f;
-        private string _corDaDica, _corDoAcerto, _corAzul;
+        private string _corDaDica, _corDoAcerto;
 
         /// <summary>A estação do núcleo (para a prévia e os testes).</summary>
         public EstacaoDasDiagonais Estacao => _estacao;
@@ -58,14 +67,21 @@ namespace LaboratorioParalelepipedo.Apresentacao
         public bool OpcoesAVista => _opcoes.Length > 0 && _opcoes[0] != null && _opcoes[0].gameObject.activeSelf;
 
         /// <summary>Texto atual do painel da estação.</summary>
-        public string TextoDoPainel => _texto != null ? _texto.text : null;
+        public string TextoDoPainel =>
+            $"{Lido(_instrucao)}\n{Lido(_texto)}\n{Lido(_contasDaBase)}\n{Lido(_contasDaDiagonal)}";
+
+        /// <summary>Só a instrução em destaque (para os testes).</summary>
+        public string Instrucao => Lido(_instrucao);
+
+        private static string Lido(TMP_Text texto) => texto != null ? texto.text : string.Empty;
 
         /// <summary>O aluno acertou a pergunta (a vibração do controle escuta isto).</summary>
         public event Action Acertou;
 
         /// <summary>Liga o componente (usado pelo gerador da cena).</summary>
         public void Configurar(DadosDoLaboratorio dados, VisualDaCaixa visual, CaixaPegavel caixa, DesenhoDasDiagonais desenho,
-            BotaoDoPainel comecar, GameObject painelDaEstacao, TMP_Text texto, BotaoDoPainel[] opcoes,
+            BotaoDoPainel comecar, GameObject painelDaEstacao, TMP_Text instrucao, TMP_Text texto, TMP_Text contasDaBase,
+            TMP_Text contasDaDiagonal, BotaoDoPainel[] opcoes,
             BotaoDoPainel proximoDesafio, BotaoDoPainel refazer, Material verticeNormal, Material verticeApontado,
             Material verticeErrado)
         {
@@ -75,7 +91,10 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _desenho = desenho;
             _comecar = comecar;
             _painelDaEstacao = painelDaEstacao;
+            _instrucao = instrucao;
             _texto = texto;
+            _contasDaBase = contasDaBase;
+            _contasDaDiagonal = contasDaDiagonal;
             _opcoes = opcoes;
             _proximoDesafio = proximoDesafio;
             _refazer = refazer;
@@ -92,7 +111,6 @@ namespace LaboratorioParalelepipedo.Apresentacao
             if (_estacao != null) return;
             _corDaDica = "#" + ColorUtility.ToHtmlStringRGB(PaletaDoLaboratorio.DestaqueLaranja);
             _corDoAcerto = "#" + ColorUtility.ToHtmlStringRGB(PaletaDoLaboratorio.Teleporte);
-            _corAzul = "#" + ColorUtility.ToHtmlStringRGB(PaletaDoLaboratorio.DestaqueAzul);
 
             var desafios = EstacaoDasDiagonais.DesafiosDaEstacao(_dados.Desafios);
             if (desafios.Count == 0)
@@ -213,6 +231,32 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         // Caixa ---------------------------------------------------------------------------------------------------
 
+        /// <summary>Liga o fundo que acompanha o conteúdo (usado pelo gerador da cena): topo fixo, base por etapa.</summary>
+        public void ConfigurarFundo(Transform fundo, float topo, float baseSoTexto, float baseComContas, float baseComBotoes)
+        {
+            _fundo = fundo;
+            _topoDoFundo = topo;
+            _baseSoTexto = baseSoTexto;
+            _baseComContas = baseComContas;
+            _baseComBotoes = baseComBotoes;
+        }
+
+        // Sem grande área vazia: o painel termina logo abaixo do que está à vista.
+        private void AjustarFundo(EtapaDasDiagonais etapa)
+        {
+            if (_fundo == null) return;
+            bool comBotoes = OpcoesAVista || etapa == EtapaDasDiagonais.Fechamento;
+            float baseDoFundo = comBotoes ? _baseComBotoes
+                : etapa >= EtapaDasDiagonais.DiagonalDaCaixa ? _baseComContas : _baseSoTexto;
+            Vector3 posicao = _fundo.localPosition;
+            Vector3 escala = _fundo.localScale;
+            _fundo.localPosition = new Vector3(posicao.x, (_topoDoFundo + baseDoFundo) / 2, posicao.z);
+            _fundo.localScale = new Vector3(escala.x, _topoDoFundo - baseDoFundo, escala.z);
+        }
+
+        /// <summary>Altura atual do fundo do painel, em metros (para os testes).</summary>
+        public float AlturaDoFundo => _fundo != null ? _fundo.localScale.y : 0f;
+
         private void MontarCaixa()
         {
             Paralelepipedo caixa = _estacao.Caixa;
@@ -268,10 +312,16 @@ namespace LaboratorioParalelepipedo.Apresentacao
             if (etapa < EtapaDasDiagonais.Pergunta) _desenho.MostrarPasso2(false, false);
             else if (!_desenho.Passo2.activeSelf) _desenho.MostrarPasso2(true, false);
 
+            string pedido = _estacao.VerticeEsperado;   // nulo fora dos passos 1 e 2
             for (int i = 0; i < _alvos.Length; i++)
-                if (_alvos[i] != null) _alvos[i].DefinirEscolhido(_alvos[i].Nome == _estacao.VerticeEscolhido);
+            {
+                if (_alvos[i] == null) continue;
+                _alvos[i].DefinirEscolhido(_alvos[i].Nome == _estacao.VerticeEscolhido);
+                _alvos[i].DefinirPulsando(_alvos[i].Nome == pedido);
+            }
 
             MostrarBotoes(etapa);
+            AjustarFundo(etapa);
             if (nosPassos) MontarTexto(etapa);
         }
 
@@ -284,7 +334,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
                 _opcoes[i].Mostrar(visivel);
                 if (!visivel) continue;
                 _opcoes[i].DefinirTexto(_estacao.Opcoes[i].Texto);
-                if (_estacao.OpcaoEscolhida < 0) _opcoes[i].DefinirEstado(EstadoDoBotao.Normal);
+                // Antes de responder, tudo normal; no acerto, as erradas voltam ao normal e só a certa fica verde.
+                if (_estacao.OpcaoEscolhida < 0 || (etapa == EtapaDasDiagonais.Acertou && i != _estacao.OpcaoEscolhida))
+                    _opcoes[i].DefinirEstado(EstadoDoBotao.Normal);
             }
 
             bool fechamento = etapa == EtapaDasDiagonais.Fechamento;
@@ -296,62 +348,72 @@ namespace LaboratorioParalelepipedo.Apresentacao
         {
             Paralelepipedo caixa = _estacao.Caixa;
             var s = _linhas;
+
+            // Objetivo e medidas.
             s.Clear();
-            s.Append("<b>").Append(Texto(ChavesDeTexto.DiagonaisTitulo)).Append("</b>\n");
+            s.Append(Texto(ChavesDeTexto.DiagonaisObjetivo)).Append("\n<size=140%><b>")
+                .Append(Formatar(ChavesDeTexto.DiagonaisDimensoes, ContasDaDiagonal.A(caixa), ContasDaDiagonal.B(caixa),
+                    ContasDaDiagonal.C(caixa))).Append("</b></size>");
+            Escrever(_texto, s);
 
-            if (etapa == EtapaDasDiagonais.Fechamento)
+            // Instrução em destaque: o passo, a pergunta (com a dica do distrator), o acerto ou o fechamento.
+            s.Clear();
+            switch (etapa)
             {
-                s.Append('\n').Append("<b>").Append(Texto(ChavesDeTexto.DiagonaisConcluida)).Append("</b>\n\n");
-                s.Append(Texto(ChavesDeTexto.DiagonaisFormulaGeral)).Append('\n');
-                s.Append(Formatar(ChavesDeTexto.DiagonaisAcerto, ContasDaDiagonal.Diagonal(caixa)));
-                _texto.text = s.ToString();
-                return;
+                case EtapaDasDiagonais.DiagonalDaBase:
+                    InstrucaoDoPasso(s, ChavesDeTexto.DiagonaisPasso1);
+                    break;
+                case EtapaDasDiagonais.DiagonalDaCaixa:
+                    InstrucaoDoPasso(s, ChavesDeTexto.DiagonaisPasso2);
+                    break;
+                case EtapaDasDiagonais.Pergunta:
+                    if (_ateAsOpcoes >= 0f) break;   // o triângulo ainda sobe
+                    s.Append(_estacao.Desafio.Enunciado);
+                    if (_estacao.ChaveDaDica != null)
+                        s.Append("\n<size=80%><color=").Append(_corDaDica).Append('>')
+                            .Append(Formatar(_estacao.ChaveDaDica, _estacao.Opcoes[_estacao.OpcaoEscolhida].Texto))
+                            .Append("</color></size>");
+                    break;
+                case EtapaDasDiagonais.Acertou:
+                    s.Append("<size=130%><color=").Append(_corDoAcerto).Append('>')
+                        .Append(Formatar(ChavesDeTexto.DiagonaisAcerto, ContasDaDiagonal.Diagonal(caixa))).Append("</color></size>");
+                    break;
+                case EtapaDasDiagonais.Fechamento:
+                    s.Append("<color=").Append(_corDoAcerto).Append('>').Append(Texto(ChavesDeTexto.DiagonaisConcluida))
+                        .Append("</color>\n").Append(Texto(ChavesDeTexto.DiagonaisFormulaGeral));
+                    break;
             }
+            Escrever(_instrucao, s);
 
-            s.Append("<size=85%>").Append(Texto(ChavesDeTexto.DiagonaisObjetivo)).Append("</size>\n");
-            s.Append(Formatar(ChavesDeTexto.DiagonaisDimensoes, ContasDaDiagonal.A(caixa), ContasDaDiagonal.B(caixa),
-                ContasDaDiagonal.C(caixa))).Append("\n\n");
+            // Passo 1 concluído: d² = a² + b² → d² = 4 + 9 → d = √13 (a cor azul vem do texto).
+            s.Clear();
+            if (etapa >= EtapaDasDiagonais.DiagonalDaCaixa)
+                s.Append(Texto(ChavesDeTexto.DiagonaisFormulaDaBase)).Append('\n')
+                    .Append(Formatar(ChavesDeTexto.DiagonaisContaDaBase, ContasDaDiagonal.QuadradoDeA(caixa),
+                        ContasDaDiagonal.QuadradoDeB(caixa))).Append('\n')
+                    .Append(Formatar(ChavesDeTexto.DiagonaisResultadoDaBase, ContasDaDiagonal.DiagonalDaBase(caixa)));
+            Escrever(_contasDaBase, s);
 
-            if (etapa == EtapaDasDiagonais.DiagonalDaBase)
-            {
-                Instrucao(s, ChavesDeTexto.DiagonaisPasso1);
-                _texto.text = s.ToString();
-                return;
-            }
+            // Passo 2 concluído: D² = d² + c² → D² = 13 + 36 = 49 → D = ? (a cor laranja vem do texto).
+            s.Clear();
+            if (etapa >= EtapaDasDiagonais.Pergunta)
+                s.Append(Texto(ChavesDeTexto.DiagonaisFormulaDaDiagonal)).Append('\n')
+                    .Append(Formatar(ChavesDeTexto.DiagonaisContaDaDiagonal, ContasDaDiagonal.QuadradoDaDiagonalDaBase(caixa),
+                        ContasDaDiagonal.QuadradoDeC(caixa), ContasDaDiagonal.QuadradoDaDiagonal(caixa))).Append('\n')
+                    .Append(Texto(ChavesDeTexto.DiagonaisIncognita));
+            Escrever(_contasDaDiagonal, s);
+        }
 
-            // Passo 1 concluído: d² = a² + b² → d² = 4 + 9 → d = √13
-            s.Append(Azul(Texto(ChavesDeTexto.DiagonaisFormulaDaBase))).Append('\n');
-            s.Append(Azul(Formatar(ChavesDeTexto.DiagonaisContaDaBase, ContasDaDiagonal.QuadradoDeA(caixa),
-                ContasDaDiagonal.QuadradoDeB(caixa)))).Append('\n');
-            s.Append(Azul(Formatar(ChavesDeTexto.DiagonaisResultadoDaBase, ContasDaDiagonal.DiagonalDaBase(caixa)))).Append("\n\n");
-
-            if (etapa == EtapaDasDiagonais.DiagonalDaCaixa)
-            {
-                Instrucao(s, ChavesDeTexto.DiagonaisPasso2);
-                _texto.text = s.ToString();
-                return;
-            }
-
-            // Passo 2 concluído: D² = d² + c² → D² = 13 + 36 = 49 → D = ?
-            s.Append(Laranja(Texto(ChavesDeTexto.DiagonaisFormulaDaDiagonal))).Append('\n');
-            s.Append(Laranja(Formatar(ChavesDeTexto.DiagonaisContaDaDiagonal, ContasDaDiagonal.QuadradoDaDiagonalDaBase(caixa),
-                ContasDaDiagonal.QuadradoDeC(caixa), ContasDaDiagonal.QuadradoDaDiagonal(caixa)))).Append('\n');
-            s.Append(Laranja(Texto(ChavesDeTexto.DiagonaisIncognita))).Append("\n\n");
-
-            if (_ateAsOpcoes < 0f) s.Append("<b>").Append(_estacao.Desafio.Enunciado).Append("</b>\n");
-
-            if (etapa == EtapaDasDiagonais.Acertou)
-                s.Append("<color=").Append(_corDoAcerto).Append("><b>")
-                    .Append(Formatar(ChavesDeTexto.DiagonaisAcerto, ContasDaDiagonal.Diagonal(caixa))).Append("</b></color>");
-            else if (_estacao.ChaveDaDica != null)
-                s.Append("<color=").Append(_corDaDica).Append('>')
-                    .Append(Formatar(_estacao.ChaveDaDica, _estacao.Opcoes[_estacao.OpcaoEscolhida].Texto)).Append("</color>");
-
-            _texto.text = s.ToString();
+        // Só quando algo muda (nunca a cada quadro): o texto fica legível também para a prévia e os testes.
+        private static void Escrever(TMP_Text texto, StringBuilder s)
+        {
+            if (texto == null) return;
+            string novo = s.ToString();
+            if (texto.text != novo) texto.text = novo;
         }
 
         // Instrução do passo, ou "Agora aponte para o vértice G.", ou a dica do vértice errado.
-        private void Instrucao(StringBuilder s, string chaveDoPasso)
+        private void InstrucaoDoPasso(StringBuilder s, string chaveDoPasso)
         {
             if (_estacao.VerticeErrado != null)
                 s.Append("<color=").Append(_corDaDica).Append('>')
@@ -363,8 +425,5 @@ namespace LaboratorioParalelepipedo.Apresentacao
                 s.Append(Texto(chaveDoPasso));
         }
 
-        private string Azul(string texto) => "<color=" + _corAzul + ">" + texto + "</color>";
-
-        private string Laranja(string texto) => "<color=" + _corDaDica + ">" + texto + "</color>";
     }
 }
