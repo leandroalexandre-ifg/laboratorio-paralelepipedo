@@ -140,8 +140,8 @@ namespace LaboratorioParalelepipedo.Testes
             if (componentes.Any(c => c is LocomocaoDoAluno)) acoes |= AcoesDoControle.Teleporte | AcoesDoControle.Giro;
 
             Assert.That(painel.Chaves, Is.EqualTo(TextosDosControles.Chaves(acoes)));
-            Assert.That(painel.Chaves, Is.EqualTo(new[] { ChavesDeTexto.ControlesPegar }),
-                "estacionária: sem teleporte nem giro; o 'apontar e escolher' chega com as estações");
+            Assert.That(painel.Chaves, Is.EqualTo(new[] { ChavesDeTexto.ControlesApontar, ChavesDeTexto.ControlesPegar }),
+                "estacionária: sem teleporte nem giro; gatilho para os vértices e botões, lateral para a caixa");
         }
 
         [Test]
@@ -222,20 +222,28 @@ namespace LaboratorioParalelepipedo.Testes
             var caixa = Todos<CaixaPegavel>().Single();
             var colisor = caixa.GetComponent<BoxCollider>();
 
-            // A caixa 4 × 3 × 2 a 10 cm por unidade (EscalaDaCaixa): 40 × 20 × 30 cm (x, altura, z).
-            Assert.That(Vector3.Distance(colisor.size, new Vector3(0.4f, 0.2f, 0.3f)), Is.LessThan(1e-4f));
-            Assert.That(Vector3.Distance(colisor.center, new Vector3(0f, 0.1f, 0f)), Is.LessThan(1e-4f));
+            // A primeira caixa da estação de diagonais, 2 × 3 × 6 a 10 cm por unidade (EscalaDaCaixa):
+            // 20 × 60 × 30 cm (x, altura, z).
+            Assert.That(Vector3.Distance(colisor.size, new Vector3(0.2f, 0.6f, 0.3f)), Is.LessThan(1e-4f));
+            Assert.That(Vector3.Distance(colisor.center, new Vector3(0f, 0.3f, 0f)), Is.LessThan(1e-4f));
             Assert.That(caixa.GetComponent<Rigidbody>().isKinematic);
             Assert.That(new SerializedObject(caixa).FindProperty("_materialDaArestaDestacada").objectReferenceValue, Is.Not.Null);
         }
 
         [Test]
-        public void SoACaixaTemColisor()
+        public void SoACaixaEOsBotoesTemColisor()
         {
-            // O raio só para no que é interativo; sala, mesa, painéis, marcador e modelos não bloqueiam.
+            // O raio só para no que é interativo; sala, mesa e fundo dos painéis não bloqueiam. Os vértices ganham
+            // colisor ao montar cada caixa, na hora de rodar.
             var colisores = Todos<Collider>();
 
-            Assert.That(colisores.Select(c => c.name), Is.EqualTo(new[] { "Caixa" }));
+            Assert.That(colisores.Count(c => c.GetComponent<CaixaPegavel>() != null), Is.EqualTo(1));
+            foreach (var colisor in colisores.Where(c => c.GetComponent<CaixaPegavel>() == null))
+                Assert.That(colisor.GetComponentInParent<BotaoDoPainel>(true), Is.Not.Null, colisor.name);
+            Assert.That(Todos<BotaoDoPainel>().Select(b => b.name), Is.EquivalentTo(new[]
+            {
+                "BotaoComecar", "Opcao1", "Opcao2", "Opcao3", "Opcao4", "BotaoProximoDesafio", "BotaoRefazer",
+            }));
         }
 
         [Test]
@@ -293,28 +301,71 @@ namespace LaboratorioParalelepipedo.Testes
         }
 
         [Test]
-        public void PainelDeInstrucoes_DeFrenteParaOAluno_AtrasDaMesa_SemEsconderOTitulo()
+        public void PaineisDosLados_DeFrenteParaOAluno_SemCobrirOTitulo()
         {
-            Transform painel = _cena.GetRootGameObjects().Single(g => g.name == "PainelInstrucoes").transform;
+            Transform instrucoes = _cena.GetRootGameObjects().Single(g => g.name == "PainelInstrucoes").transform;
+            Transform estacao = _cena.GetRootGameObjects().Single(g => g.name == "PainelEstacao").transform;
             Transform titulo = _cena.GetRootGameObjects().Single(g => g.name == "PainelTitulo").transform;
-            var fundo = painel.Find("Fundo");
-            var fundoDoTitulo = titulo.Find("Fundo");
+            float metadeDoTitulo = titulo.Find("Fundo").localScale.x / 2;
 
-            Assert.That(painel.position.x, Is.EqualTo(0f), "bem à frente de quem começa na origem");
-            Assert.That(painel.forward.z, Is.EqualTo(1f).Within(1e-5f), "virado para o aluno");
-            Assert.That(painel.position.z, Is.GreaterThan(1.4f), "atrás da borda de trás da mesa");
-            Assert.That(Todos<TextoDoCatalogo>().Single(t => t.name == ChavesDeTexto.ControlesTitulo).transform.parent,
-                Is.EqualTo(painel));
-            Assert.That(Todos<TextoDoCatalogo>().Single(t => t.name == "Controles").transform.parent, Is.EqualTo(painel));
-
-            // Olhos de um aluno baixo (1,3 m) e de um alto (1,7 m): a linha até a base do título passa acima do painel.
-            float topoDoPainel = painel.position.y + fundo.localScale.y / 2;
-            float baseDoTitulo = titulo.position.y - fundoDoTitulo.localScale.y / 2;
-            foreach (float olhos in new[] { 1.3f, 1.7f })
+            Assert.That(instrucoes.position.x, Is.LessThan(0f), "controles à esquerda");
+            Assert.That(estacao.position.x, Is.GreaterThan(0f), "estação à direita");
+            Assert.That(Todos<TextoDoCatalogo>().Single(t => t.name == "Controles").transform.parent, Is.EqualTo(instrucoes));
+            foreach (Transform painel in new[] { instrucoes, estacao })
             {
-                float alturaNoPainel = olhos + (baseDoTitulo - olhos) * painel.position.z / titulo.position.z;
-                Assert.That(alturaNoPainel, Is.GreaterThan(topoDoPainel), $"olhos a {olhos} m");
+                Vector3 paraOPainel = new Vector3(painel.position.x, 0f, painel.position.z).normalized;
+                Assert.That(Vector3.Dot(painel.forward, paraOPainel), Is.GreaterThan(0.999f), $"{painel.name} virado para a origem");
+                Assert.That(painel.position.z, Is.LessThan(titulo.position.z), painel.name);
+
+                // Vista de cima a partir da origem: a borda de dentro do painel, projetada no plano do título, fica fora dele.
+                float metade = painel.Find("Fundo").localScale.x / 2;
+                Vector3 bordaDeDentro = painel.position - painel.right * metade * Mathf.Sign(painel.position.x);
+                float xNoTitulo = bordaDeDentro.x * titulo.position.z / bordaDeDentro.z;
+                Assert.That(Mathf.Abs(xNoTitulo), Is.GreaterThan(metadeDoTitulo), $"{painel.name} cobre o título");
             }
+        }
+
+        [Test]
+        public void TituloTemBotaoComecar_EEstacaoEscondidaAteComecar()
+        {
+            var estacao = Todos<EstacaoDasDiagonaisNaCena>().Single();
+            var serializado = new SerializedObject(estacao);
+            var comecar = (BotaoDoPainel)serializado.FindProperty("_comecar").objectReferenceValue;
+
+            Assert.That(comecar.name, Is.EqualTo("BotaoComecar"));
+            Assert.That(comecar.transform.parent.name, Is.EqualTo("PainelTitulo"));
+            Assert.That(((GameObject)serializado.FindProperty("_painelDaEstacao").objectReferenceValue).activeSelf, Is.False);
+            Assert.That(serializado.FindProperty("_dados").objectReferenceValue, Is.Not.Null);
+            Assert.That(serializado.FindProperty("_desenho").objectReferenceValue, Is.EqualTo(Todos<DesenhoDasDiagonais>().Single()));
+            Assert.That(serializado.FindProperty("_opcoes").arraySize, Is.EqualTo(4));
+            Assert.That(Todos<VibracaoDoAcerto>().Single().gameObject.name, Is.EqualTo("OVRCameraRig"));
+        }
+
+        [Test]
+        public void DiagnosticoEscondido_AbertoPeloAtalhoDosAnalogicos()
+        {
+            var painel = Todos<PainelDeDiagnostico>().Single();
+            var conteudo = (GameObject)new SerializedObject(painel).FindProperty("_conteudo").objectReferenceValue;
+
+            Assert.That(conteudo.activeSelf, Is.False, "só o professor abre");
+            Assert.That(Todos<AtalhoDoDiagnostico>().Single().gameObject.name, Is.EqualTo("OVRCameraRig"));
+        }
+
+        [Test]
+        public void RotulosDaCaixa_AparecemAtravesDasFaces_ECobertosPelaTelaEscura()
+        {
+            var visual = Todos<VisualDaCaixa>().Single();
+            Material rotulo = visual.MaterialDoRotulo;
+            Material face = (Material)new SerializedObject(visual).FindProperty("_materialDaFace").objectReferenceValue;
+            Material escura = ((Renderer)new SerializedObject(Todos<TelaEscura>().Single()).FindProperty("_esfera")
+                .objectReferenceValue).sharedMaterial;
+
+            Assert.That(rotulo, Is.Not.Null);
+            Assert.That(rotulo.shader.name, Does.Contain("Overlay"));
+            Assert.That(rotulo.renderQueue, Is.GreaterThan(face.renderQueue), "as faces não desbotam os rótulos");
+            Assert.That(escura.renderQueue, Is.GreaterThan(rotulo.renderQueue), "na recentralização, tudo some");
+            foreach (var texto in visual.GetComponentsInChildren<TMPro.TextMeshPro>(true))
+                Assert.That(texto.fontSharedMaterial, Is.EqualTo(rotulo), texto.name);
         }
 
         [Test]
