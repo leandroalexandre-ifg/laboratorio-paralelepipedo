@@ -38,6 +38,9 @@ namespace LaboratorioParalelepipedo.Apresentacao
         [SerializeField] private float _afastamentoDoRotulo = 0.05f;
 
         private readonly List<Mesh> _malhasCriadas = new List<Mesh>();
+        // Esferas da caixa atual, por nome. Não se procura pelo nome na hierarquia: rodando, o Destroy só apaga no fim
+        // do quadro, e a busca achava a esfera da caixa anterior (que sumia logo depois, levando o alvo do gatilho).
+        private readonly Dictionary<string, Transform> _vertices = new Dictionary<string, Transform>(8);
         private IPrisma _prisma;
         private float _metrosPorUnidade;
         private Vector3 _centroDaBase;
@@ -98,7 +101,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
             Vector3 centro = Vector3.up * (float)(prisma.Altura * _metrosPorUnidade / 2);
             foreach (var vertice in prisma.Vertices)
             {
-                CriarVertice(vertices, vertice);
+                _vertices[vertice.Nome] = CriarVertice(vertices, vertice);
                 CriarRotulo(rotulos, vertice, centro);
             }
         }
@@ -154,11 +157,12 @@ namespace LaboratorioParalelepipedo.Apresentacao
             CriarMalha(grupo, $"Face {face.Nome}", malha, _materialDaFace);
         }
 
-        private void CriarVertice(Transform grupo, Vertice vertice)
+        private Transform CriarVertice(Transform grupo, Vertice vertice)
         {
             var objeto = CriarMalha(grupo, $"Vertice {vertice.Nome}", MalhaEmbutida("Sphere.fbx"), _materialDoVertice);
             objeto.transform.localPosition = PosicaoNaCena(vertice.Posicao);
             objeto.transform.localScale = Vector3.one * _diametroDoVertice;
+            return objeto.transform;
         }
 
         private void CriarRotulo(Transform grupo, Vertice vertice, Vector3 centro)
@@ -188,7 +192,12 @@ namespace LaboratorioParalelepipedo.Apresentacao
         }
 
         /// <summary>Esfera do vértice com o nome dado (A a H), ou nula.</summary>
-        public Transform Vertice(string nome) => transform.Find($"{GrupoVertices}/Vertice {nome}");
+        public Transform Vertice(string nome)
+        {
+            if (_vertices.TryGetValue(nome, out Transform esfera) && esfera != null) return esfera;
+            // Caixa salva na cena e ainda não reconstruída nesta execução: só a desenhada pelo gerador existe.
+            return _vertices.Count == 0 ? transform.Find($"{GrupoVertices}/Vertice {nome}") : null;
+        }
 
         /// <summary>Diâmetro da esfera de cada vértice, em metros.</summary>
         public float DiametroDoVertice => _diametroDoVertice;
@@ -216,6 +225,7 @@ namespace LaboratorioParalelepipedo.Apresentacao
 
         private void Limpar()
         {
+            _vertices.Clear();
             for (int i = transform.childCount - 1; i >= 0; i--) Destruir(transform.GetChild(i).gameObject);
             LiberarMalhas();
         }
@@ -226,10 +236,25 @@ namespace LaboratorioParalelepipedo.Apresentacao
             _malhasCriadas.Clear();
         }
 
-        private static void Destruir(Object objeto)
+        /// <summary>
+        /// Rodando, o Destroy só age no fim do quadro: o objeto sai da hierarquia e se esconde já, para nada no mesmo
+        /// quadro (buscas, colisores, raio) o confundir com a caixa nova.
+        /// </summary>
+        internal static void Destruir(Object objeto)
         {
-            if (Application.isPlaying) Destroy(objeto);
-            else DestroyImmediate(objeto);
+            if (objeto == null) return;
+            if (!Application.isPlaying)
+            {
+                DestroyImmediate(objeto);
+                return;
+            }
+
+            if (objeto is GameObject jogo)
+            {
+                jogo.SetActive(false);
+                jogo.transform.SetParent(null, false);
+            }
+            Destroy(objeto);
         }
 
         private static Mesh MalhaEmbutida(string nome) => Resources.GetBuiltinResource<Mesh>(nome);

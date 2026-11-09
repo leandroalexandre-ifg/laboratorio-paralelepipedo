@@ -292,11 +292,6 @@ namespace LaboratorioParalelepipedo.Apresentacao
             return tmp;
         }
 
-        private static void Destruir(Object objeto)
-        {
-            if (objeto == null) return;
-            if (Application.isPlaying) Object.Destroy(objeto);
-            else Object.DestroyImmediate(objeto);
-        }
+        private static void Destruir(Object objeto) => VisualDaCaixa.Destruir(objeto);
     }
 }
